@@ -1,0 +1,33 @@
+{
+ "job": "v03",
+ "commit": "b779b4028c0aec172d610e59ac7c14edec14025c",
+ "started": "2026-10-28T20:21:08+00:00",
+ "finished": "2026-10-28T20:44:31+00:00",
+ "machine": {
+  "host": "TheBEAST",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_threads": 16,
+  "ram_gb": 15.2,
+  "python": "3.12.3"
+ },
+ "steps": {
+  "harden-championship-6p": 470,
+  "trade-curve-championship": 83,
+  "championship-basics": 95,
+  "revalidate-standard-2-5p": 78,
+  "meta-vs-simple-championship": 83,
+  "property-trades-meta": 586,
+  "dashboard-data": 5,
+  "figures": 3
+ },
+ "commands": {
+  "harden-championship-6p": "scripts/05b_refine_meta.py --mode championship 6",
+  "trade-curve-championship": "scripts/06_meta_trade_curve.py --mode championship",
+  "championship-basics": "scripts/07_championship_basics.py",
+  "revalidate-standard-2-5p": "scripts/05b_refine_meta.py --mode standard --revalidate 2 3 4 5",
+  "meta-vs-simple-championship": "scripts/09_meta_vs_simple.py --mode championship",
+  "property-trades-meta": "scripts/10_property_trades.py --bots meta",
+  "dashboard-data": "scripts/08_dashboard_data.py",
+  "figures": "scripts/make_figures.py"
+ }
+}

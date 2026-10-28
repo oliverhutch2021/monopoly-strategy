@@ -98,5 +98,30 @@
     "take_chance": true,
     "trades": true,
     "accept_trades": false
+  },
+  "6": {
+    "reserve": 0.0,
+    "build_reserve": 0.0,
+    "bid_frac": 1.5542494602795942,
+    "set_bonus": 2.7915711118997093,
+    "block_bonus": 1.697291752927107,
+    "offer_mult": 2.9939025549863594,
+    "ask_mult": 2.2669456097168923,
+    "w_brown": 0.8212435684039768,
+    "w_light_blue": 0.980291969963064,
+    "w_pink": 2.0,
+    "w_orange": 0.7812963161985818,
+    "w_red": 1.9829773266341635,
+    "w_yellow": 1.8705878297500926,
+    "w_green": 1.2004200572405812,
+    "w_dark_blue": 2.0,
+    "w_stations": 1.2347990173803598,
+    "w_utilities": 0.49249918887567656,
+    "build_cap": 3,
+    "max_level": 5,
+    "jail": "adaptive",
+    "take_chance": true,
+    "trades": true,
+    "accept_trades": false
   }
 }
