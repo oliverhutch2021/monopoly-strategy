@@ -18,7 +18,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .engine import BANK, HOTEL, T_STREET
+from .engine import BANK, HOTEL, T_CC, T_CHANCE, T_GOTOJAIL, T_STATION, T_STREET, T_TAX, T_UTILITY
+
+DICE_2D6 = tuple((d, (6 - abs(d - 7)) / 36) for d in range(2, 13))  # (total, probability)
 
 
 class Policy:
@@ -122,12 +124,15 @@ def destination_score(g, p, sq, policy=None) -> float:
     return 0.1  # free parking, just visiting, chance / community chest
 
 
-def default_liquidation(g, p, target) -> None:
+def default_liquidation(g, p, target, houses_last: bool = False) -> None:
     """Raise cash up to `target` doing the least damage first.
 
     1. mortgage properties that are not part of a complete street set (cheapest first)
     2. sell buildings, choosing the sale that loses least rent per pound raised
     3. mortgage what is left (cheapest first)
+
+    houses_last mortgages everything it can before selling any building, so houses stay off the
+    bank's shelf (the housing lock).
     """
     s, ed = g.s, g.ed
     mine = [sq for sq in ed.ownable if s.owner[sq] == p]
@@ -139,6 +144,12 @@ def default_liquidation(g, p, target) -> None:
         if s.cash[p] >= target:
             return
         g.mortgage(p, sq)
+
+    if houses_last:
+        for sq in sorted(mine, key=lambda x: ed.price[x]):
+            if s.cash[p] >= target:
+                return
+            g.mortgage(p, sq)
 
     while s.cash[p] < target:
         best, best_score = None, None
@@ -168,6 +179,110 @@ def opponents_built(g, p) -> int:
 def unowned_count(g) -> int:
     s = g.s
     return sum(1 for sq in g.ed.ownable if s.owner[sq] == BANK)
+
+
+# ---------------------------------------------------------------------- helpers for the v0.4 moves
+def landing_cost(g, p, sq, dice: int = 7) -> int:
+    """What landing on sq would cost p right now: a rival's rent or a tax (cards and buying ignored)."""
+    s = g.s
+    t = g.types[sq]
+    if t == T_STREET or t == T_STATION or t == T_UTILITY:
+        o = s.owner[sq]
+        if o != BANK and o != p and not s.mortgaged[sq]:
+            return g.rent_due(sq, dice=dice)
+        return 0
+    return g.ed.tax[sq] if t == T_TAX else 0
+
+
+def expected_exposure(g, p, frm: int) -> float:
+    """Expected cost to p of one ordinary roll of two dice from square `frm`."""
+    n = g.n_sq
+    return sum(pr * landing_cost(g, p, (frm + d) % n, d) for d, pr in DICE_2D6)
+
+
+def leader(g) -> int:
+    """The player still in the game with the highest net worth (ties: lowest seat)."""
+    s = g.s
+    return max((q for q in range(s.n_players) if s.alive[q]), key=lambda q: (g.net_worth(q), -q))
+
+
+def jail_value(g, p) -> float:
+    """Rough cash value to p of being sent to jail now: a lost fine early, a safe haven late."""
+    if unowned_count(g) > 6:
+        return -g.ed.jail_fine
+    return expected_exposure(g, p, g.ed.jail_square)
+
+
+def square_value(g, p, sq: int) -> float:
+    """Rough cash value to p of landing on sq (unowned property counts as neutral)."""
+    if g.types[sq] == T_GOTOJAIL:
+        return jail_value(g, p)
+    return -landing_cost(g, p, sq)
+
+
+def card_value(g, p, card) -> float:
+    """Rough cash value to p of drawing `card` now."""
+    s, ed = g.s, g.ed
+    a = card.action
+    if a == "collect":
+        return card.amount
+    if a in ("pay", "fine_or_chance"):
+        return -card.amount
+    if a == "birthday":
+        return card.amount * (sum(s.alive) - 1)
+    if a == "repairs":
+        houses, hotels = g.count_buildings(p)
+        return -(houses * card.house + hotels * card.hotel)
+    if a == "goojf":
+        return ed.jail_fine
+    if a == "jail":
+        return jail_value(g, p)
+    if a == "advance":
+        return (ed.go_salary if card.to <= s.pos[p] else 0) + square_value(g, p, card.to)
+    if a == "back":
+        return square_value(g, p, (s.pos[p] - card.n) % g.n_sq)
+    if a == "back_to":
+        return square_value(g, p, card.to)
+    return 0.0
+
+
+def next_card_values(g, p, deck: str) -> list[float]:
+    """Values to p of the cards that could come next from `deck`, for a player who remembers every draw.
+
+    Under the official rules a used card goes to the bottom, so everything drawn since the game began
+    sits at the bottom in the order it was drawn, and the cards never drawn sit on top in an unknown
+    order. A held Get Out of Jail Free card is out of the deck. So the next card is one of the
+    never-drawn cards (all equally likely; which ones they are is known by elimination), or, once every
+    card has been seen, exactly known. Only public information is used: how many cards have been drawn
+    (Game.draws), who holds a Get Out of Jail Free card, and which cards those draws showed. With the
+    'random' house rule (drawing with replacement) nothing can be remembered and every card is possible.
+    """
+    s, ed = g.s, g.ed
+    dq = s.chance if deck == "chance" else s.cc
+    cards = ed.chance if deck == "chance" else ed.community_chest
+    if g.rules.card_draw != "deck":
+        return [card_value(g, p, cards[i]) for i in dq]
+    held = sum(h.count(deck) for h in s.goojf)
+    seen = max(0, min(len(dq), min(g.draws[deck], len(cards)) - held))
+    unseen = len(dq) - seen
+    if unseen:
+        return [card_value(g, p, cards[dq[i]]) for i in range(unseen)]  # the set, not its order
+    return [card_value(g, p, cards[dq[0]])]
+
+
+def can_build_ignoring_cash(g, p, sq) -> bool:
+    """Engine.can_build without the 'can afford it' check (used to plan raising the money)."""
+    s, ed = g.s, g.ed
+    if g.types[sq] != T_STREET or s.owner[sq] != p:
+        return False
+    gi = ed.group_of[sq]
+    sqs = ed.group_squares[gi]
+    lv = s.level[sq]
+    if lv >= HOTEL or not g.owns_group(p, gi) or any(s.mortgaged[x] for x in sqs):
+        return False
+    if lv != min(s.level[x] for x in sqs):
+        return False
+    return s.bank_hotels > 0 if lv == 4 else s.bank_houses > 0
 
 
 # ---------------------------------------------------------------------- heuristic bot

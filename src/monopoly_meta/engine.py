@@ -40,6 +40,23 @@ CHAMPIONSHIP_POINTS = {
     6: [13, 6, 3, 2, 1, 0],   # extrapolated
 }
 
+# Behaviour counters kept per player when Game(track_stats=True). "Per turn" fields are summed at the
+# end of each of the player's own turns, so dividing by "turns" gives an average over the game.
+STAT_FIELDS = (
+    "turns",        # own turns completed while still in the game
+    "cash",         # cash held (per turn)
+    "bought",       # properties bought at the printed price
+    "auction_won",  # properties won at auction (including bankruptcy auctions)
+    "trades",       # trades completed, on either side
+    "levels",       # building levels owned, a hotel counting 5 (per turn)
+    "hotels",       # squares with a hotel (per turn)
+    "built",        # squares with any building (per turn)
+    "jail",         # own turns that started in jail
+    "mortgaged",    # mortgaged properties owned (per turn)
+)
+(ST_TURNS, ST_CASH, ST_BOUGHT, ST_AUCTION, ST_TRADES, ST_LEVELS, ST_HOTELS, ST_BUILT, ST_JAIL,
+ ST_MORTGAGED) = range(len(STAT_FIELDS))
+
 # integer square-type codes (faster than string comparison in the hot loop)
 T_GO, T_STREET, T_STATION, T_UTILITY, T_CHANCE, T_CC, T_TAX, T_JAIL, T_FREE, T_GOTOJAIL = range(10)
 _TYPE_CODE = {
@@ -170,7 +187,7 @@ class Game:
     def __init__(self, policies, edition: Edition | None = None, rules: Rules | None = None,
                  seed: int | None = None, state: GameState | None = None,
                  track_landings: bool = False, reshuffle_decks: bool = False,
-                 frozen_squares=()):
+                 frozen_squares=(), track_stats: bool = False):
         self.ed = ed = edition or load_edition()
         self.rules = rules or Rules()
         self.policies = list(policies)
@@ -201,6 +218,11 @@ class Game:
         self.uneven_events = 0  # hotel broken during a house shortage (see RULES.md)
         # squares that may not be traded (used to define "keep it" baselines in rollouts)
         self.frozen = frozenset(frozen_squares)
+        # cards drawn from each deck since this Game started: public information, so a player with a
+        # perfect memory knows the order of everything drawn so far (policies.next_card_values)
+        self.draws = {"chance": 0, "cc": 0}
+        # optional per-player behaviour counters (STAT_FIELDS), for describing playing styles
+        self.stats = [[0] * len(STAT_FIELDS) for _ in self.policies] if track_stats else None
 
     # ------------------------------------------------------------------ main loop
     def play(self) -> GameResult:
@@ -218,13 +240,31 @@ class Game:
             r = self.speed_rngs[p].random
             self._turn_speed = [SPEED_FACES[int(r() * 6)] for _ in range(SPEED_PER_TURN)]
             self._speed_idx = 0
+        if self.stats is not None and s.in_jail[p]:
+            self.stats[p][ST_JAIL] += 1
         if s.in_jail[p]:
             self._jail_turn(p)
         else:
             self._roll_and_move(p)
         if s.alive[p] and not self.done:
             self.policies[p].manage(self, p)
+        if self.stats is not None and s.alive[p]:
+            self._record_turn(p)
         self._end_turn()
+
+    def _record_turn(self, p: int) -> None:
+        s, st = self.s, self.stats[p]
+        st[ST_TURNS] += 1
+        st[ST_CASH] += s.cash[p]
+        for sq in self.ed.ownable:
+            if s.owner[sq] == p:
+                lv = s.level[sq]
+                if lv:
+                    st[ST_LEVELS] += lv
+                    st[ST_BUILT] += 1
+                    st[ST_HOTELS] += lv == HOTEL
+                elif s.mortgaged[sq]:
+                    st[ST_MORTGAGED] += 1
 
     def roll(self) -> tuple[int, int]:
         i = self._die_idx
@@ -395,6 +435,8 @@ class Game:
         if s.cash[p] >= price and self.policies[p].buy(self, p, sq):
             s.cash[p] -= price
             s.owner[sq] = p
+            if self.stats is not None:
+                self.stats[p][ST_BOUGHT] += 1
         elif self.rules.auctions:
             self.auction(sq)
 
@@ -425,10 +467,14 @@ class Game:
             best = max(alive, key=lambda q: s.cash[q])
             s.cash[best] -= self.rules.min_bid
             s.owner[sq] = best
+            if self.stats is not None:
+                self.stats[best][ST_AUCTION] += 1
             return best, self.rules.min_bid
         price = max(self.rules.min_bid, min(best_bid, second + 1))
         s.cash[best] -= price
         s.owner[sq] = best
+        if self.stats is not None:
+            self.stats[best][ST_AUCTION] += 1
         return best, price
 
     # ------------------------------------------------------------------ cards
@@ -442,6 +488,7 @@ class Game:
         s, ed = self.s, self.ed
         dq = s.chance if deck == "chance" else s.cc
         cards = ed.chance if deck == "chance" else ed.community_chest
+        self.draws[deck] += 1
         if self.rules.card_draw == "random":
             # true sampling with replacement: the deck never changes (a drawn
             # Get-out-of-Jail-free card is handed out as a copy). Matches the Markov model.
@@ -704,6 +751,9 @@ class Game:
         if not self.trade_is_valid(a, b, a_gives, b_gives, cash_a_to_b):
             return False
         s = self.s
+        if self.stats is not None:
+            self.stats[a][ST_TRADES] += 1
+            self.stats[b][ST_TRADES] += 1
         s.cash[a] -= cash_a_to_b
         s.cash[b] += cash_a_to_b
         for sq in a_gives:
