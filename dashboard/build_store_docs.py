@@ -97,4 +97,4 @@ for x in writes:
     if x["collection"] == "dash" and f"dash/{x['doc_id']}" in versions:
         x["if_version"] = versions[f"dash/{x['doc_id']}"]
 (HERE / "writes.json").write_text(json.dumps(writes, indent=1, ensure_ascii=False))
-print(len(writes), "writes;", len(page) // 1024, "KB page")
+print(len(writes), "writes;", (HERE / "index.html").stat().st_size // 1024, "KB page")
