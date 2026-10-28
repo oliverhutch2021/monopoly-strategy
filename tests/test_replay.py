@@ -130,3 +130,14 @@ def test_buy_value_reports_a_paired_comparison():
     assert v == {**buy_value(lineup, rules, d["state"], d["p"], d["sq"], n=12, seed=3), "cpu_seconds": v["cpu_seconds"]}
     short = buy_value(lineup, rules, d["state"], d["p"], d["sq"], n=500, seed=3, budget_s=0.0, n_min=4)
     assert short["n"] == 4
+
+
+def test_piece_artwork_is_complete():
+    from PIL import Image
+    folder = Path(__file__).resolve().parents[1] / "watch" / "pieces"
+    pieces = json.loads((folder / "pieces.json").read_text())
+    assert [x["name"] for x in pieces[:6]] == ["Top hat", "Racing car", "Scottie dog", "Boot", "Thimble", "Iron"]
+    for x in pieces:
+        im = Image.open(folder / f"{x['slug']}.png")
+        assert im.mode == "RGBA" and im.size == (x["w"], x["h"])
+        assert im.getpixel((0, 0))[3] == 0 and im.getpixel((x["w"] - 1, x["h"] - 1))[3] == 0  # cut out cleanly

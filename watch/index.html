@@ -102,7 +102,9 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
 .tok { background: #fff; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
   box-shadow: inset 0 0 0 2px var(--line); grid-row: span 2; align-self: center; }
 .who { white-space: nowrap; }
-.who svg { vertical-align: -3px; margin-right: 2px; }
+.who img, .who .pdisc { vertical-align: -3px; margin-right: 3px; }
+.pimg { object-fit: contain; }
+.pdisc { display: inline-grid; place-items: center; width: 1.2em; height: 1.2em; border-radius: 50%; color: #fff; font-size: 10px; }
 .deed { border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
 .deed .band { padding: 6px 10px 7px; color: #fff; font-family: var(--display); }
 .deed .band small { display: block; font-size: 10px; letter-spacing: .14em; opacity: .85; }
@@ -130,10 +132,6 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <linearGradient id="metalBase" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#f7f9fa"/><stop offset="1" stop-color="#d9dfe4"/></linearGradient>
-</defs></svg>
 <header>
   <div class="brand">MONOPOLY <span>META</span></div>
   <div id="live" class="pill"><span class="dot"></span><span id="liveText">connecting…</span></div>
@@ -196,105 +194,39 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
     </section>
   </div>
 </div>
-<footer>Monopoly Meta is a student project, not affiliated with or endorsed by Hasbro; the board artwork here is the project's own.
+<footer>Monopoly Meta is a student project, not affiliated with or endorsed by Hasbro; the board artwork here is the project's own and the
+pieces are Oliver Hutchinson's.
 Each game is replayed from your PC's run with the same code, seed and players. Win chances come from quick playouts of the position
 and are rough (±8 points or so).</footer>
 <script>
 'use strict';
 const NS = 'http://www.w3.org/2000/svg';
 const C = 134, N = 40, W = (1000 - 2 * C) / 9, BAND = 27;
-const PCOL = ['#e23d3d', '#2f6fde', '#1f9d5a', '#f0a500', '#8e44ad', '#ff7a1a'];
+const PCOL = ['#e5302d', '#2448d8', '#1d9e3c', '#d9a300', '#7b3fe0', '#f2651c', '#0fa9cf', '#df2a85'];
 const ODDS_PLAYOUTS = 64;
-// The players' pieces: the classic six (top hat, racing car, Scottie dog, battleship, boot, thimble), drawn as one
-// consistent icon set: flat side or front views on a shared baseline, one line weight, the same three metal tones
-// and a highlight from the top left, and a ring in a light tint of the player's colour.
-// Designed on a 48-unit grid (baseline y = 18). Part kinds, drawn in this order:
-//   sil    silhouette: light metal, outlined, and ringed in the player's colour
-//   shade  mid-tone metal inside the silhouette (the side away from the light)
-//   deep   dark metal with an outline (bands, tyres, soles); also ringed
-//   cap    light metal with an outline, on top of the deep parts (hubs)
-//   line   interior lines;  dot  small dark dots;  hi  white highlights
-const P_INK = '#3f474f', P_MID = '#c3cad1', P_DEEP = '#8a939c', P_LINE = 1.4;
-const PIECES = [
-  { name: 'Top hat', parts: [
-    ['sil', 'path', { d: 'M-10.5 -16 H10.5 Q11.2 -16 11.1 -15.2 L10 12.5 H-10 L-11.1 -15.2 Q-11.2 -16 -10.5 -16 Z' }],
-    ['sil', 'path', { d: 'M-18 14 Q-18 11.4 -15 12.3 Q-12.5 13.1 -10 13.1 H10 Q12.5 13.1 15 12.3 Q18 11.4 18 14 Q18 18 12 18 H-12 Q-18 18 -18 14 Z' }],
-    ['shade', 'path', { d: 'M4 -15.3 H11 L10.3 5 H3.6 Z' }],
-    ['shade', 'path', { d: 'M-17.4 15.8 Q-15.6 18 -12 18 H12 Q15.6 18 17.4 15.8 Z' }],
-    ['deep', 'path', { d: 'M-10.3 5 H10.3 L10 12.5 H-10 Z' }],
-    ['hi', 'path', { d: 'M-6 -12.5 V1' }]] },
-  { name: 'Racing car', parts: [
-    ['sil', 'path', { d: 'M-21.5 9.5 Q-22.5 4 -17 2.6 L-5.5 1.2 Q-3.5 -5 2.5 -5.6 Q8 -5.8 9.2 -1.2 L18 1.4 Q22.6 2.8 22.4 7.4 L22 9.5 Z' }],
-    ['sil', 'circle', { cx: 2.6, cy: -7.6, r: 3.4 }],
-    ['shade', 'path', { d: 'M-21.4 6.6 H22.3 L22 9.5 H-21.5 Z' }],
-    ['deep', 'circle', { cx: -12, cy: 12.5, r: 5.5 }], ['deep', 'circle', { cx: 13, cy: 12.5, r: 5.5 }],
-    ['cap', 'circle', { cx: -12, cy: 12.5, r: 2.1 }], ['cap', 'circle', { cx: 13, cy: 12.5, r: 2.1 }],
-    ['line', 'path', { d: 'M-0.8 -1 Q2.5 -3 6 -1.6' }],
-    ['hi', 'path', { d: 'M-15.5 3.8 H-6' }], ['hi', 'path', { d: 'M11 2.6 L16.5 4', w: 1.5 }]] },
-  { name: 'Scottie dog', parts: [
-    ['sil', 'path', { d: 'M-17 -1 L-20.2 -11.6 Q-20.4 -12.8 -19.3 -12.2 L-14.8 -3.2 H5 L6.6 -10 L8.1 -15.4 L10 -10 L12 -15.4 L13.6 -9.2 L21 -6.2 Q22.6 -5.6 22.1 -3.6 L21.6 -2.2 L17.4 -1.2 L17.2 2.6 L14.6 4.4 L14.2 18 H10 L9.6 8 H-9 L-9.6 18 H-13.8 L-14.2 7.4 Q-18 4 -17 -1 Z' }],
-    ['shade', 'path', { d: 'M-15.6 5.4 H14.4 L14.3 8 H-14.6 Z' }],
-    ['shade', 'path', { d: 'M10.1 8.2 H14.2 L14.2 17.6 H10.1 Z M-13.6 8.2 H-9.4 L-9.6 17.6 H-13.8 Z' }],
-    ['line', 'path', { d: 'M6.4 -2.4 L8.2 3.4', w: 2.2 }],
-    ['dot', 'circle', { cx: 14.6, cy: -5.4, r: 0.95 }],
-    ['hi', 'path', { d: 'M-12.4 -1.6 H2' }]] },
-  { name: 'Battleship', parts: [
-    ['line', 'path', { d: 'M15.6 7.6 L22.6 5.4 M-15.6 7.6 L-22.4 5.4', w: 1.8 }],
-    ['line', 'path', { d: 'M-1 0 V-9.5 M-4.2 -6.4 H2.2', w: 1.5 }],
-    ['sil', 'path', { d: 'M-17 10 V7.6 Q-17 6 -15.2 6 H-12.2 Q-10.5 6 -10.5 7.6 V10 Z M10.6 10 V7.6 Q10.6 6 12.4 6 H15.4 Q17.1 6 17.1 7.6 V10 Z' }],
-    ['sil', 'path', { d: 'M-9 10 V5 H9 V10 Z M-4.2 5 V0 H4.2 V5 Z M5 5 L6 -3.6 H10 L10.6 5 Z' }],
-    ['sil', 'path', { d: 'M-22.6 10 H19.6 L23 7.6 L20 18 H-19 Z' }],
-    ['shade', 'path', { d: 'M-20.4 14.4 H21.1 L20 18 H-19 Z' }],
-    ['shade', 'path', { d: 'M8 -3.6 H10 L10.6 5 H8.4 Z' }],
-    ['dot', 'circle', { cx: -10, cy: 12.4, r: 0.95 }], ['dot', 'circle', { cx: -2, cy: 12.4, r: 0.95 }],
-    ['dot', 'circle', { cx: 6, cy: 12.4, r: 0.95 }],
-    ['hi', 'path', { d: 'M-18.4 11.5 H12' }]] },
-  { name: 'Boot', parts: [
-    ['sil', 'path', { d: 'M-13 -16 H2 L2.8 1 Q9 2.5 15 5 Q19.2 7 19.2 11.5 V14 H-14 V10 Q-14.5 0 -13 -16 Z' }],
-    ['shade', 'path', { d: 'M-14 9.4 Q3 8.8 18.8 9.6 Q19.2 10.6 19.2 11.5 V14 H-14 Z' }],
-    ['deep', 'path', { d: 'M-13.2 -16 H2 L2.2 -12.6 H-13.5 Z' }],
-    ['deep', 'path', { d: 'M-14 14 H19.2 V16.2 Q19.2 18 17.2 18 H-14 Z' }],
-    ['line', 'path', { d: 'M-1.2 -8.2 L3 -7.2 M-0.8 -3.6 L3.4 -2.6 M-0.2 1 L4.6 2.4' }],
-    ['hi', 'path', { d: 'M-9.4 -9.6 V6' }]] },
-  { name: 'Thimble', parts: [
-    ['sil', 'path', { d: 'M-11 14 L-9.5 -6 Q-9.5 -16 0 -16 Q9.5 -16 9.5 -6 L11 14 Z' }],
-    ['shade', 'path', { d: 'M3.6 -15.2 Q9.5 -13.6 9.5 -6 L11 13.4 H4.6 Z' }],
-    ['sil', 'path', { d: 'M-12.4 13 H12.4 Q13.6 13 13.6 14.5 V16.6 Q13.6 18 12 18 H-12 Q-13.6 18 -13.6 16.6 V14.5 Q-13.6 13 -12.4 13 Z' }],
-    ['shade', 'path', { d: 'M-13.4 16 H13.4 Q13.2 18 12 18 H-12 Q-13.2 18 -13.4 16 Z' }],
-    ...[[-11, [-2.4, 2.4]], [-6, [-4.6, 0, 4.6]], [-1, [-6, -2, 2, 6]], [4, [-6.4, -2.1, 2.1, 6.4]], [9, [-6.8, -2.3, 2.3, 6.8]]]
-      .flatMap(([y, xs]) => xs.map(x => ['dot', 'circle', { cx: x, cy: y, r: 0.95 }])),
-    ['hi', 'path', { d: 'M-5.6 -10 Q-6.4 -2 -6.2 8' }]] },
-];
-const PNAME = PIECES.map(x => x.name);
+// The players' pieces: Oliver's artwork (watch/pieces, cut from his sheet by scripts/cut_pieces.py), metal pieces
+// each glowing in its player's colour. Loaded with the board; the first six go to players 1-6.
+let PIECES = [], PNAME = PCOL.map((c, k) => `Player ${k + 1}`);
 const INK = '#1f1b15';
-const tint = (hex, f) => {  // mix a colour with white
-  const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * f));
-  return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
-};
-const PLIGHT = PCOL.map(c => tint(c, 0.3));  // each player's light ring
-const PIECE_SCALE = 1.12;  // the 48-unit design drawn about 40 board units tall
-function drawPiece(parent, p, ring = PLIGHT[p], ringW = 3.4) {
-  const g = el('g', { transform: `scale(${PIECE_SCALE})` }, parent);
-  const parts = PIECES[p % PIECES.length].parts;
-  const each = (kinds, attrs) => parts.filter(x => kinds.includes(x[0]))
-    .forEach(([kind, tag, a]) => { const { w, ...rest } = a; el(tag, { ...rest, ...attrs(kind, w) }, g); });
-  const round = { 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
-  each(['sil', 'deep'], () => ({ fill: ring, stroke: ring, 'stroke-width': P_LINE + 2 * ringW, ...round }));
-  each(['sil'], () => ({ fill: 'url(#metalBase)', stroke: 'none' }));
-  each(['shade'], () => ({ fill: P_MID, stroke: 'none' }));
-  each(['deep'], () => ({ fill: P_DEEP, stroke: P_INK, 'stroke-width': P_LINE, ...round }));
-  each(['sil'], () => ({ fill: 'none', stroke: P_INK, 'stroke-width': P_LINE, ...round }));
-  each(['cap'], () => ({ fill: 'url(#metalBase)', stroke: P_INK, 'stroke-width': P_LINE, ...round }));
-  each(['line'], (k, w) => ({ fill: 'none', stroke: P_INK, 'stroke-width': w || P_LINE, ...round }));
-  each(['dot'], () => ({ fill: P_INK, stroke: 'none' }));
-  each(['hi'], (k, w) => ({ fill: 'none', stroke: '#fff', 'stroke-width': w || 1.9, opacity: .9, ...round }));
+const PIECE_PX = 0.19;  // board units per image pixel: a top hat is about 41 units wide
+function drawPiece(parent, p, { centre = false } = {}) {
+  // on the board a piece stands with its base at y = 21; centre puts its middle at the origin instead
+  const pc = PIECES[p];
+  if (!pc) {  // no artwork: a plain disc with the player's number
+    el('circle', { cx: 0, cy: centre ? 0 : 5, r: 15, fill: PCOL[p], stroke: '#fff', 'stroke-width': 3 }, parent);
+    el('text', { x: 0, y: centre ? 5 : 10, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: '#fff',
+      'font-family': 'system-ui, sans-serif' }, parent).textContent = p + 1;
+    return parent;
+  }
+  const w = pc.w * PIECE_PX, h = pc.h * PIECE_PX;
+  el('image', { href: `/pieces/${pc.slug}.png`, x: -w / 2, y: centre ? -h / 2 : 21 - h, width: w, height: h }, parent);
   return parent;
 }
-function pieceSVG(p, size = 22) {
-  const s = document.createElementNS(NS, 'svg');
-  s.setAttribute('viewBox', '-29 -29 58 58'); s.setAttribute('width', size); s.setAttribute('height', size);
-  drawPiece(s, p);
-  return s.outerHTML;
+function pieceSVG(p, size = 22, inline = false) {  // the piece as a picture in the panels and the play-by-play
+  const pc = PIECES[p];
+  if (!pc) return `<span class="pdisc" style="background:${PCOL[p]}">${p + 1}</span>`;
+  const box = inline ? `height:${size}px;width:auto` : `height:${size}px;width:${size}px`;
+  return `<img class="pimg" src="/pieces/${pc.slug}.png" alt="" style="${box}">`;
 }
 const $ = id => document.getElementById(id);
 const el = (tag, attrs = {}, parent) => {
@@ -464,8 +396,8 @@ function drawSquare(svg, sq) {
   if (sq.price) textLines(g, [money(sq.price)], W / 2, C - 10, 'sq-price');
   // owner's tab outside the board edge: the owner's piece, white on their colour
   node.owner = el('g', { opacity: 0 }, g);
-  el('rect', { x: W / 2 - 15, y: C + 5, width: 30, height: 27, rx: 7, stroke: '#fff', 'stroke-width': 2 }, node.owner);
-  node.ownerPiece = el('g', { transform: `translate(${W / 2},${C + 18.5}) rotate(${[0, 90, 180, -90][r.side] * -1}) scale(.58)` }, node.owner);
+  el('rect', { x: W / 2 - 19, y: C + 5, width: 38, height: 29, rx: 8, fill: '#fff', 'stroke-width': 2.6 }, node.owner);
+  node.ownerPiece = el('g', { transform: `translate(${W / 2},${C + 19.5}) rotate(${[0, 90, 180, -90][r.side] * -1}) scale(.64)` }, node.owner);
   node.veil = el('g', { opacity: 0, 'pointer-events': 'none' }, g);
   el('rect', { x: 0, y: 0, width: W, height: C, fill: '#1f1b15', 'fill-opacity': .28 }, node.veil);
   el('rect', { x: 4, y: C - 40, width: W - 8, height: 16, rx: 3, fill: '#1f1b15' }, node.veil);
@@ -670,9 +602,9 @@ function drawHouses(n, level) {
 function showOwner(n, p) {
   if (n.ownerId === p) return;
   n.ownerId = p;
-  n.owner.firstChild.setAttribute('fill', PCOL[p]);
+  n.owner.firstChild.setAttribute('stroke', PCOL[p]);
   n.ownerPiece.replaceChildren();
-  drawPiece(n.ownerPiece, p, '#fff', 2.6);
+  drawPiece(n.ownerPiece, p, { centre: true });
 }
 function setOwner(sq, p) {
   const k = ownIdx[sq];
@@ -708,7 +640,7 @@ function renderPlayers() {
     if (s.goojf && s.goojf[p]) extras.push(`🎟 ${s.goojf[p]} jail card${s.goojf[p] > 1 ? 's' : ''}`);
     if (s.jail[p] && !out) extras.push('in jail');
     const pct = sm ? (final ? (win ? 1 : 0) : sm.p[p]) : null;
-    row.innerHTML = `<div class="tok" style="box-shadow: inset 0 0 0 2px ${PCOL[p]}">${pieceSVG(p, 25)}</div>
+    row.innerHTML = `<div class="tok" style="box-shadow: inset 0 0 0 2px ${PCOL[p]}">${pieceSVG(p, 27)}</div>
       <div class="name"><span style="color:${PCOL[p]}">${PNAME[p]}</span> <span class="lbl">${esc(pl.label)}</span>${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
       <div class="money">${money(s.cash[p])}</div>
       <div class="detail"><span class="pips">${pips || '<span>no property</span>'}</span>${extras.map(x => `<span>${x}</span>`).join('')}</div>
@@ -780,7 +712,7 @@ function logGrouped(kind, p, turnNo, sq, text) {
   if (!r.squares.includes(sq)) r.squares.push(sq);
   logEvent(text(r.n, r.squares.map(nm).join(', ')), p, turnNo, key);
 }
-const who = p => `<b class="who" style="color:${PCOL[p]}">${pieceSVG(p, 15)}${PNAME[p]}</b>`;
+const who = p => `<b class="who" style="color:${PCOL[p]}">${pieceSVG(p, 17, true)}${PNAME[p]}</b>`;
 const nm = sq => esc(B.squares[sq].name);
 
 // ------------------------------------------------------------------ property decisions
@@ -837,7 +769,7 @@ function showDeed(o) {
   t(`PRICE ${money(o.price)}`, X + 20, Y + 92, 16, INK, 'big', 'start');
   t(`${PNAME[o.p]} · ${money(o.cash)} cash`, X + Wd - 20, Y + 92, 14, PCOL[o.p], 'big', 'end');
   const nameW = g.lastChild.getComputedTextLength ? g.lastChild.getComputedTextLength() : 120;
-  drawPiece(el('g', { transform: `translate(${X + Wd - 20 - nameW - 14},${Y + 86}) scale(.62)` }, g), o.p);
+  drawPiece(el('g', { transform: `translate(${X + Wd - 20 - nameW - 18},${Y + 86}) scale(.6)` }, g), o.p, { centre: true });
   el('line', { x1: X + 16, y1: Y + 108, x2: X + Wd - 16, y2: Y + 108, stroke: '#e3dccb', 'stroke-width': 1.5 }, g);
   if (!v) {
     t(`WORKING OUT WHAT IT'S WORTH TO ${PNAME[o.p].toUpperCase()}…`, X + Wd / 2, Y + 168, 14, '#6d665a', 'hud-small');
@@ -909,7 +841,7 @@ function renderDecision(o) {
 function renderDecisions() {
   const rows = decisions.slice(0, 8).map(o => {
     const sq = B.squares[o.sq], band = bandOf(sq), v = o.value, vd = v ? verdict(v) : null, call = botCall(o);
-    return `<tr><td><span class="sw" style="background:${band.colour}"></span>${esc(sq.name)}</td><td>${pieceSVG(o.p, 15)}</td>
+    return `<tr><td><span class="sw" style="background:${band.colour}"></span>${esc(sq.name)}</td><td>${pieceSVG(o.p, 16, true)}</td>
       <td class="num">${money(o.price)}</td>
       <td class="num" style="color:${vd ? vd.colour : 'inherit'}">${v ? '≈ ' + money(v.value) : '…'}</td>
       <td>${o.bought ? 'bought' : 'passed'} ${call.mark}</td></tr>`;
@@ -1200,6 +1132,8 @@ function buildToolbar() {
 // ------------------------------------------------------------------ start
 async function main() {
   B = await (await fetch('/api/board')).json();
+  PIECES = B.pieces || [];
+  PNAME = PCOL.map((c, k) => PIECES[k] ? PIECES[k].name : `Player ${k + 1}`);
   B.ownable.forEach((sq, k) => { ownIdx[sq] = k; });
   const groups = {};
   B.squares.forEach(sq => { if (sq.type === 'street') (groups[sq.group] = groups[sq.group] || []).push(sq.i); });
@@ -1215,10 +1149,10 @@ async function main() {
   hud.deed = el('g', { opacity: 0, 'pointer-events': 'none' }, svg);
   if (URLP.has('gallery')) {  // ?gallery: the six pieces, large, for checking how they look
     PIECES.forEach((pc, k) => {
-      const x = 270 + (k % 3) * 230, y = 330 + Math.floor(k / 3) * 300, z = 3.2;
-      el('ellipse', { cx: x, cy: y + 20.5 * z, rx: 17 * z, ry: 4 * z, fill: '#000', 'fill-opacity': .22 }, svg);
+      const x = 230 + (k % 4) * 180, y = 330 + Math.floor(k / 4) * 300, z = 2.6;
+      el('ellipse', { cx: x, cy: y + 20.5 * z, rx: 15 * z, ry: 3.5 * z, fill: '#000', 'fill-opacity': .2 }, svg);
       drawPiece(el('g', { transform: `translate(${x},${y}) scale(${z})` }, svg), k);
-      el('text', { x, y: y + 34 * z, 'text-anchor': 'middle', class: 'big', 'font-size': 22, fill: PCOL[k] }, svg).textContent = pc.name;
+      el('text', { x, y: y + 34 * z, 'text-anchor': 'middle', class: 'big', 'font-size': 20, fill: PCOL[k] }, svg).textContent = pc.name;
     });
     return;
   }

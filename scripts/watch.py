@@ -37,6 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WATCH = ROOT / ".sync" / "watch"
 LOGS = ROOT / ".sync" / "logs"
 PAGE = ROOT / "watch" / "index.html"
+PIECES = ROOT / "watch" / "pieces"  # the players' pieces (scripts/cut_pieces.py)
 THEME = ROOT / "dashboard" / "theme.css"
 
 GROUP_COLOURS = {  # the dashboard's board colours (dashboard/theme.src.css)
@@ -58,8 +59,12 @@ def board() -> dict:
             if ed.types[i] == "street":
                 sq["rent"] = ed.rent[i]
         squares.append(sq)
+    try:
+        pieces = json.loads((PIECES / "pieces.json").read_text())
+    except (OSError, ValueError):
+        pieces = []
     return {"squares": squares, "ownable": ed.ownable, "go_salary": ed.go_salary, "jail": ed.jail_square,
-            "jail_fine": ed.jail_fine, "start_cash": ed.start_cash}
+            "jail_fine": ed.jail_fine, "start_cash": ed.start_cash, "pieces": pieces}
 
 
 # ---------------------------------------------------------------------- games
@@ -307,11 +312,11 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # keep the terminal quiet
         pass
 
-    def send(self, body, ctype="application/json", code=200):
+    def send(self, body, ctype="application/json", code=200, cache=False):
         data = body if isinstance(body, bytes) else (body if isinstance(body, str) else json.dumps(body)).encode()
         self.send_response(code)
-        self.send_header("Content-Type", ctype + "; charset=utf-8")
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Type", ctype if ctype.startswith("image/") else ctype + "; charset=utf-8")
+        self.send_header("Cache-Control", "max-age=3600" if cache else "no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -323,6 +328,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.send(PAGE.read_bytes(), "text/html")
             elif url.path == "/fonts.css":
                 self.send(fonts_css(), "text/css")
+            elif url.path.startswith("/pieces/") and re.fullmatch(r"[a-z-]+\.png", url.path[8:]) \
+                    and (PIECES / url.path[8:]).exists():
+                self.send((PIECES / url.path[8:]).read_bytes(), "image/png", cache=True)
             elif url.path == "/api/board":
                 self.send(board())
             elif url.path == "/api/status":

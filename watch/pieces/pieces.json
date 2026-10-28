@@ -1,0 +1,58 @@
+[
+ {
+  "slug": "top-hat",
+  "name": "Top hat",
+  "w": 216,
+  "h": 164,
+  "glow": "#fc0101"
+ },
+ {
+  "slug": "racing-car",
+  "name": "Racing car",
+  "w": 242,
+  "h": 156,
+  "glow": "#0028fb"
+ },
+ {
+  "slug": "scottie-dog",
+  "name": "Scottie dog",
+  "w": 230,
+  "h": 203,
+  "glow": "#02b703"
+ },
+ {
+  "slug": "boot",
+  "name": "Boot",
+  "w": 185,
+  "h": 190,
+  "glow": "#fcc901"
+ },
+ {
+  "slug": "thimble",
+  "name": "Thimble",
+  "w": 160,
+  "h": 169,
+  "glow": "#7a01fb"
+ },
+ {
+  "slug": "iron",
+  "name": "Iron",
+  "w": 214,
+  "h": 164,
+  "glow": "#fc5b01"
+ },
+ {
+  "slug": "battleship",
+  "name": "Battleship",
+  "w": 236,
+  "h": 166,
+  "glow": "#01d3fb"
+ },
+ {
+  "slug": "wheelbarrow",
+  "name": "Wheelbarrow",
+  "w": 204,
+  "h": 142,
+  "glow": "#fb0289"
+ }
+]
