@@ -27,15 +27,19 @@ header .where { color: #b9c8bd; font-size: 13px; }
 .live .dot { background: #4cd07d; animation: pulse 1.6s infinite; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(76,208,125,.7); } 70% { box-shadow: 0 0 0 9px rgba(76,208,125,0); }
   100% { box-shadow: 0 0 0 0 rgba(76,208,125,0); } }
-.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr) 370px; grid-template-areas: "left centre right";
-  gap: 16px; padding: 0 16px 10px; align-items: start; }
+/* --z (set by fitSides) grows the two side columns, text and all, into the room the board leaves free */
+.layout { display: grid; grid-template-columns: calc(300px * var(--z, 1)) minmax(0, 1fr) calc(370px * var(--z, 1));
+  grid-template-areas: "left centre right"; gap: 16px; padding: 0 16px 10px; align-items: start; }
 .left { grid-area: left; } .centre { grid-area: centre; } .right { grid-area: right; }
-.left, .right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.centre { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
+.left, .right { display: flex; flex-direction: column; gap: 12px; min-width: 0; zoom: var(--z, 1); }
+.centre { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; position: sticky; top: 8px; }
 #board { width: 100%; max-width: calc(100vh - 112px); height: auto; aspect-ratio: 1; display: block;
   filter: drop-shadow(0 14px 30px rgba(0,0,0,.45)); user-select: none; }
 @media (max-width: 1500px) {
   .layout { grid-template-columns: minmax(0, 1fr) 370px; grid-template-rows: auto 1fr; grid-template-areas: "centre right" "left right"; }
+  .left, .right { zoom: 1; }
+  .left { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-items: start; }  /* under the board */
+  .centre { position: static; }
 }
 @media (max-width: 980px) {
   .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "centre" "right" "left"; }
@@ -83,7 +87,28 @@ button.go { background: var(--brick); color: #fff; }
 .odds .bar { height: 7px; border-radius: 4px; background: #ebe4d2; overflow: hidden; }
 .odds .bar i { display: block; height: 100%; border-radius: 4px; transition: width .5s ease; }
 .odds b { font-family: var(--display); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
-#chart { width: 100%; height: auto; display: block; }
+#chart { width: 100%; height: auto; display: block; cursor: crosshair; touch-action: pan-y; user-select: none; }
+.readout { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; min-height: 22px; margin-top: 2px;
+  font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.readout .at { font-weight: 700; color: var(--ink); }
+.readout b { color: var(--ink); }
+.readout .pimg { vertical-align: -3px; margin-right: 2px; }
+.rewind { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.rewind button { font-size: 12px; padding: 4px 10px; }
+.rewind button:disabled { opacity: .4; cursor: default; }
+.rewind .hint { font-size: 11.5px; color: var(--muted); }
+.tph { margin: 12px 0 5px; font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--muted); }
+.tps { display: grid; gap: 4px; }
+.tp { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 1px 8px; width: 100%; text-align: left; padding: 5px 8px;
+  border-radius: 9px; border: 1px solid var(--line); background: #fff; font: 400 11.5px/1.3 var(--body); white-space: normal; }
+.tp:hover { background: #fff7dc; }
+.tp.here { box-shadow: inset 0 0 0 2px var(--ink); }
+.tp .n { grid-row: span 2; width: 20px; height: 20px; border-radius: 50%; color: #fff; display: grid; place-items: center;
+  font: 700 11px var(--body); }
+.tp .sw { font-weight: 700; }
+.tp .sw .pimg { vertical-align: -3px; margin-right: 3px; }
+.tp .what { color: var(--muted); }
 .cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .mini { border-radius: 9px; border: 2px solid; background: #fff; min-height: 86px; overflow: hidden; }
 .mini .hd { font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: .08em; color: #fff; padding: 3px 8px; }
@@ -144,6 +169,14 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
       <div class="steps" id="steps"></div>
       <div class="sub" id="jobName"></div>
     </section>
+    <section class="card" id="chartCard">
+      <h2>Projected winner <small>chance of winning</small></h2>
+      <svg id="chart" viewBox="0 0 340 160" role="img" aria-label="Win chances by turn: click or drag to rewind the game"></svg>
+      <div class="readout" id="chartRead"></div>
+      <div class="rewind" id="rewind"></div>
+      <div id="tpBox"></div>
+      <div class="sub" id="chartNote"></div>
+    </section>
     <section class="card">
       <h2>Play by play</h2>
       <ul id="events"></ul>
@@ -175,11 +208,6 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
       <h2>Property decisions <small>value to the player who landed</small></h2>
       <div id="decision"><div class="sub">When someone lands on an unowned property, this shows what it is worth to them right now.</div></div>
       <table class="decisions" id="decisions"></table>
-    </section>
-    <section class="card" id="chartCard">
-      <h2>Projected winner <small>chance of winning, by turn</small></h2>
-      <svg id="chart" viewBox="0 0 340 150"></svg>
-      <div class="sub" id="chartNote"></div>
     </section>
     <section class="card">
       <h2>Last cards drawn</h2>
@@ -248,6 +276,12 @@ const URLP = new URLSearchParams(location.search);  // ?speed=5&odds=off
 let speed = +URLP.get('speed') || 1, skipping = false, nextNow = false, paused = false;
 let analysisOn = URLP.get('analysis') !== 'off' && URLP.get('odds') !== 'off';  // win chances and property values
 let since = 0, shownTurn = 0, odds = [];
+// Rewinding. atState: the position on the board, as the number of turns played (0 = the start); furthest: the
+// furthest position reached in this game; seekTo: a position asked for (chart, ← →), picked up by playGame;
+// playTo: stop again once this position is reached (replaying one turn); reviewed: the chart has been used
+// in this game, so a pause may fill in the chart's gaps.
+let atState = 0, furthest = 0, seekTo = null, playTo = null, midTurn = false, reviewed = false, hoverTurn = null;
+const idle = ms => new Promise(r => setTimeout(r, ms));
 const sleep = async ms => {
   const end = performance.now() + ms;
   while (performance.now() < end || paused) {
@@ -255,6 +289,15 @@ const sleep = async ms => {
     await new Promise(r => setTimeout(r, Math.min(50, Math.max(1, end - performance.now()))));
   }
 };
+// On a wide screen the side columns grow, text and all, into the room the board leaves: the board is as big
+// as the window's height allows (see #board), and the columns share what's left beside it, up to 1.5x.
+function fitSides() {
+  const W = innerWidth, H = innerHeight;
+  const z = W > 1500 ? Math.min(1.5, Math.max(1, (W - 64 - (H - 112) - 120) / 670)) : 1;
+  document.querySelector('.layout').style.setProperty('--z', z.toFixed(3));
+}
+fitSides();
+addEventListener('resize', fitSides);
 
 // ------------------------------------------------------------------ geometry
 function rectOf(i) {
@@ -617,16 +660,17 @@ function setOwner(sq, p) {
   n.owner.setAttribute('opacity', p >= 0 ? 1 : 0);
   if (p >= 0) showOwner(n, p);
 }
-function smoothedOdds() {
-  // exponential smoothing over the turns estimated so far (each estimate is ±8 points or so)
-  if (!odds.length) return null;
-  let cur = odds[0].p.slice(), none = odds[0].none;
-  for (const o of odds.slice(1)) { cur = cur.map((v, k) => 0.5 * v + 0.5 * o.p[k]); none = 0.5 * none + 0.5 * o.none; }
+function smoothedOdds(upTo = Infinity) {
+  // exponential smoothing over the turns estimated up to the position shown (each estimate is ±8 points or so)
+  const os = odds.filter(o => o.turn <= upTo);
+  if (!os.length) return null;
+  let cur = os[0].p.slice(), none = os[0].none;
+  for (const o of os.slice(1)) { cur = cur.map((v, k) => 0.5 * v + 0.5 * o.p[k]); none = 0.5 * none + 0.5 * o.none; }
   return { p: cur, none };
 }
 function renderPlayers() {
   if (!game || !state) return;
-  const box = $('players'), s = state, sm = analysisOn ? smoothedOdds() : null;
+  const box = $('players'), s = state, sm = analysisOn ? smoothedOdds(atState) : null;
   const final = s.winner != null;
   box.replaceChildren();
   game.players.forEach((pl, p) => {
@@ -657,23 +701,16 @@ function renderBank() {
   if (!state) return;
   $('bank').innerHTML = `Bank: <b>${state.bank_houses}</b> houses<br><b>${state.bank_hotels}</b> hotels`;
 }
-function renderChart() {
-  const svg = $('chart'); svg.replaceChildren();
-  const w = 340, h = 150, L = 28, R = 8, T = 8, Bm = 20;
-  const total = Math.max(game ? game.log.turns.length : 1, 1);
-  const x = t => L + (w - L - R) * t / total, y = v => T + (h - T - Bm) * (1 - v);
-  for (const v of [0, .25, .5, .75, 1]) {
-    el('line', { x1: L, x2: w - R, y1: y(v), y2: y(v), stroke: '#e3dccb', 'stroke-width': 1 }, svg);
-    el('text', { x: L - 4, y: y(v) + 3.5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `${v * 100}%`;
-  }
-  el('text', { x: L, y: h - 5, 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = 'turn 0';
-  el('text', { x: w - R, y: h - 5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `turn ${total}`;
-  el('line', { x1: x(shownTurn), x2: x(shownTurn), y1: T, y2: h - Bm, stroke: '#b9b09c', 'stroke-dasharray': '3 3' }, svg);
-  if (!game || !odds.length || !analysisOn) {
-    $('chartNote').textContent = analysisOn ? 'Estimating…' : 'Win chances are off (they use a little CPU).';
-    return;
-  }
-  // smoothed series
+// ------------------------------------------------------------------ projected winner: chart, rewind, turning points
+// x is the position after t turns (0 = the start), as in the win-chance estimates. Clicking or dragging on the
+// chart rewinds the board to that position; the numbered markers are the turning points listed under it.
+const CH = { w: 340, h: 160, L: 30, R: 10, T: 22, B: 20 };
+const chartTotal = () => (game ? Math.max(1, furthest, Math.min(game.log.turns.length, 8)) : 1);  // grows with the game
+const cx = t => CH.L + (CH.w - CH.L - CH.R) * t / chartTotal();
+const cy = v => CH.T + (CH.h - CH.T - CH.B) * (1 - v);
+const stateAt = i => (i > 0 ? game.log.turns[i - 1].state : game.log.start);  // the position after i turns
+function chartSeries() {
+  // the lines drawn: each estimate smoothed with the ones before it
   const series = game.players.map(() => []), none = [];
   let cur = null, cn = null;
   for (const o of odds) {
@@ -682,16 +719,214 @@ function renderChart() {
     cur.forEach((v, k) => series[k].push([o.turn, v]));
     none.push([o.turn, cn]);
   }
-  if (game.scoring === 'loss' && none.some(([, v]) => v > 0.02))
-    el('polyline', { points: none.map(([t, v]) => `${x(t)},${y(v)}`).join(' '), fill: 'none', stroke: '#8a8272', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, svg);
-  series.forEach((pts, k) => {
-    el('polyline', { points: pts.map(([t, v]) => `${x(t)},${y(v)}`).join(' '), fill: 'none', stroke: PCOL[k], 'stroke-width': 2.4,
-      'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
-    const [lt, lv] = pts[pts.length - 1];
-    el('circle', { cx: x(lt), cy: y(lv), r: 3.5, fill: PCOL[k], stroke: '#fff', 'stroke-width': 1.5 }, svg);
+  return { series, none };
+}
+function seriesAt(pts, t) {  // a line's height at turn t (between estimates, read along the line); null off its ends
+  if (!pts.length || t < pts[0][0] || t > pts[pts.length - 1][0]) return null;
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i][0] >= t) { const [t0, v0] = pts[i - 1], [t1, v1] = pts[i]; return v0 + (v1 - v0) * (t - t0) / (t1 - t0); }
+  }
+  return pts[pts.length - 1][1];
+}
+function renderChart() {
+  const svg = $('chart'); svg.replaceChildren();
+  const { w, h, L, R, T, B: Bm } = CH, total = chartTotal();
+  for (const v of [0, .25, .5, .75, 1]) {
+    el('line', { x1: L, x2: w - R, y1: cy(v), y2: cy(v), stroke: '#e3dccb', 'stroke-width': 1 }, svg);
+    el('text', { x: L - 4, y: cy(v) + 3.5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `${v * 100}%`;
+  }
+  el('text', { x: L, y: h - 5, 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = 'turn 0';
+  el('text', { x: w - R, y: h - 5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `turn ${total}`;
+  if (game && furthest < total)  // not played yet
+    el('rect', { x: cx(furthest), y: T, width: cx(total) - cx(furthest), height: h - T - Bm, fill: '#ebe4d2', 'fill-opacity': .5 }, svg);
+  const tps = analysisOn && game ? turningPoints() : [];
+  tps.forEach((tp, i) => {
+    const x = cx(tp.turn + 1);
+    el('line', { x1: x, x2: x, y1: T - 4, y2: h - Bm, stroke: PCOL[tp.k], 'stroke-width': 1.2, 'stroke-dasharray': '2 3' }, svg);
+    el('circle', { cx: x, cy: T - 11, r: 7.5, fill: PCOL[tp.k] }, svg);
+    el('text', { x, y: T - 7.6, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: '#fff' }, svg).textContent = i + 1;
   });
-  const last = odds[odds.length - 1];
-  $('chartNote').textContent = `Each point: ${last.n} quick playouts of the position after that turn (about ${last.cpu_seconds ?? '?'} s of one thread).`;
+  if (game) el('line', { x1: cx(atState), x2: cx(atState), y1: T - 2, y2: h - Bm, stroke: '#6d665a', 'stroke-width': 1.3, 'stroke-dasharray': '3 3' }, svg);
+  if (game && odds.length && analysisOn) {
+    const { series, none } = chartSeries();
+    if (game.scoring === 'loss' && none.some(([, v]) => v > 0.02))
+      el('polyline', { points: none.map(([t, v]) => `${cx(t)},${cy(v)}`).join(' '), fill: 'none', stroke: '#8a8272', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, svg);
+    series.forEach((pts, k) => {
+      el('polyline', { points: pts.map(([t, v]) => `${cx(t)},${cy(v)}`).join(' '), fill: 'none', stroke: PCOL[k], 'stroke-width': 2.4,
+        'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      const t = Math.min(atState, pts[pts.length - 1][0]), v = seriesAt(pts, t);  // a dot where the board is
+      if (v != null) el('circle', { cx: cx(t), cy: cy(v), r: 3.5, fill: PCOL[k], stroke: '#fff', 'stroke-width': 1.5 }, svg);
+    });
+    const last = odds[odds.length - 1], filling = paused && reviewed && nextOddsTurn() != null;
+    $('chartNote').textContent = `Each point: ${last.n} quick playouts of the position after that turn (about ${last.cpu_seconds ?? '?'} s of one thread).`
+      + (filling ? ` Filling in the gaps while you look back: ${odds.length} of ${furthest + 1} positions so far.` : '');
+  } else {
+    $('chartNote').textContent = !analysisOn ? 'Win chances are off (they use a little CPU).' : game ? 'Estimating…' : '';
+  }
+  el('g', { id: 'chartHover', 'pointer-events': 'none' }, svg);
+  renderHover();
+  renderRewind();
+  renderTurningPoints(tps);
+}
+function renderHover() {
+  const g = $('chartHover');
+  if (g) {
+    g.replaceChildren();
+    if (hoverTurn != null && game) {
+      el('line', { x1: cx(hoverTurn), x2: cx(hoverTurn), y1: CH.T - 2, y2: CH.h - CH.B, stroke: INK, 'stroke-width': 1, 'stroke-opacity': .6 }, g);
+      if (analysisOn && odds.length) chartSeries().series.forEach((pts, k) => {
+        const v = seriesAt(pts, hoverTurn);
+        if (v != null) el('circle', { cx: cx(hoverTurn), cy: cy(v), r: 3.2, fill: '#fff', stroke: PCOL[k], 'stroke-width': 2 }, g);
+      });
+    }
+  }
+  renderReadout();
+}
+function renderReadout() {
+  // where the board is (or the turn under the pointer) and each player's chance there
+  const box = $('chartRead');
+  if (!game) { box.innerHTML = ''; return; }
+  const n = game.log.turns.length, t = hoverTurn ?? atState, st = stateAt(Math.min(t, n));
+  let vals = '';
+  if (analysisOn && odds.length) vals = chartSeries().series.map((pts, k) => {
+    // where the board is, the latest estimate stands in until the one for this position arrives
+    const v = !st.alive[k] ? null : seriesAt(pts, hoverTurn != null ? t : Math.min(t, pts[pts.length - 1][0]));
+    return v == null ? '' : `<span>${pieceSVG(k, 15)}<b>${pct(v)}</b></span>`;
+  }).join('');
+  const where = hoverTurn != null
+    ? (t > furthest ? `Turn ${t}: not played yet, click to jump ahead` : `Turn ${t}: click to go back to here`)
+    : t < furthest ? `Looking back at turn ${t}` : t ? `After turn ${t}` : 'The start';
+  box.innerHTML = `<span class="at">${where}</span>${vals}`;
+}
+let rewindHTML = '', tpHTML = '';  // what's on screen: redrawn only when it changes, so a click always lands
+function renderRewind() {
+  const n = game ? game.log.turns.length : 0;
+  const html = !game ? '' : [
+    `<button data-act="back" title="Go back one turn (← key)"${atState === 0 && !midTurn ? ' disabled' : ''}>◀ Turn</button>`,
+    `<button data-act="fwd" title="Play the next turn at normal speed, then stop (→ key)"${atState >= n ? ' disabled' : ''}>Turn ▶</button>`,
+    atState < furthest ? `<button data-act="live" title="Carry on from where the replay had got to">Back to turn ${furthest} ⏩</button>` : '',
+    `<span class="hint">${playTo != null ? `Playing turn ${playTo} at normal speed…`
+      : paused ? 'Paused · Resume plays on from here' : 'Click or drag the chart to go back'}</span>`].join('');
+  if (html !== rewindHTML) { $('rewind').innerHTML = html; rewindHTML = html; }
+}
+
+// Turning points: the biggest swings in the win chances. Each estimate is noisy (±8 points), so a swing compares
+// the average of the estimates in the round before a gap between estimates with the round after it, and counts
+// only if it is at least 3 standard errors and 12 points; the turn inside the gap that explains it best (a
+// bankruptcy, a trade, a set completed, big rent...) is the one shown, and a swing nothing explains is dropped.
+const GROUP_NAME = { brown: 'browns', light_blue: 'light blues', pink: 'pinks', orange: 'oranges', red: 'reds',
+  yellow: 'yellows', green: 'greens', dark_blue: 'dark blues' };
+const groupName = g => GROUP_NAME[g] || `${String(g).replace('_', ' ')}s`;
+let tpCache = null;
+function turningPoints() {
+  if (!game || odds.length < 3) return [];
+  const key = `${game.id}:${odds.map(o => o.turn).join(',')}`;
+  if (tpCache && tpCache.key === key) return tpCache.list;
+  const n = game.n_players, mean = os => os[0].p.map((_, k) => os.reduce((s, o) => s + o.p[k], 0) / os.length);
+  // the variance of a window's average for player k: each estimate is a share of o.n playouts
+  const vari = (os, k) => os.reduce((s, o) => s + Math.max(o.p[k] * (1 - o.p[k]), 0.05) / (o.n || ODDS_PLAYOUTS), 0) / os.length ** 2;
+  const cands = [];
+  for (let j = 1; j < odds.length; j++) {
+    const a = odds[j - 1].turn, b = odds[j].turn;
+    let pre = odds.slice(0, j).filter(o => o.turn > a - n), post = odds.slice(j).filter(o => o.turn < b + n);
+    if (pre.length < 2) pre = odds.slice(Math.max(0, j - 2), j);
+    if (post.length < 2) post = odds.slice(j, j + 2);
+    const mp = mean(pre), mq = mean(post);
+    let k = 0;
+    for (let q = 1; q < mp.length; q++) if (Math.abs(mq[q] - mp[q]) > Math.abs(mq[k] - mp[k])) k = q;
+    const d = mq[k] - mp[k], z = Math.abs(d) / Math.sqrt(vari(pre, k) + vari(post, k));
+    if (Math.abs(d) >= 0.12 && z >= 3) cands.push({ j, a, b, k, d, from: mp[k], to: mq[k] });
+  }
+  cands.sort((u, v) => Math.abs(v.d) - Math.abs(u.d));
+  const picked = [];
+  for (const c of cands) {
+    if (picked.some(q => Math.abs(q.j - c.j) <= 2 || Math.abs(q.b - c.b) < n)) continue;
+    const m = keyMoment(c.a, c.b, c.k);
+    if (m) picked.push({ ...c, ...m });
+    if (picked.length === 4) break;
+  }
+  picked.sort((u, v) => u.turn - v.turn);
+  tpCache = { key, list: picked };
+  return picked;
+}
+function keyMoment(a, b, k) {
+  // the turn between positions a and b (turns a .. b-1) that best explains a swing for player k
+  let best = null;
+  for (let i = a; i < b && i < game.log.turns.length; i++) {
+    const m = moment(i, k);
+    if (!best || m.score > best.score) best = { turn: i, ...m };
+  }
+  return best && best.score >= 300 ? best : null;  // rent of £150 or more, building, a set, a trade, a bankruptcy
+}
+function setsCompleted(before, after, p) {  // colour groups p owns all of after a turn but not before it
+  return B.groups.filter(gr => gr.squares.every(sq => after.owner[ownIdx[sq]] === p)
+    && !gr.squares.every(sq => before.owner[ownIdx[sq]] === p)).map(gr => gr.name);
+}
+function moment(i, k) {
+  // the most telling thing that happened in turn i (from 0), counting double what happened to player k
+  const tr = game.log.turns[i], before = stateAt(i), after = tr.state, pos = before.pos.slice(), built = {}, raised = {};
+  const who = p => `<b style="color:${PCOL[p]}">${PNAME[p]}</b>`;  // names only: the list is busy enough
+  let best = { score: 0, text: '' };
+  const consider = (score, text, ps) => { if (ps.includes(k)) score *= 2; if (score > best.score) best = { score, text }; };
+  for (const ev of tr.events) {
+    const p = ev.p;
+    switch (ev.e) {
+      case 'move': case 'jump': pos[p] = ev.to; break;
+      case 'jail': pos[p] = B.jail; consider(40, `${who(p)} goes to jail`, [p]); break;
+      case 'bankrupt': consider(1e6, `${who(p)} goes bankrupt${ev.to >= 0 ? ' to ' + who(ev.to) : ''}`, [p, ev.to]); break;
+      case 'trade': {
+        const sets = [ev.a, ev.b].flatMap(q => setsCompleted(before, after, q).map(gr => `the ${groupName(gr)}${q === k ? '' : ' for ' + who(q)}`));
+        const names = [...ev.a_gives, ...ev.b_gives].map(nm).join(', ');
+        consider(sets.length ? 2e5 : 1e5, `${who(ev.a)} and ${who(ev.b)} trade${names ? ' ' + names : ''}`
+          + (sets.length ? `, completing ${sets.join(' and ')}` : ''), [ev.a, ev.b]);
+        break;
+      }
+      case 'buy': case 'auction': {
+        const q = ev.e === 'buy' ? p : ev.winner;
+        if (q == null) break;
+        const grp = B.squares[ev.sq].group, done = grp != null && setsCompleted(before, after, q).includes(grp);
+        consider(done ? 5e4 + ev.price : 0.3 * ev.price, `${who(q)} ${ev.e === 'buy' ? 'buys' : 'wins the auction for'} ${nm(ev.sq)}`
+          + (done ? `, completing the ${groupName(grp)}` : ` for ${money(ev.price)}`), [q]);
+        break;
+      }
+      case 'pay':
+        if (ev.to >= 0) {
+          const o = ownIdx[pos[p]], rent = o !== undefined && (before.owner[o] === ev.to || after.owner[o] === ev.to);
+          consider(ev.amount, `${who(p)} pays ${money(ev.amount)}${rent ? ` rent on ${nm(pos[p])}` : ''} to ${who(ev.to)}`, [p, ev.to]);
+        } else consider(0.6 * ev.amount, `${who(p)} pays ${money(ev.amount)} to the bank`, [p]);
+        break;
+      case 'build': {
+        const bd = built[p] = built[p] || { houses: 0, hotels: 0, squares: [] };
+        if (ev.level === 5) bd.hotels++; else bd.houses++;
+        if (!bd.squares.includes(ev.sq)) bd.squares.push(ev.sq);
+        break;
+      }
+      case 'sell': case 'mortgage': (raised[p] = raised[p] || new Set()).add(ev.sq); break;
+    }
+  }
+  for (const [p, bd] of Object.entries(built)) {
+    const parts = [bd.houses && `${bd.houses} house${bd.houses > 1 ? 's' : ''}`, bd.hotels && `${bd.hotels} hotel${bd.hotels > 1 ? 's' : ''}`];
+    consider(100 * bd.houses + 400 * bd.hotels, `${who(+p)} builds ${parts.filter(Boolean).join(' and ')} on ${bd.squares.map(nm).join(', ')}`, [+p]);
+  }
+  for (const [p, s] of Object.entries(raised))
+    consider(60 * s.size, `${who(+p)} sells and mortgages to raise cash (${[...s].map(nm).join(', ')})`, [+p]);
+  return best;
+}
+function renderTurningPoints(tps) {
+  let html = '';
+  if (game && analysisOn) {
+    html = '<div class="tph">Turning points</div>' + (!tps.length
+      ? '<div class="sub">The biggest swings in the win chances show up here as the game goes on.</div>'
+      : '<div class="tps">' + tps.map((tp, i) => {
+        const up = tp.to > tp.from, here = atState === tp.turn + 1 || playTo === tp.turn + 1;
+        return `<button class="tp${here ? ' here' : ''}" data-turn="${tp.turn}" title="Watch turn ${tp.turn + 1} again">
+          <span class="n" style="background:${PCOL[tp.k]}">${i + 1}</span>
+          <span class="sw">T${tp.turn + 1} · ${pieceSVG(tp.k, 16)}${PNAME[tp.k]}
+            <span style="color:${up ? 'var(--cash)' : 'var(--brick)'}">${pct(tp.from)} → ${pct(tp.to)}</span></span>
+          <span class="what">${tp.text}</span></button>`;
+      }).join('') + '</div>');
+  }
+  if (html !== tpHTML) { $('tpBox').innerHTML = html; tpHTML = html; }
 }
 function logEvent(text, p = null, turn = null, key = null) {
   // key: consecutive events with the same key (e.g. one player's building spree in one turn) share a line
@@ -1000,7 +1235,9 @@ function setRound(t) {
   hud.round.textContent = `ROUND ${round} · TURN ${t + 1}`;
 }
 async function playGame(g) {
-  game = g; skipping = false; nextNow = false; odds = []; shownTurn = 0; oddsWanted = 0;
+  game = g; skipping = false; nextNow = false; odds = []; oddsAsked = new Set(); shownTurn = 0; oddsWanted = 0;
+  atState = 0; furthest = 0; seekTo = null; playTo = null; midTurn = false; reviewed = false; hoverTurn = null; tpCache = null;
+  restoreSpeed();
   offer = null; values = {}; decisions = []; hud.deed.setAttribute('opacity', 0);
   $('decision').innerHTML = '<div class="sub">When someone lands on an unowned property, this shows what it is worth to them right now.</div>';
   $('decisions').innerHTML = '';
@@ -1020,22 +1257,39 @@ async function playGame(g) {
   showDice(1, 1);
   await sleep(1500);
   const turns = g.log.turns;
-  for (let t = 0; t < turns.length && !nextNow; t++) {
+  let t = 0, ended = false;  // t: the next turn to play
+  while (!nextNow) {
+    if (seekTo != null) { t = await jumpTo(seekTo); ended = false; continue; }
+    if (t >= turns.length) {
+      if (!ended) { ended = true; showResult(g); }
+      for (let k = 0; k < 45 && !nextNow && seekTo == null; k++) await sleep(100);  // holds while paused
+      if (seekTo == null) break;
+      continue;
+    }
+    if (paused && !skipping) { await idle(100); continue; }  // paused between turns (after going back, say)
     const tr = turns[t];
     setRound(t);
-    state.current = tr.p;
+    state.current = tr.p; midTurn = true;
     if (!skipping) renderPlayers();
+    let cut = false;
     for (const ev of tr.events) {
+      if (seekTo != null || nextNow) { cut = true; break; }
       if (ev.e === 'roll') lastRoll = ev.d;
       if (!skipping) await playEvent(ev, t + 1);
     }
+    midTurn = false;
+    if (cut) continue;
     applyState(tr.state);
-    oddsWanted = t + 1;
-    if (!skipping) await sleep(Math.max(0, 240 / speed));
+    t++; atState = t; furthest = Math.max(furthest, t); oddsWanted = t;
+    if (playTo != null && t >= playTo) { playTo = null; restoreSpeed(); showPosition(t); setPaused(true); }
+    if (!skipping) { renderChart(); await sleep(Math.max(0, 240 / speed)); }
   }
-  const r = g.log.result;
+}
+function showResult(g) {
+  const turns = g.log.turns, r = g.log.result;
   const final = turns.length ? turns[turns.length - 1].state : g.log.start;
   applyState({ ...final, winner: r.capped && g.scoring === 'loss' ? null : r.winner });
+  atState = turns.length; furthest = turns.length; oddsWanted = turns.length;
   if (r.capped) {
     banner('TIME LIMIT', g.scoring === 'loss' ? 'nobody wins a stopped game' : `${PNAME[r.winner]} leads on net worth`, r.winner != null ? PCOL[r.winner] : 'var(--ink)');
     logEvent(`Time limit: the game stops after ${Math.round(r.turns / g.n_players)} rounds`);
@@ -1043,31 +1297,122 @@ async function playGame(g) {
     banner(`${PNAME[r.winner].toUpperCase()} WINS!`, game.players[r.winner].label, PCOL[r.winner]);
     logEvent(`${who(r.winner)} wins after ${r.turns} turns`, r.winner);
   }
-  renderChart();
   skipping = false;
-  for (let k = 0; k < 45 && !nextNow; k++) await sleep(100);
+  renderChart();
+}
+
+// ------------------------------------------------------------------ rewinding
+const QUIET_TURNS = 4;  // turns replayed instantly before the one you go back to, so the play-by-play reads as it did
+const MOMENT_SPEED = 1;  // replaying a single turn (a turning point, or →) is done at normal speed
+let savedSpeed = null, pauseBtn = null;
+function setPaused(v) {
+  paused = v;
+  if (pauseBtn) { pauseBtn.textContent = v ? '▶ Resume' : '⏸ Pause'; pauseBtn.className = v ? 'on' : ''; }
+  if (game) renderChart();
+}
+function slowDown() { if (speed > MOMENT_SPEED) { if (savedSpeed == null) savedSpeed = speed; speed = MOMENT_SPEED; } }
+function restoreSpeed() { if (savedSpeed != null) { speed = savedSpeed; savedSpeed = null; } }
+function requestSeek(target, { play = false, oneTurn = false } = {}) {
+  // go to the position after `target` turns: paused there, playing on from there, or playing just the next turn
+  if (!game) return;
+  seekTo = Math.max(0, Math.min(game.log.turns.length, target));
+  skipping = true;  // whatever is animating now finishes at once
+  playTo = oneTurn ? seekTo + 1 : null;
+  if (oneTurn) slowDown(); else restoreSpeed();
+  setPaused(!play && !oneTurn);
+}
+function stepBack() { if (game) requestSeek(midTurn ? atState : atState - 1); }
+function stepForward() {
+  if (!game || atState >= game.log.turns.length) return;
+  playTo = atState + 1; slowDown(); setPaused(false);
+}
+function showPosition(t) {
+  // the round and turn counters while the replay waits between turns: the position after t turns
+  const n = game.log.turns.length, round = Math.floor(Math.max(0, t - 1) / game.n_players) + 1;
+  $('round').textContent = `Round ${round}` + (game.max_rounds ? ` of ${game.max_rounds}` : '');
+  $('turnSub').textContent = t ? `After turn ${t} of ${n}` : `Before the first turn · ${n} turns in all`;
+  hud.round.textContent = t ? `ROUND ${round} · AFTER TURN ${t}` : 'THE START';
+}
+function restoreCards(upTo) {
+  // the last Chance and Community Chest cards drawn before turn `upTo`
+  const last = {};
+  game.log.turns.slice(0, upTo).forEach((tr, t) => tr.events.forEach(ev => { if (ev.e === 'card') last[ev.deck === 'chance' ? 'lastChance' : 'lastChest'] = { ev, t }; }));
+  ['lastChance', 'lastChest'].forEach(id => {
+    const c = last[id], box = $(id);
+    box.querySelector('.tx').textContent = c ? c.ev.text : '—';
+    box.querySelector('.by').innerHTML = c ? `drawn by ${who(c.ev.p)} · turn ${c.t + 1}` : '';
+  });
+}
+async function jumpTo(target) {
+  // shows the position after `target` turns. The few turns before it are replayed instantly, so the
+  // play-by-play, the cards and the property decisions read as they did at that point.
+  const turns = game.log.turns, n = turns.length;
+  target = Math.max(0, Math.min(n, Math.round(target)));
+  seekTo = null; skipping = true; reviewed = true; midTurn = false;
+  const from = Math.max(0, target - QUIET_TURNS);
+  decisions = decisions.filter(o => o.turn <= from);
+  offer = null; spree = null;
+  Object.keys(runs).forEach(key => { delete runs[key]; });
+  hud.deed.setAttribute('opacity', 0); hud.card.setAttribute('opacity', 0);
+  $('events').replaceChildren();
+  restoreCards(from);
+  applyState({ ...stateAt(from), winner: null });
+  for (let t = from; t < target; t++) {
+    setRound(t); state.current = turns[t].p;
+    for (const ev of turns[t].events) await playEvent(ev, t + 1);
+    applyState(turns[t].state);
+  }
+  skipping = false;
+  atState = target; furthest = Math.max(furthest, target); oddsWanted = target;
+  renderDecisions();
+  if (decisions[0]) renderDecision(decisions[0]);
+  else $('decision').innerHTML = '<div class="sub">When someone lands on an unowned property, this shows what it is worth to them right now.</div>';
+  lastRoll = [1, 1];
+  for (let t = target - 1; t >= 0; t--) { const r = turns[t].events.filter(e => e.e === 'roll').pop(); if (r) { lastRoll = r.d; break; } }
+  showDice(lastRoll[0], lastRoll[1]);
+  showPosition(target);
+  banner(target < furthest ? 'LOOKING BACK' : target ? `TURN ${target}` : 'THE START',
+    paused ? 'Resume plays on from here · ← → step a turn' : '', 'var(--ink)');
+  renderPlayers(); renderBank(); renderChart();
+  return target;
 }
 
 // ------------------------------------------------------------------ win chances
 // Asks the viewer server for one estimate at a time, at most two a second, so it never takes more than a
 // slice of one thread on the PC (and the server runs at the lowest priority, below any job).
-let oddsWanted = 0;
+let oddsWanted = 0, oddsAsked = new Set();
 const ODDS_GAP_MS = 500;
+function nextOddsTurn() {
+  // which position to estimate next: the one on the board; and while you look back at a paused game, the
+  // middle of the widest gap in the chart, until every position up to the furthest one reached has a point
+  if (!analysisOn || !game) return null;
+  const have = new Set(odds.map(o => o.turn)), fresh = t => !have.has(t) && !oddsAsked.has(t);
+  if (!paused) return fresh(oddsWanted) ? oddsWanted : null;
+  if (fresh(atState)) return atState;
+  if (!reviewed) return null;  // a plain pause costs nothing more
+  if (fresh(0)) return 0;
+  if (fresh(furthest)) return furthest;
+  const ts = [...new Set([...have, ...oddsAsked])].filter(t => t <= furthest).sort((a, b) => a - b);
+  let best = null, gap = 1;
+  for (let i = 1; i < ts.length; i++) if (ts[i] - ts[i - 1] > gap) { gap = ts[i] - ts[i - 1]; best = ts[i - 1] + Math.floor(gap / 2); }
+  return best;
+}
 async function oddsLoop() {
-  let lastAsked = -1, lastGame = null, lastAt = 0;
+  let lastAt = 0;
   while (true) {
-    if (!analysisOn || paused || !game || (game.id === lastGame && oddsWanted === lastAsked)) { await new Promise(r => setTimeout(r, 200)); continue; }
+    const t = nextOddsTurn();
+    if (t == null) { await idle(200); continue; }
     const wait = ODDS_GAP_MS - (performance.now() - lastAt);
-    if (wait > 0) { await new Promise(r => setTimeout(r, wait)); continue; }
-    const gid = game.id, t = oddsWanted;
-    lastGame = gid; lastAsked = t; lastAt = performance.now();
+    if (wait > 0) { await idle(wait); continue; }
+    const gid = game.id;
+    oddsAsked.add(t); lastAt = performance.now();
     try {
       const r = await (await fetch(`/api/odds?id=${encodeURIComponent(gid)}&turn=${t}&n=${ODDS_PLAYOUTS}`)).json();
       if (r.p && game && game.id === gid) {
         odds = odds.filter(o => o.turn !== r.turn).concat([r]).sort((a, b) => a.turn - b.turn);
         renderPlayers(); renderChart();
       }
-    } catch (e) { await new Promise(r => setTimeout(r, 1000)); }
+    } catch (e) { if (game && game.id === gid) oddsAsked.delete(t); await idle(1000); }
   }
 }
 
@@ -1112,15 +1457,15 @@ function tickCounter() {
 function buildToolbar() {
   const bar = $('toolbar');
   const btn = (label, cls, onclick) => { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.onclick = onclick; bar.appendChild(b); return b; };
-  const pause = btn('⏸ Pause', '', () => { paused = !paused; pause.textContent = paused ? '▶ Resume' : '⏸ Pause'; pause.className = paused ? 'on' : ''; });
+  pauseBtn = btn('⏸ Pause', '', () => setPaused(!paused));
   bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
   const speeds = [['1×', 1], ['2×', 2], ['5×', 5], ['20×', 20]].map(([label, v]) => {
-    const b = btn(label, v === speed ? 'on' : '', () => { speed = v; speeds.forEach(x => x.className = ''); b.className = 'on'; });
+    const b = btn(label, v === speed ? 'on' : '', () => { speed = v; savedSpeed = null; speeds.forEach(x => x.className = ''); b.className = 'on'; });
     return b;
   });
   bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
-  btn('Skip to the end', '', () => { skipping = true; });
-  btn('Next game', 'go', () => { skipping = true; nextNow = true; });
+  btn('Skip to the end', '', () => { playTo = null; restoreSpeed(); skipping = true; });
+  btn('Next game', 'go', () => { skipping = true; nextNow = true; playTo = null; setPaused(false); });
   bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
   const showOdds = () => {
     ob.textContent = `Analysis: ${analysisOn ? 'on' : 'off'}`; ob.className = analysisOn ? 'on' : '';
@@ -1160,6 +1505,47 @@ async function main() {
     return;
   }
   buildToolbar();
+  // the chart: hover reads it, click or drag goes back (or ahead) to that turn
+  const chart = $('chart');
+  const turnAt = ev => {
+    const r = chart.getBoundingClientRect(), xv = (ev.clientX - r.left) / r.width * CH.w;  // in viewBox units
+    return Math.max(0, Math.min(chartTotal(), Math.round((xv - CH.L) / (CH.w - CH.L - CH.R) * chartTotal())));
+  };
+  let dragging = false;
+  chart.addEventListener('pointerdown', ev => {
+    if (!game || ev.button !== 0) return;
+    dragging = true; chart.setPointerCapture(ev.pointerId);
+    hoverTurn = turnAt(ev); requestSeek(hoverTurn); renderHover();
+  });
+  chart.addEventListener('pointermove', ev => {
+    if (!game) return;
+    const t = turnAt(ev);
+    if (t === hoverTurn) return;
+    hoverTurn = t;
+    if (dragging) requestSeek(t);
+    renderHover();
+  });
+  const endDrag = ev => { dragging = false; if (ev.type !== 'pointerup' || ev.pointerType !== 'mouse') hoverTurn = null; renderHover(); };
+  chart.addEventListener('pointerup', endDrag);
+  chart.addEventListener('pointercancel', endDrag);
+  chart.addEventListener('pointerleave', () => { if (!dragging) { hoverTurn = null; renderHover(); } });
+  $('rewind').addEventListener('click', ev => {
+    const b = ev.target.closest('button');
+    if (!b || b.disabled) return;
+    if (b.dataset.act === 'back') stepBack();
+    else if (b.dataset.act === 'fwd') stepForward();
+    else if (b.dataset.act === 'live') requestSeek(furthest, { play: true });
+  });
+  $('tpBox').addEventListener('click', ev => {
+    const b = ev.target.closest('.tp');
+    if (b) requestSeek(+b.dataset.turn, { oneTurn: true });
+  });
+  addEventListener('keydown', ev => {
+    if (!game || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    if (ev.key === 'ArrowLeft') { stepBack(); ev.preventDefault(); }
+    else if (ev.key === 'ArrowRight') { stepForward(); ev.preventDefault(); }
+    else if (ev.key === ' ' && !(ev.target instanceof HTMLButtonElement)) { setPaused(!paused); ev.preventDefault(); }
+  });
   pollStatus();
   requestAnimationFrame(tickCounter);
   oddsLoop();

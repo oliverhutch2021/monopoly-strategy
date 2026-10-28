@@ -90,6 +90,10 @@ replays that exact game with the same code. With no job running it shows demo ga
   a real cost: each estimate plays the position out 64 times, about 0.1-0.2 s of one thread, at most
   twice a second. The toolbar has a switch for it and a Pause button; add `?odds=off` or `?speed=5`
   to the address to start that way.
+- **Going back.** Click or drag on the Projected winner chart to rewind the board to any turn; ← and → step
+  one turn at a time and Space pauses. The numbered turning points under the chart are the biggest swings in
+  the win chances, each with the turn that caused it: click one to watch that turn again. While you look
+  back at a paused game the viewer fills in the gaps in the chart (the same cost as above), then stops.
 - If the page doesn't open, go to http://localhost:8765 yourself. If Windows can't reach it, try
   `make watch HOST=0.0.0.0`.
 
