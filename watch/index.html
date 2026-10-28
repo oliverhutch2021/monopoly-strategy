@@ -63,14 +63,14 @@ button.go { background: var(--brick); color: #fff; }
 .turnbox .counter { font-size: 30px; }
 .bank { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.4; }
 .players { display: grid; gap: 7px; }
-.pl { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 4px 9px; padding: 7px 8px; border-radius: 9px;
+.pl { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 4px 9px; padding: 7px 8px; border-radius: 9px;
   border: 1px solid var(--line); background: #fff; }
 .pl.turn { box-shadow: inset 0 0 0 2px var(--ink); }
 .pl.out { opacity: .45; }
 .pl.out .name { text-decoration: line-through; }
 .pl.win { background: #fff7dc; box-shadow: inset 0 0 0 2px var(--gold); }
-.tok { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 800;
-  font-size: 13px; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.45); grid-row: span 2; align-self: center; }
+.pl .tok { display: grid; place-items: center; align-self: center; }  /* the piece itself, as on the board: no badge */
+.pl .tok img { display: block; }
 .pl .name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl .lbl { font-weight: 500; color: var(--muted); }
 .pl .money { font-family: var(--display); font-weight: 700; font-size: 19px; font-variant-numeric: tabular-nums; text-align: right; }
@@ -99,8 +99,6 @@ button.go { background: var(--brick); color: #fff; }
 #joblog { font: 11.5px/1.45 ui-monospace, 'Cascadia Mono', Consolas, monospace; white-space: pre-wrap; color: #3f3a31;
   margin: 0; max-height: 120px; overflow: hidden; }
 footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1.5; }
-.tok { background: #fff; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
-  box-shadow: inset 0 0 0 2px var(--line); grid-row: span 2; align-self: center; }
 .who { white-space: nowrap; }
 .who img, .who .pdisc { vertical-align: -3px; margin-right: 3px; }
 .pimg { object-fit: contain; }
@@ -222,11 +220,16 @@ function drawPiece(parent, p, { centre = false } = {}) {
   el('image', { href: `/pieces/${pc.slug}.png`, x: -w / 2, y: centre ? -h / 2 : 21 - h, width: w, height: h }, parent);
   return parent;
 }
-function pieceSVG(p, size = 22, inline = false) {  // the piece as a picture in the panels and the play-by-play
+function pieceSVG(p, size = 22) {  // the piece as a picture in a line of text: the play-by-play and the tables
   const pc = PIECES[p];
   if (!pc) return `<span class="pdisc" style="background:${PCOL[p]}">${p + 1}</span>`;
-  const box = inline ? `height:${size}px;width:auto` : `height:${size}px;width:${size}px`;
-  return `<img class="pimg" src="/pieces/${pc.slug}.png" alt="" style="${box}">`;
+  return `<img class="pimg" src="/pieces/${pc.slug}.png" alt="" style="height:${size}px;width:auto">`;
+}
+const PANEL_PX = 0.21;  // screen pixels per image pixel in the Players panel: a top hat is about 45 px wide
+function pieceToScale(p) {  // the piece as it stands on the board, in its own coloured outline, keeping the artwork's sizes
+  const pc = PIECES[p];
+  if (!pc) return `<span class="pdisc" style="background:${PCOL[p]};font-size:15px">${p + 1}</span>`;
+  return `<img class="pimg" src="/pieces/${pc.slug}.png" alt="" width="${Math.round(pc.w * PANEL_PX)}" height="${Math.round(pc.h * PANEL_PX)}">`;
 }
 const $ = id => document.getElementById(id);
 const el = (tag, attrs = {}, parent) => {
@@ -640,7 +643,7 @@ function renderPlayers() {
     if (s.goojf && s.goojf[p]) extras.push(`🎟 ${s.goojf[p]} jail card${s.goojf[p] > 1 ? 's' : ''}`);
     if (s.jail[p] && !out) extras.push('in jail');
     const pct = sm ? (final ? (win ? 1 : 0) : sm.p[p]) : null;
-    row.innerHTML = `<div class="tok" style="box-shadow: inset 0 0 0 2px ${PCOL[p]}">${pieceSVG(p, 27)}</div>
+    row.innerHTML = `<div class="tok" style="grid-row: span ${pct != null ? 3 : 2}" title="${esc(PNAME[p])}">${pieceToScale(p)}</div>
       <div class="name"><span style="color:${PCOL[p]}">${PNAME[p]}</span> <span class="lbl">${esc(pl.label)}</span>${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
       <div class="money">${money(s.cash[p])}</div>
       <div class="detail"><span class="pips">${pips || '<span>no property</span>'}</span>${extras.map(x => `<span>${x}</span>`).join('')}</div>
@@ -712,7 +715,7 @@ function logGrouped(kind, p, turnNo, sq, text) {
   if (!r.squares.includes(sq)) r.squares.push(sq);
   logEvent(text(r.n, r.squares.map(nm).join(', ')), p, turnNo, key);
 }
-const who = p => `<b class="who" style="color:${PCOL[p]}">${pieceSVG(p, 17, true)}${PNAME[p]}</b>`;
+const who = p => `<b class="who" style="color:${PCOL[p]}">${pieceSVG(p, 17)}${PNAME[p]}</b>`;
 const nm = sq => esc(B.squares[sq].name);
 
 // ------------------------------------------------------------------ property decisions
@@ -841,7 +844,7 @@ function renderDecision(o) {
 function renderDecisions() {
   const rows = decisions.slice(0, 8).map(o => {
     const sq = B.squares[o.sq], band = bandOf(sq), v = o.value, vd = v ? verdict(v) : null, call = botCall(o);
-    return `<tr><td><span class="sw" style="background:${band.colour}"></span>${esc(sq.name)}</td><td>${pieceSVG(o.p, 16, true)}</td>
+    return `<tr><td><span class="sw" style="background:${band.colour}"></span>${esc(sq.name)}</td><td>${pieceSVG(o.p, 16)}</td>
       <td class="num">${money(o.price)}</td>
       <td class="num" style="color:${vd ? vd.colour : 'inherit'}">${v ? '≈ ' + money(v.value) : '…'}</td>
       <td>${o.bought ? 'bought' : 'passed'} ${call.mark}</td></tr>`;
