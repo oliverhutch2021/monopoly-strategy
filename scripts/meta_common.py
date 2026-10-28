@@ -8,10 +8,9 @@ import pandas as pd
 from monopoly_meta.engine import championship_rules
 from monopoly_meta.meta import BALANCED, tournament_rules
 
-ROOT = Path(__file__).resolve().parents[1]
-TAB = ROOT / "results" / "tables"
+from run_config import ROOT, TABLES as TAB, scaled  # noqa: E402,F401
 PLAYER_COUNTS = [2, 3, 4, 5, 6]
-EVAL_GAMES = 4000
+EVAL_GAMES = scaled(4000)
 
 MODES = {
     # official rules; a game stopped after 150 rounds is a loss for everyone

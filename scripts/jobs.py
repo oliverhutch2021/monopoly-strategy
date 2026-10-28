@@ -33,7 +33,11 @@ STATE = SYNC / "state"
 LOGS = SYNC / "logs"
 PY = sys.executable
 
-JOBS: dict[str, list[tuple[str, list[str]]]] = {
+# A step is (name, argv) or (name, argv, env): env adds variables for that step, e.g. a results folder and a
+# sample-size multiplier (scripts/run_config.py). Steps run in order; finished ones are skipped on a rerun.
+DEEP = {"MM_RESULTS": "results/v04", "MM_SCALE": "10"}
+
+JOBS: dict[str, list[tuple]] = {
     # Finish v0.3 on the untouched engine (see RUNNING.md, step 2). Order matters: the
     # championship trade curve and diagnosis need the 6-player championship agent first.
     "v03": [
@@ -46,6 +50,28 @@ JOBS: dict[str, list[tuple[str, list[str]]]] = {
         ("property-trades-meta", ["scripts/10_property_trades.py", "--bots", "meta"]),
         ("dashboard-data", ["scripts/08_dashboard_data.py"]),
         ("figures", ["scripts/make_figures.py"]),
+    ],
+    # v0.4, proposed: every v0.3 study at 10x the samples, written to results/v04 (v0.3's results stay as they are),
+    # plus a deeper exploitability test and every-property trade curves under championship rules.
+    "v04": [
+        ("prepare", ["scripts/deep_prepare.py"], DEEP),
+        ("tournaments", ["scripts/03_tournament.py"], DEEP),
+        ("championship-basics", ["scripts/07_championship_basics.py"], DEEP),
+        ("validate-standard", ["scripts/05b_refine_meta.py", "--mode", "standard", "--revalidate"], DEEP),
+        ("validate-championship", ["scripts/05b_refine_meta.py", "--mode", "championship", "--revalidate"], DEEP),
+        ("exploitability-standard", ["scripts/12_exploitability.py", "--mode", "standard"], DEEP),
+        ("exploitability-championship", ["scripts/12_exploitability.py", "--mode", "championship"], DEEP),
+        ("meta-vs-simple-standard", ["scripts/09_meta_vs_simple.py", "--mode", "standard"], DEEP),
+        ("meta-vs-simple-championship", ["scripts/09_meta_vs_simple.py", "--mode", "championship"], DEEP),
+        ("vine-street-simple", ["scripts/04_trade_curve.py"], DEEP),
+        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], DEEP),
+        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], DEEP),
+        ("property-trades-simple", ["scripts/10_property_trades.py", "--bots", "simple"], DEEP),
+        ("property-trades-meta", ["scripts/10_property_trades.py", "--bots", "meta"], DEEP),
+        ("property-trades-championship", ["scripts/10_property_trades.py", "--bots", "championship"],
+         {**DEEP, "MM_SCALE": "5"}),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], DEEP),
+        ("figures", ["scripts/make_figures.py"], DEEP),
     ],
     # A two-minute end-to-end check of this runner (sync, steps, stamp, commit, bundle, DONE note).
     "smoke": [
@@ -181,19 +207,20 @@ def run(job: str, force: bool) -> None:
     except OSError:
         pass
     LOGS.mkdir(parents=True, exist_ok=True)
-    steps = JOBS[job]
-    for i, (name, argv) in enumerate(steps, 1):
+    steps = [(*step, {})[:3] for step in JOBS[job]]
+    for i, (name, argv, env) in enumerate(steps, 1):
         if st["steps"].get(name, {}).get("done"):
             print(f"[{i}/{len(steps)}] {name}: already done, skipping")
             continue
-        print(f"[{i}/{len(steps)}] {name}: python {shlex.join(argv)}", flush=True)
+        extra = " ".join(f"{k}={v}" for k, v in env.items())
+        print(f"[{i}/{len(steps)}] {name}: {extra + ' ' if extra else ''}python {shlex.join(argv)}", flush=True)
         t0 = time.time()
         log = LOGS / f"{job}-{name}.log"
         with log.open("a") as fh:
-            fh.write(f"\n=== {now()} {shlex.join([PY, *argv])}\n")
+            fh.write(f"\n=== {now()} {extra} {shlex.join([PY, *argv])}\n")
             fh.flush()
             proc = subprocess.Popen([PY, "-u", *argv], cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    text=True, bufsize=1)
+                                    text=True, bufsize=1, env={**os.environ, **env})
             assert proc.stdout is not None
             for line in proc.stdout:
                 sys.stdout.write("    " + line)
@@ -214,7 +241,8 @@ def run(job: str, force: bool) -> None:
 def finish(job: str, st: dict) -> None:
     stamp = {"job": job, "commit": st["commit"], "started": st["started"], "finished": now(),
              "machine": machine(), "steps": {k: v["seconds"] for k, v in st["steps"].items()},
-             "commands": {name: shlex.join(argv) for name, argv in JOBS[job]}}
+             "commands": {s[0]: " ".join(f"{k}={v}" for k, v in (s[2] if len(s) > 2 else {}).items())
+                          + (" " if len(s) > 2 else "") + "python " + shlex.join(s[1]) for s in JOBS[job]}}
     runs = ROOT / "results" / "runs"
     runs.mkdir(parents=True, exist_ok=True)
     (runs / f"{job}.json").write_text(json.dumps(stamp, indent=1) + "\n")
@@ -243,7 +271,7 @@ def status() -> None:
         st = load_state(job)
         done = (SYNC / f"DONE-{job}.txt").exists()
         if st:
-            n = sum(1 for name, _ in steps if st["steps"].get(name, {}).get("done"))
+            n = sum(1 for step in steps if st["steps"].get(step[0], {}).get("done"))
             print(f"{job}: running or interrupted, {n}/{len(steps)} steps done (code {st['commit'][:9]})")
         else:
             print(f"{job}: {'finished' if done else 'not started'}")

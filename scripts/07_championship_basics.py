@@ -9,20 +9,19 @@ Outputs
   results/tables/championship_strategy_variants.csv
 """
 import time
-from pathlib import Path
 
 import pandas as pd
 
 from monopoly_meta.engine import championship_rules
 from monopoly_meta.tournament import run_games, wilson, win_rates
 
-OUT = Path(__file__).resolve().parents[1] / "results" / "tables"
+from run_config import TABLES as OUT, scaled  # noqa: E402
 PLAYER_COUNTS = [2, 3, 4, 5, 6]
 VARIANTS = ["aggressive", "cautious", "three_house", "hoarder", "jail_short", "jail_long",
             "take_chance", "no_trade", "hard_bargain", "random"]
 
 
-def main(games=6000):
+def main(games=scaled(6000)):
     t = time.time()
     seats, variants = [], []
     for n in PLAYER_COUNTS:

@@ -13,11 +13,12 @@ import json
 import time
 
 import pandas as pd
-from meta_common import MODES, parse, rules_for
+from meta_common import MODES, TAB, parse, rules_for
+from run_config import scaled
 
 from monopoly_meta.meta import BALANCED, GROUPS, evaluate, paired_ratio
 
-GAMES = 3000
+GAMES = scaled(3000)
 SWAPS = {
     "cash buffers": ["reserve", "build_reserve"],
     "auction limit": ["bid_frac"],
@@ -35,7 +36,7 @@ SWAPS = {
 
 def main():
     args = parse(__doc__)
-    metas = json.loads(open(f"results/tables/meta_agents_{args.mode}.json").read())
+    metas = json.loads((TAB / f"meta_agents_{args.mode}.json").read_text())
     rows = []
     t = time.time()
     for n in args.players:
@@ -55,7 +56,7 @@ def main():
             rows.append({"n_players": n, "candidate": name, "relative": rel, "rel_low": lo, "rel_high": hi,
                          "raw": float(games[i].mean()), "games": GAMES})
         print(f"{n} players done at {time.time() - t:.0f}s", flush=True)
-        pd.DataFrame(rows).to_csv(f"results/tables/meta_vs_simple_{args.mode}.csv", index=False)
+        pd.DataFrame(rows).to_csv(TAB / f"meta_vs_simple_{args.mode}.csv", index=False)
 
 
 if __name__ == "__main__":

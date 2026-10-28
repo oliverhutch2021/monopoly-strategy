@@ -1,6 +1,5 @@
 """Render every results figure from the CSVs in results/tables (run the numbered scripts first)."""
 import json
-from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,9 +9,7 @@ from meta_common import ablations
 
 matplotlib.use("Agg")
 
-ROOT = Path(__file__).resolve().parents[1]
-TAB = ROOT / "results" / "tables"
-FIG = ROOT / "results" / "figures"
+from run_config import FIGURES as FIG, TABLES as TAB  # noqa: E402
 FIG.mkdir(parents=True, exist_ok=True)
 
 # reference palette (light mode) from the dataviz method

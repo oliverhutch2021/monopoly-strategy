@@ -4,12 +4,11 @@ Outputs
   results/tables/property_economics.csv   per property (long-stay jail landing rates)
   results/tables/group_economics_{n}p.csv per colour group and level, for 2-6 players
 """
-from pathlib import Path
 
 from monopoly_meta.markov import build_chain
 from monopoly_meta.roi import group_table, property_table
 
-OUT = Path(__file__).resolve().parents[1] / "results" / "tables"
+from run_config import TABLES as OUT  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
 
 

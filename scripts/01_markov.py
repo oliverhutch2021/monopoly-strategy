@@ -4,7 +4,6 @@ Outputs
   results/tables/landing_probabilities.csv   per square, short- and long-stay jail strategies
   results/tables/markov_validation.csv       Markov vs simulation (random-draw and fixed-deck cards)
 """
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -13,9 +12,10 @@ from monopoly_meta.engine import Game, Rules
 from monopoly_meta.markov import build_chain
 from monopoly_meta.policies import Policy
 
-OUT = Path(__file__).resolve().parents[1] / "results" / "tables"
+from run_config import TABLES as OUT, scaled  # noqa: E402
+
 OUT.mkdir(parents=True, exist_ok=True)
-SIM_TURNS = 10_000_000
+SIM_TURNS = scaled(10_000_000)
 SEEDS = {("long", "random"): 101, ("long", "deck"): 102, ("short", "random"): 103, ("short", "deck"): 104}
 
 

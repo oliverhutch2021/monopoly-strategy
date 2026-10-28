@@ -17,11 +17,12 @@ import time
 import pandas as pd
 
 from meta_common import TAB, ckpt_dir, parse, rules_for
+from run_config import scaled
 from monopoly_meta.meta import to_spec
 from monopoly_meta.rollout import deal_summary, trade_price_curve
 from scenarios import orange_squeeze
 
-N = 2000
+N = scaled(2000)
 VINE = 19
 
 

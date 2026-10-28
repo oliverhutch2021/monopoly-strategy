@@ -10,16 +10,15 @@ Outputs
   results/tables/trade_curve_summary.csv          indifference prices and deal zones
 """
 import time
-from pathlib import Path
 
 import pandas as pd
 
 from monopoly_meta.rollout import deal_summary, trade_price_curve
 from scenarios import orange_squeeze
 
-OUT = Path(__file__).resolve().parents[1] / "results" / "tables"
+from run_config import TABLES as OUT, scaled  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
-N = 2000
+N = scaled(2000)
 VINE = 19
 PLAYER_COUNTS = [2, 3, 4, 5, 6]
 

@@ -18,28 +18,32 @@ Outputs
 import argparse
 import json
 import time
-from pathlib import Path
 
 import pandas as pd
 
 from monopoly_meta import load_edition
+from monopoly_meta.engine import championship_rules
 from monopoly_meta.meta import to_spec, tournament_rules
 from monopoly_meta.rollout import deal_summary, trade_price_curve
 from scenarios import set_completion
 
-ROOT = Path(__file__).resolve().parents[1]
-TAB = ROOT / "results" / "tables"
-N = 1000
+from run_config import TABLES as TAB, scaled  # noqa: E402
+
+N = scaled(1000)
 PRICES = [0, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 1000, 1200]
 VINE = 19
+
+
+MODE = {"meta": "standard", "championship": "championship"}  # --bots value: which meta agents play on
 
 
 def players_for(bots: str, n: int):
     """Bot specs and rules for the rest of the game."""
     if bots == "simple":
         return ["balanced"] * n, None
-    metas = json.loads((TAB / "meta_agents_standard.json").read_text())
-    return [to_spec(metas[str(n)], "meta")] * n, tournament_rules(n)
+    metas = json.loads((TAB / f"meta_agents_{MODE[bots]}.json").read_text())
+    rules = championship_rules(n) if bots == "championship" else tournament_rules(n)
+    return [to_spec(metas[str(n)], "meta")] * n, rules
 
 
 def vine_curve(bots: str) -> pd.DataFrame:
@@ -47,13 +51,13 @@ def vine_curve(bots: str) -> pd.DataFrame:
     if bots == "simple":
         c = pd.read_csv(TAB / "trade_curve_orange_squeeze.csv").query("buyer == 0").drop(columns="buyer")
     else:
-        c = pd.read_csv(TAB / "meta_trade_curve_standard.csv")
+        c = pd.read_csv(TAB / f"meta_trade_curve_{MODE[bots]}.csv")
     return c.assign(square=VINE)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--bots", choices=["simple", "meta"], default="simple")
+    ap.add_argument("--bots", choices=["simple", "meta", "championship"], default="simple")
     ap.add_argument("players", nargs="*", type=int, default=[2, 3, 4, 5, 6])
     args = ap.parse_args()
     ed = load_edition()

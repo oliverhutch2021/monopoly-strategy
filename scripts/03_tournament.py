@@ -7,14 +7,13 @@ Outputs
   results/tables/game_lengths.csv       per-game lengths under the official rules (balanced bots)
 """
 import time
-from pathlib import Path
 
 import pandas as pd
 
 from monopoly_meta.engine import Rules
 from monopoly_meta.tournament import run_games, wilson, win_rates
 
-OUT = Path(__file__).resolve().parents[1] / "results" / "tables"
+from run_config import TABLES as OUT, scaled  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
 
 PLAYER_COUNTS = [2, 3, 4, 5, 6]
@@ -22,7 +21,7 @@ VARIANTS = ["aggressive", "cautious", "three_house", "hoarder", "jail_short", "j
             "take_chance", "no_trade", "hard_bargain", "random"]
 
 
-def seat_advantage(games=10000):
+def seat_advantage(games=scaled(10000)):
     rows, lengths = [], []
     for n in PLAYER_COUNTS:
         df = run_games(["balanced"] * n, games, seed0=1_000_000 * n, rotate=False)
@@ -30,14 +29,15 @@ def seat_advantage(games=10000):
         wr["n_players"] = n
         wr["fair_share"] = 1 / n
         rows.append(wr)
-        lengths.append(df[["seed", "turns", "rounds", "capped", "winner_seat"]].assign(n_players=n))
+        # per-game lengths: the first 10,000 games per table size are plenty, and keep the file small in deep runs
+        lengths.append(df[["seed", "turns", "rounds", "capped", "winner_seat"]].head(10_000).assign(n_players=n))
         print(f"{n} players: seat-1 win rate {wr.win_rate.iloc[0]:.3f} vs fair {1 / n:.3f}, "
               f"median {df.rounds.median():.1f} rounds")
     pd.concat(rows).to_csv(OUT / "seat_advantage.csv", index=False)
     pd.concat(lengths).to_csv(OUT / "game_lengths.csv", index=False)
 
 
-def strategy_variants(games=10000):
+def strategy_variants(games=scaled(10000)):
     rows = []
     for n in PLAYER_COUNTS:
         fair = 1 / n
@@ -56,7 +56,7 @@ def strategy_variants(games=10000):
     pd.DataFrame(rows).to_csv(OUT / "strategy_variants.csv", index=False)
 
 
-def house_rules(games=6000):
+def house_rules(games=scaled(6000)):
     variants = {
         "official": Rules(),
         "free_parking_jackpot": Rules(free_parking_jackpot=True),

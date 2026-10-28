@@ -19,8 +19,7 @@ from meta_common import ablations  # noqa: E402
 from monopoly_meta import load_edition  # noqa: E402
 from monopoly_meta.rollout import deal_summary  # noqa: E402
 
-TAB = ROOT / "results" / "tables"
-OUT = ROOT / "results" / "dashboard"
+from run_config import DASHBOARD as OUT, TABLES as TAB  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
 RULES = {"standard": "Official rules", "championship": "Championship rules"}
 VARIANT = {
@@ -179,18 +178,22 @@ def crossing_se(curve: pd.DataFrame, player: int) -> float | None:
     return None
 
 
+MODE_OF = {"meta": "standard", "championship": "championship"}
+
+
 def property_trades():
     """Every property sold to the player it completes a set for (scripts/10_property_trades.py)."""
     ed = load_edition()
     curves, zones = [], []
-    for bots, label in [("simple", "Simple bots"), ("meta", "Meta agents, official rules")]:
+    for bots, label in [("simple", "Simple bots"), ("meta", "Meta agents, official rules"),
+                        ("championship", "Meta agents, championship rules")]:
         d = TAB / "property_trades" / bots
         parts = [pd.read_csv(f) for f in sorted(d.glob("*p_*.csv"))] if d.exists() else []
         if not parts:
             print(f"  (no property trades for {bots} yet: skipped)")
             continue
         vine = (pd.read_csv(TAB / "trade_curve_orange_squeeze.csv").query("buyer == 0").drop(columns="buyer")
-                if bots == "simple" else read("meta_trade_curve_standard.csv"))
+                if bots == "simple" else read(f"meta_trade_curve_{MODE_OF[bots]}.csv"))
         sizes = {int(x.n_players.iloc[0]) for x in parts}
         if vine is not None:
             parts.append(vine[vine.n_players.isin(sizes)].assign(square=19))
