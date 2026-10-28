@@ -35,7 +35,7 @@ PY = sys.executable
 
 # A step is (name, argv) or (name, argv, env): env adds variables for that step, e.g. a results folder and a
 # sample-size multiplier (scripts/run_config.py). Steps run in order; finished ones are skipped on a rerun.
-DEEP = {"MM_RESULTS": "results/v04", "MM_SCALE": "10"}
+V04 = {"MM_RESULTS": "results/v04", "MM_SCALE": "10"}
 
 JOBS: dict[str, list[tuple]] = {
     # Finish v0.3 on the untouched engine (see RUNNING.md, step 2). Order matters: the
@@ -51,27 +51,36 @@ JOBS: dict[str, list[tuple]] = {
         ("dashboard-data", ["scripts/08_dashboard_data.py"]),
         ("figures", ["scripts/make_figures.py"]),
     ],
-    # v0.4, proposed: every v0.3 study at 10x the samples, written to results/v04 (v0.3's results stay as they are),
-    # plus a deeper exploitability test and every-property trade curves under championship rules.
-    "v04": [
-        ("prepare", ["scripts/deep_prepare.py"], DEEP),
-        ("tournaments", ["scripts/03_tournament.py"], DEEP),
-        ("championship-basics", ["scripts/07_championship_basics.py"], DEEP),
-        ("validate-standard", ["scripts/05b_refine_meta.py", "--mode", "standard", "--revalidate"], DEEP),
-        ("validate-championship", ["scripts/05b_refine_meta.py", "--mode", "championship", "--revalidate"], DEEP),
-        ("exploitability-standard", ["scripts/12_exploitability.py", "--mode", "standard"], DEEP),
-        ("exploitability-championship", ["scripts/12_exploitability.py", "--mode", "championship"], DEEP),
-        ("meta-vs-simple-standard", ["scripts/09_meta_vs_simple.py", "--mode", "standard"], DEEP),
-        ("meta-vs-simple-championship", ["scripts/09_meta_vs_simple.py", "--mode", "championship"], DEEP),
-        ("vine-street-simple", ["scripts/04_trade_curve.py"], DEEP),
-        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], DEEP),
-        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], DEEP),
-        ("property-trades-simple", ["scripts/10_property_trades.py", "--bots", "simple"], DEEP),
-        ("property-trades-meta", ["scripts/10_property_trades.py", "--bots", "meta"], DEEP),
+    # v0.4, run 1: how far a much bigger search can beat the meta agents using only the moves they already have.
+    # This is the control arm for the unconventional-strategy search (new moves on), which uses the same
+    # protocol, budget and evaluation games. Written to results/v04; v0.3's results stay as they are.
+    "exploit": [
+        ("prepare", ["scripts/deep_prepare.py"], V04),
+        ("exploitability-standard", ["scripts/12_exploitability.py", "--mode", "standard"], V04),
+        ("exploitability-championship", ["scripts/12_exploitability.py", "--mode", "championship"], V04),
+    ],
+    # On hold: every v0.3 study at 10x the samples. Most of these are measured with the meta agent at the table,
+    # so they wait until the unconventional-strategy search has settled which agent that is (and will likely
+    # run on the Rust engine, in minutes). Steps already done by "exploit" are skipped.
+    "deep": [
+        ("prepare", ["scripts/deep_prepare.py"], V04),
+        ("tournaments", ["scripts/03_tournament.py"], V04),
+        ("championship-basics", ["scripts/07_championship_basics.py"], V04),
+        ("validate-standard", ["scripts/05b_refine_meta.py", "--mode", "standard", "--revalidate"], V04),
+        ("validate-championship", ["scripts/05b_refine_meta.py", "--mode", "championship", "--revalidate"], V04),
+        ("exploitability-standard", ["scripts/12_exploitability.py", "--mode", "standard"], V04),
+        ("exploitability-championship", ["scripts/12_exploitability.py", "--mode", "championship"], V04),
+        ("meta-vs-simple-standard", ["scripts/09_meta_vs_simple.py", "--mode", "standard"], V04),
+        ("meta-vs-simple-championship", ["scripts/09_meta_vs_simple.py", "--mode", "championship"], V04),
+        ("vine-street-simple", ["scripts/04_trade_curve.py"], V04),
+        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], V04),
+        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], V04),
+        ("property-trades-simple", ["scripts/10_property_trades.py", "--bots", "simple"], V04),
+        ("property-trades-meta", ["scripts/10_property_trades.py", "--bots", "meta"], V04),
         ("property-trades-championship", ["scripts/10_property_trades.py", "--bots", "championship"],
-         {**DEEP, "MM_SCALE": "5"}),
-        ("dashboard-data", ["scripts/08_dashboard_data.py"], DEEP),
-        ("figures", ["scripts/make_figures.py"], DEEP),
+         {**V04, "MM_SCALE": "5"}),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], V04),
+        ("figures", ["scripts/make_figures.py"], V04),
     ],
     # A two-minute end-to-end check of this runner (sync, steps, stamp, commit, bundle, DONE note).
     "smoke": [

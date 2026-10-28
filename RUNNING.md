@@ -55,10 +55,23 @@ It runs the eight remaining v0.3 commands in order, using all 16 threads:
 
 When it prints "All done", tell Claude in the chat.
 
+## Step 3: exploitability test (2-3 hours)
+
+```
+make sync && make exploit
+```
+
+For each table size under official and championship rules, it trains challengers against the meta
+agents from three starting points with a much bigger search than hardening used, then measures the best
+one against the meta agent on 40,000 paired games. It writes to `results/v04`; the v0.3 results stay as
+they are. This is also the comparison run for the unconventional-strategy search that comes next: same
+search, same games, but without the new moves.
+
 ## Later steps
 
-Claude adds each one here when it's ready: engine checks (Phase A), studies at scale (Phase B),
-position data (Phase C), model training (Phase D), and the agent league (Phase F).
+Claude adds each one here when it's ready: the unconventional-strategy search (v0.4), engine checks
+(Phase A), studies at scale (Phase B), position data (Phase C), model training (Phase D), and the agent
+league (Phase F).
 
 ## If something goes wrong
 

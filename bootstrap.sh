@@ -10,7 +10,10 @@ say "Git settings for a Windows-drive checkout used from Linux"
 git config core.autocrlf false
 git config core.fileMode false
 if [ -z "$(git config user.email || true)" ]; then
-  name=$(git log -1 --format=%an); email=$(git log -1 --format=%ae)
+  # results are committed as the repo's owner: the latest author who isn't Claude
+  who=$(git log --format='%an|%ae' | awk -F'|' '$2 != "noreply@anthropic.com" {print; exit}' || true)
+  [ -n "$who" ] || who=$(git log -1 --format='%an|%ae')
+  name=${who%|*}; email=${who##*|}
   git config user.name "$name"; git config user.email "$email"
   echo "Result commits will be made as: $name <$email> (this repo only)"
 fi
