@@ -1,0 +1,12 @@
+# LF everywhere, on Windows and Linux alike, so scripts run under WSL and diffs stay clean.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.parquet binary
+*.bundle binary
+*.onnx binary
+*.wasm binary
+*.zip binary

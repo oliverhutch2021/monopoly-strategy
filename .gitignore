@@ -11,3 +11,5 @@ node_modules/
 mlruns/
 *.parquet
 data/positions/
+.sync/
+target/
