@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SYNC = ROOT / ".sync"
 STATE = SYNC / "state"
 LOGS = SYNC / "logs"
+WATCH = SYNC / "watch"  # what the live viewer reads (scripts/watch.py)
 PY = sys.executable
 
 # A step is (name, argv) or (name, argv, env): env adds variables for that step, e.g. a results folder and a
@@ -189,7 +190,7 @@ def machine() -> dict:
             "ram_gb": mem, "python": platform.python_version()}
 
 
-def run(job: str, force: bool) -> None:
+def run(job: str, force: bool, watch: bool = True) -> None:
     if job not in JOBS:
         raise SystemExit(f"Unknown job '{job}'. Jobs: {', '.join(JOBS)}")
     require_main()
@@ -225,11 +226,14 @@ def run(job: str, force: bool) -> None:
         print(f"[{i}/{len(steps)}] {name}: {extra + ' ' if extra else ''}python {shlex.join(argv)}", flush=True)
         t0 = time.time()
         log = LOGS / f"{job}-{name}.log"
+        watch_note(job, st, steps, "running", step=name)
+        # MM_WATCH_DIR / MM_STEP let `make watch` follow the step (src/monopoly_meta/watch.py)
+        live = {"MM_WATCH_DIR": str(WATCH / job), "MM_STEP": f"{job}/{name}"} if watch else {}
         with log.open("a") as fh:
             fh.write(f"\n=== {now()} {extra} {shlex.join([PY, *argv])}\n")
             fh.flush()
             proc = subprocess.Popen([PY, "-u", *argv], cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    text=True, bufsize=1, env={**os.environ, **env})
+                                    text=True, bufsize=1, env={**os.environ, **live, **env})
             assert proc.stdout is not None
             for line in proc.stdout:
                 sys.stdout.write("    " + line)
@@ -239,12 +243,29 @@ def run(job: str, force: bool) -> None:
         if code != 0:
             st["steps"][name] = {"done": False, "seconds": secs, "exit_code": code}
             save_state(job, st)
+            watch_note(job, st, steps, "failed", step=name)
             raise SystemExit(f"Step '{name}' failed (exit code {code}); the log is .sync/logs/{log.name}. "
                              f"Rerun `make {job}` to resume from this step once it's fixed.")
         st["steps"][name] = {"done": True, "seconds": secs, "finished": now()}
         save_state(job, st)
         print(f"    done in {secs // 60} min {secs % 60} s", flush=True)
+    watch_note(job, st, steps, "finished")
     finish(job, st)
+
+
+def watch_note(job: str, st: dict, steps: list, state: str, step: str | None = None) -> None:
+    """Tell the live viewer (`make watch`) which job and step are running. Never fails the job."""
+    try:
+        WATCH.mkdir(parents=True, exist_ok=True)
+        note = {"job": job, "state": state, "step": step, "time": time.time(), "host": socket.gethostname(),
+                "pid": os.getpid(), "started": st["started"], "commit": st["commit"][:9],
+                "steps": [{"name": s[0], "done": bool(st["steps"].get(s[0], {}).get("done")),
+                           "seconds": st["steps"].get(s[0], {}).get("seconds")} for s in steps]}
+        tmp = WATCH / ".current.tmp"
+        tmp.write_text(json.dumps(note))
+        os.replace(tmp, WATCH / "current.json")
+    except OSError:
+        pass
 
 
 def finish(job: str, st: dict) -> None:
@@ -293,12 +314,13 @@ def main() -> None:
     r = sub.add_parser("run")
     r.add_argument("job")
     r.add_argument("--force", action="store_true")
+    r.add_argument("--no-watch", action="store_true", help="don't leave games for the live viewer (make watch)")
     sub.add_parser("status")
     a = ap.parse_args()
     if a.cmd == "sync":
         sync()
     elif a.cmd == "run":
-        run(a.job, a.force)
+        run(a.job, a.force, watch=not a.no_watch)
     else:
         status()
 

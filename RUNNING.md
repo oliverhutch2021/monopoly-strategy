@@ -67,6 +67,32 @@ one against the meta agent on 40,000 paired games. It writes to `results/v04`; t
 they are. This is also the comparison run for the unconventional-strategy search that comes next: same
 search, same games, but without the new moves.
 
+## Watching a run
+
+Open a second Ubuntu window while a job runs and type:
+
+```
+cd /mnt/h/monopoly-strategy
+make watch
+```
+
+Your browser opens a board that replays real games from the running job, move by move, next to the job's
+progress: games simulated, games per second, which step it's on and its latest output. Every few seconds the
+job saves one of the games it's about to play (who is playing, the seed and the rules), and the viewer
+replays that exact game with the same code. With no job running it shows demo games between the meta agents.
+
+- **It can't affect the job.** The viewer is a separate program at the lowest priority. Closing the tab or
+  pressing Ctrl+C in its window stops only the viewer. The job's side is one small file write every few
+  seconds, and it doesn't touch the random numbers: results are identical with or without it
+  (`tests/test_replay.py` checks this). To switch even that off, start the job with `WATCH=0`, e.g.
+  `make exploit WATCH=0`.
+- **CPU.** Replaying a game takes a few hundredths of a second. The win-chance chart is the only part with
+  a real cost: each estimate plays the position out 64 times, about 0.1-0.2 s of one thread, at most
+  twice a second. The toolbar has a switch for it and a Pause button; add `?odds=off` or `?speed=5`
+  to the address to start that way.
+- If the page doesn't open, go to http://localhost:8765 yourself. If Windows can't reach it, try
+  `make watch HOST=0.0.0.0`.
+
 ## Later steps
 
 Claude adds each one here when it's ready: the unconventional-strategy search (v0.4), engine checks

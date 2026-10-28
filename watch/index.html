@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monopoly Meta Live</title>
+<link rel="stylesheet" href="/fonts.css">
+<style>
+:root {
+  --felt: #12372c; --felt-2: #0b261e; --ink: #1f1b15; --muted: #6d665a;
+  --board: #d6e9d4; --board-line: #2c3a2f; --cash: #2c8a57; --brick: #c4452f; --gold: #c9962a;
+  --panel: #fbf8ef; --panel-2: #f1ebdc; --line: #e3dccb; --chance: #e07b24; --chest: #2f7fbf;
+  --display: 'Oswald', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background-color: var(--felt-2); }
+body { background: radial-gradient(ellipse at 50% 30%, var(--felt) 0%, var(--felt-2) 75%) fixed; color: var(--ink);
+  font-family: var(--body); font-size: 14px; }
+header { display: flex; align-items: center; gap: 14px; padding: 10px 18px; color: #e8efe6; }
+header .brand { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .07em; }
+header .brand span { color: #f2c94c; }
+header .where { color: #b9c8bd; font-size: 13px; }
+.pill { display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px; border-radius: 999px; font-size: 12px;
+  font-weight: 700; letter-spacing: .05em; background: rgba(255,255,255,.1); color: #e8efe6; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #8a958c; }
+.live .dot { background: #4cd07d; animation: pulse 1.6s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(76,208,125,.7); } 70% { box-shadow: 0 0 0 9px rgba(76,208,125,0); }
+  100% { box-shadow: 0 0 0 0 rgba(76,208,125,0); } }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr) 370px; grid-template-areas: "left centre right";
+  gap: 16px; padding: 0 16px 10px; align-items: start; }
+.left { grid-area: left; } .centre { grid-area: centre; } .right { grid-area: right; }
+.left, .right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.centre { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
+#board { width: 100%; max-width: calc(100vh - 112px); height: auto; aspect-ratio: 1; display: block;
+  filter: drop-shadow(0 14px 30px rgba(0,0,0,.45)); user-select: none; }
+@media (max-width: 1500px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 370px; grid-template-areas: "centre right" "left right"; }
+}
+@media (max-width: 980px) {
+  .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "centre" "right" "left"; }
+  #board { max-width: 100%; }
+}
+.card { background: var(--panel); border-radius: 12px; padding: 12px 14px; box-shadow: 0 6px 18px rgba(0,0,0,.25); min-width: 0; }
+.card h2 { margin: 0 0 8px; font-family: var(--display); font-weight: 700; font-size: 12.5px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.card h2 small { font-family: var(--body); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 11.5px; }
+.counter { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
+.sub { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.35; }
+.steps { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.step { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #ece6d6; color: var(--muted); }
+.step.done { background: #d8eedf; color: #23633e; }
+.step.now { background: var(--ink); color: #fff; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; background: rgba(251,248,239,.95);
+  padding: 7px 10px; border-radius: 999px; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+.toolbar .sep { width: 1px; background: var(--line); margin: 2px 4px; }
+button { font: 600 12.5px var(--body); border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer;
+  background: #ece6d6; color: var(--ink); white-space: nowrap; }
+button:hover { background: #e2dac6; }
+button.on { background: var(--ink); color: #fff; }
+button.go { background: var(--brick); color: #fff; }
+.turnbox { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.turnbox .counter { font-size: 30px; }
+.bank { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.4; }
+.players { display: grid; gap: 7px; }
+.pl { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 4px 9px; padding: 7px 8px; border-radius: 9px;
+  border: 1px solid var(--line); background: #fff; }
+.pl.turn { box-shadow: inset 0 0 0 2px var(--ink); }
+.pl.out { opacity: .45; }
+.pl.out .name { text-decoration: line-through; }
+.pl.win { background: #fff7dc; box-shadow: inset 0 0 0 2px var(--gold); }
+.tok { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 800;
+  font-size: 13px; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.45); grid-row: span 2; align-self: center; }
+.pl .name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl .money { font-family: var(--display); font-weight: 700; font-size: 19px; font-variant-numeric: tabular-nums; text-align: right; }
+.pl .detail { grid-column: 2 / 4; font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 3px 10px; align-items: center; }
+.pips { display: inline-flex; gap: 2px; flex-wrap: wrap; }
+.pips i { width: 8px; height: 11px; border-radius: 2px; display: inline-block; }
+.pips i.set { outline: 1.5px solid var(--ink); outline-offset: 0; }
+.pips i.m { opacity: .35; }
+.odds { grid-column: 2 / 4; display: grid; grid-template-columns: 1fr 42px; gap: 8px; align-items: center; }
+.odds .bar { height: 7px; border-radius: 4px; background: #ebe4d2; overflow: hidden; }
+.odds .bar i { display: block; height: 100%; border-radius: 4px; transition: width .5s ease; }
+.odds b { font-family: var(--display); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+#chart { width: 100%; height: auto; display: block; }
+.cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mini { border-radius: 9px; border: 2px solid; background: #fff; min-height: 86px; overflow: hidden; }
+.mini .hd { font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: .08em; color: #fff; padding: 3px 8px; }
+.mini .tx { font-size: 12px; padding: 6px 8px; line-height: 1.3; }
+.mini .who { font-size: 11px; color: var(--muted); padding: 0 8px 6px; }
+.about { font-size: 13px; line-height: 1.35; }
+#events { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 330px; overflow: hidden; }
+#events li { font-size: 12.5px; line-height: 1.3; display: flex; gap: 6px; align-items: baseline; animation: slidein .25s ease-out; }
+#events li b { font-weight: 700; }
+#events .t { color: var(--muted); font-size: 11px; min-width: 32px; font-variant-numeric: tabular-nums; }
+#events .chip { width: 9px; height: 9px; border-radius: 50%; flex: none; transform: translateY(1px); }
+@keyframes slidein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+#joblog { font: 11.5px/1.45 ui-monospace, 'Cascadia Mono', Consolas, monospace; white-space: pre-wrap; color: #3f3a31;
+  margin: 0; max-height: 120px; overflow: hidden; }
+footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1.5; }
+.sq-name { font-family: var(--display); font-weight: 500; font-size: 10.5px; letter-spacing: .02em; fill: var(--ink); }
+.sq-price { font-family: var(--display); font-weight: 500; font-size: 11px; fill: var(--ink); }
+.big { font-family: var(--display); font-weight: 700; }
+.big:not([fill]) { fill: var(--ink); }  /* a fill attribute, when given, wins */
+.hud-small { font-family: var(--display); font-weight: 500; letter-spacing: .07em; }
+.hud-small:not([fill]) { fill: #3f4c42; }
+.flash { animation: flash .9s ease-out; }
+@keyframes flash { 0% { fill-opacity: .8; } 100% { fill-opacity: 0; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">MONOPOLY <span>META</span></div>
+  <div id="live" class="pill"><span class="dot"></span><span id="liveText">connecting…</span></div>
+  <div class="where" id="where"></div>
+</header>
+<div class="layout">
+  <div class="left">
+    <section class="card">
+      <h2>Your PC</h2>
+      <div class="counter" id="games">0</div>
+      <div class="sub" id="gamesSub">games simulated in this job</div>
+      <div class="steps" id="steps"></div>
+      <div class="sub" id="jobName"></div>
+    </section>
+    <section class="card">
+      <h2>Play by play</h2>
+      <ul id="events"></ul>
+    </section>
+    <section class="card">
+      <h2>Latest from the job</h2>
+      <pre id="joblog">waiting for a job…</pre>
+    </section>
+  </div>
+  <div class="centre">
+    <svg id="board" viewBox="-40 -40 1080 1080" role="img" aria-label="Board replaying a game"></svg>
+    <div class="toolbar" id="toolbar"></div>
+  </div>
+  <div class="right">
+    <section class="card">
+      <h2 id="gameTitle">Now replaying</h2>
+      <div class="about" id="about"></div>
+      <div class="sub" id="gameMeta"></div>
+    </section>
+    <section class="card">
+      <div class="turnbox"><div><div class="counter" id="round">Round 1</div><div class="sub" id="turnSub"></div></div>
+        <div class="bank" id="bank"></div></div>
+    </section>
+    <section class="card">
+      <h2>Players <small id="oddsNote"></small></h2>
+      <div class="players" id="players"></div>
+    </section>
+    <section class="card" id="chartCard">
+      <h2>Projected winner <small>chance of winning, by turn</small></h2>
+      <svg id="chart" viewBox="0 0 340 150"></svg>
+      <div class="sub" id="chartNote"></div>
+    </section>
+    <section class="card">
+      <h2>Last cards drawn</h2>
+      <div class="cards2">
+        <div class="mini" id="lastChance" style="border-color:var(--chance)"><div class="hd" style="background:var(--chance)">CHANCE</div>
+          <div class="tx">—</div><div class="who"></div></div>
+        <div class="mini" id="lastChest" style="border-color:var(--chest)"><div class="hd" style="background:var(--chest)">COMMUNITY CHEST</div>
+          <div class="tx">—</div><div class="who"></div></div>
+      </div>
+    </section>
+  </div>
+</div>
+<footer>Monopoly Meta is a student project, not affiliated with or endorsed by Hasbro; the board artwork here is the project's own.
+Each game is replayed from your PC's run with the same code, seed and players. Win chances come from quick playouts of the position
+and are rough (±8 points or so).</footer>
+<script>
+'use strict';
+const NS = 'http://www.w3.org/2000/svg';
+const C = 134, N = 40, W = (1000 - 2 * C) / 9, BAND = 27;
+const PCOL = ['#e23d3d', '#2f6fde', '#1f9d5a', '#f0a500', '#8e44ad', '#ff7a1a'];
+const ODDS_PLAYOUTS = 64;
+const $ = id => document.getElementById(id);
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const money = v => (v < 0 ? '-£' : '£') + Math.abs(Math.round(v)).toLocaleString('en-GB');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+let B = null, ownIdx = {};
+const SQ = [];
+let tokens = [], state = null, game = null;
+const URLP = new URLSearchParams(location.search);  // ?speed=5&odds=off
+let speed = +URLP.get('speed') || 1, skipping = false, nextNow = false, paused = false, oddsOn = URLP.get('odds') !== 'off';
+let since = 0, shownTurn = 0, odds = [];
+const sleep = async ms => {
+  const end = performance.now() + ms;
+  while (performance.now() < end || paused) {
+    if (skipping) return;
+    await new Promise(r => setTimeout(r, Math.min(50, Math.max(1, end - performance.now()))));
+  }
+};
+
+// ------------------------------------------------------------------ geometry
+function rectOf(i) {
+  if (i === 0) return { x: 1000 - C, y: 1000 - C, w: C, h: C, side: 0 };
+  if (i < 10) return { x: 1000 - C - i * W, y: 1000 - C, w: W, h: C, side: 0 };
+  if (i === 10) return { x: 0, y: 1000 - C, w: C, h: C, side: 1 };
+  if (i < 20) return { x: 0, y: 1000 - C - (i - 10) * W, w: C, h: W, side: 1 };
+  if (i === 20) return { x: 0, y: 0, w: C, h: C, side: 2 };
+  if (i < 30) return { x: C + (i - 21) * W, y: 0, w: W, h: C, side: 2 };
+  if (i === 30) return { x: 1000 - C, y: 0, w: C, h: C, side: 3 };
+  return { x: 1000 - C, y: C + (i - 31) * W, w: C, h: W, side: 3 };
+}
+// an edge square drawn in its own frame: width W, depth C, colour band (the inner edge) at y = 0
+function frame(r) {
+  switch (r.side) {
+    case 0: return `translate(${r.x},${r.y})`;
+    case 1: return `translate(${r.x + C},${r.y}) rotate(90)`;
+    case 2: return `translate(${r.x + W},${r.y + C}) rotate(180)`;
+    default: return `translate(${r.x},${r.y + W}) rotate(-90)`;
+  }
+}
+function spot(i, k = 0, n = 1, jailed = false) {
+  const r = rectOf(i);
+  let cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  if (i === 10) {
+    if (jailed) { cx = r.x + C * 0.65; cy = r.y + C * 0.34; } else { cx = r.x + C * 0.4; cy = r.y + C * 0.84; }
+  } else if (i % 10) {
+    const out = 0.17 * C;
+    if (r.side === 0) cy += out; else if (r.side === 1) cx -= out; else if (r.side === 2) cy -= out; else cx += out;
+  }
+  const cols = Math.min(n, 3), col = k % 3, row = Math.floor(k / 3), rows = Math.ceil(n / 3);
+  const along = (col - (cols - 1) / 2) * 23, across = (row - (rows - 1) / 2) * 23;
+  if (i % 10 && (r.side === 1 || r.side === 3)) return [cx + across, cy + along];
+  return [cx + along, cy + across];
+}
+
+// ------------------------------------------------------------------ board drawing
+function wrapWords(text, maxChars) {
+  const lines = []; let cur = '';
+  for (const w of text.toUpperCase().split(/\s+/)) {
+    if (cur && (cur + ' ' + w).length > maxChars) { lines.push(cur); cur = w; } else cur = cur ? cur + ' ' + w : w;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function textLines(g, lines, x, y, cls, step = 12, extra = {}, maxWidth = 0, charW = 5.9) {
+  lines.forEach((ln, k) => {
+    const attrs = { x, y: y + k * step, 'text-anchor': 'middle', class: cls, ...extra };
+    if (maxWidth && ln.length * charW > maxWidth) Object.assign(attrs, { textLength: maxWidth, lengthAdjust: 'spacingAndGlyphs' });
+    el('text', attrs, g).textContent = ln;
+  });
+}
+function glyph(g, kind, x, y, scale = 1) {
+  const s = el('g', { transform: `translate(${x},${y}) scale(${scale})` }, g);
+  const ink = '#1f1b15';
+  if (kind === 'station') {
+    el('rect', { x: -22, y: -9, width: 30, height: 16, rx: 3, fill: '#2b2a27' }, s);
+    el('rect', { x: 6, y: -19, width: 15, height: 26, rx: 2, fill: '#2b2a27' }, s);
+    el('rect', { x: 9, y: -15, width: 9, height: 7, rx: 1, fill: '#d6e9d4' }, s);
+    el('rect', { x: -19, y: -18, width: 6, height: 10, fill: '#2b2a27' }, s);
+    for (const cx of [-14, 0, 14]) el('circle', { cx, cy: 11, r: 5.2, fill: '#2b2a27', stroke: '#d6e9d4', 'stroke-width': 1.5 }, s);
+  } else if (kind === 'bulb') {
+    el('circle', { cx: 0, cy: -7, r: 13, fill: '#f6d55c', stroke: ink, 'stroke-width': 2 }, s);
+    el('path', { d: 'M-5 -7 L-2 0 L2 -7 L5 0', fill: 'none', stroke: ink, 'stroke-width': 1.6 }, s);
+    el('rect', { x: -7, y: 5, width: 14, height: 10, rx: 2, fill: '#8d8a83', stroke: ink, 'stroke-width': 1.5 }, s);
+  } else if (kind === 'tap') {
+    el('path', { d: 'M-20 -6 H6 Q14 -6 14 2 V8 H6 V2 H-20 Z', fill: '#7d8b93', stroke: ink, 'stroke-width': 1.6 }, s);
+    el('rect', { x: -10, y: -16, width: 6, height: 10, fill: '#7d8b93', stroke: ink, 'stroke-width': 1.4 }, s);
+    el('rect', { x: -15, y: -19, width: 16, height: 4, rx: 2, fill: ink }, s);
+    el('path', { d: 'M10 13 Q13 18 10 21 Q7 18 10 13 Z', fill: '#3d8fd1' }, s);
+  } else if (kind === 'chance') {
+    el('text', { x: 0, y: 19, 'text-anchor': 'middle', class: 'big', 'font-size': 58, fill: 'var(--chance)', stroke: ink, 'stroke-width': 1.2 }, s).textContent = '?';
+  } else if (kind === 'chest') {
+    el('rect', { x: -20, y: -6, width: 40, height: 22, rx: 3, fill: 'var(--chest)', stroke: ink, 'stroke-width': 1.6 }, s);
+    el('path', { d: 'M-20 -6 Q0 -22 20 -6 Z', fill: '#4f9bd6', stroke: ink, 'stroke-width': 1.6 }, s);
+    el('rect', { x: -4, y: -4, width: 8, height: 9, rx: 1.5, fill: '#f2c94c', stroke: ink, 'stroke-width': 1.2 }, s);
+    el('line', { x1: -20, y1: 9, x2: 20, y2: 9, stroke: ink, 'stroke-width': 1.2 }, s);
+  } else if (kind === 'tax') {
+    el('circle', { cx: 0, cy: 0, r: 17, fill: '#f2c94c', stroke: ink, 'stroke-width': 1.8 }, s);
+    el('text', { x: 0, y: 8, 'text-anchor': 'middle', class: 'big', 'font-size': 22 }, s).textContent = '£';
+  }
+  return s;
+}
+function drawSquare(svg, sq) {
+  const r = rectOf(sq.i), node = { r };
+  SQ[sq.i] = node;
+  if (sq.i % 10 === 0) { drawCorner(svg, sq, r, node); return; }
+  const g = el('g', { transform: frame(r) }, svg);
+  el('rect', { x: 0, y: 0, width: W, height: C, fill: 'var(--board)', stroke: 'var(--board-line)', 'stroke-width': 1.4 }, g);
+  const t = sq.type, fit = W - 8;
+  if (t === 'street') {
+    el('rect', { x: 0, y: 0, width: W, height: BAND, fill: sq.colour, stroke: 'var(--board-line)', 'stroke-width': 1.4 }, g);
+    textLines(g, wrapWords(sq.name, 11), W / 2, BAND + 18, 'sq-name', 12, {}, fit);
+    node.houses = el('g', {}, g);
+  } else if (t === 'station' || t === 'utility') {
+    textLines(g, wrapWords(sq.name, 11), W / 2, 18, 'sq-name', 12, {}, fit);
+    glyph(g, t === 'station' ? 'station' : (/water/i.test(sq.name) ? 'tap' : 'bulb'), W / 2 + 1, 76);
+  } else if (t === 'chance') {
+    textLines(g, ['CHANCE'], W / 2, 20, 'sq-name');
+    glyph(g, 'chance', W / 2, 72);
+  } else if (t === 'community_chest') {
+    textLines(g, ['COMMUNITY', 'CHEST'], W / 2, 18, 'sq-name');
+    glyph(g, 'chest', W / 2, 76);
+  } else if (t === 'tax') {
+    textLines(g, wrapWords(sq.name, 11), W / 2, 20, 'sq-name', 12, {}, fit);
+    glyph(g, 'tax', W / 2, 68);
+    textLines(g, ['PAY ' + money(sq.tax)], W / 2, C - 11, 'sq-price');
+  }
+  if (sq.price) textLines(g, [money(sq.price)], W / 2, C - 10, 'sq-price');
+  node.owner = el('g', { opacity: 0 }, g);
+  el('rect', { x: W / 2 - 15, y: C + 6, width: 30, height: 22, rx: 6, stroke: '#fff', 'stroke-width': 2 }, node.owner);
+  node.ownerText = el('text', { x: W / 2, y: C + 22, 'text-anchor': 'middle', 'font-weight': 800, 'font-size': 13, fill: '#fff',
+    'font-family': 'system-ui, sans-serif' }, node.owner);
+  node.veil = el('g', { opacity: 0, 'pointer-events': 'none' }, g);
+  el('rect', { x: 0, y: 0, width: W, height: C, fill: '#1f1b15', 'fill-opacity': .28 }, node.veil);
+  el('rect', { x: 4, y: C - 40, width: W - 8, height: 16, rx: 3, fill: '#1f1b15' }, node.veil);
+  el('text', { x: W / 2, y: C - 28.5, 'text-anchor': 'middle', class: 'big', 'font-size': 10, fill: '#fff', 'letter-spacing': '.1em' },
+    node.veil).textContent = 'MORTGAGED';
+  node.flash = el('rect', { x: 0, y: 0, width: W, height: C, fill: '#fff6c2', 'fill-opacity': 0, 'pointer-events': 'none' }, g);
+}
+function drawCorner(svg, sq, r, node) {
+  const g = el('g', { transform: `translate(${r.x},${r.y})` }, svg);
+  el('rect', { x: 0, y: 0, width: C, height: C, fill: 'var(--board)', stroke: 'var(--board-line)', 'stroke-width': 1.4 }, g);
+  // corner art is laid out upright in a frame turned to face the corner (text "up" points to the board's centre)
+  const turned = deg => el('g', { transform: `translate(${C / 2},${C / 2}) rotate(${deg})` }, g);
+  const txt = (parent, s, y, size, fill = 'var(--ink)', x = 0) =>
+    el('text', { x, y, 'text-anchor': 'middle', class: 'big', 'font-size': size, fill }, parent).textContent = s;
+  if (sq.i === 0) {  // GO, bottom-right: play runs leftwards along the bottom row
+    const f = turned(-45);
+    txt(f, 'COLLECT ' + money(B.go_salary), -34, 12.5); txt(f, 'SALARY AS YOU PASS', -20, 11);
+    txt(f, 'GO', 22, 54, 'var(--brick)');
+    el('path', { d: 'M120 122 H30 l12 -11 M30 122 l12 11', fill: 'none', stroke: 'var(--brick)', 'stroke-width': 6,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+  } else if (sq.i === 10) {  // jail, bottom-left: the cell towards the board's centre, "just visiting" round the outside
+    el('rect', { x: C * 0.3, y: 0, width: C * 0.7, height: C * 0.7, fill: '#f0a04b', stroke: 'var(--board-line)', 'stroke-width': 1.4 }, g);
+    for (let k = 0; k < 5; k++) el('line', { x1: C * 0.37 + k * 17.5, y1: 12, x2: C * 0.37 + k * 17.5, y2: C * 0.7 - 22,
+      stroke: '#3a3128', 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
+    txt(g, 'IN JAIL', C * 0.7 - 6, 13.5, 'var(--ink)', C * 0.65);
+    el('text', { x: C * 0.15, y: C * 0.36, 'text-anchor': 'middle', class: 'big', 'font-size': 12.5, transform: `rotate(90 ${C * 0.15} ${C * 0.36})` }, g).textContent = 'JUST';
+    txt(g, 'VISITING', C * 0.95, 11.5, 'var(--ink)', C * 0.7);
+  } else if (sq.i === 20) {  // free parking, top-left
+    const f = turned(135);
+    txt(f, 'FREE', -30, 17);
+    el('rect', { x: -21, y: -19, width: 42, height: 42, rx: 8, fill: '#2f6fde', stroke: '#1f1b15', 'stroke-width': 2 }, f);
+    txt(f, 'P', 14, 32, '#fff');
+    txt(f, 'PARKING', 44, 17);
+  } else {  // go to jail, top-right
+    const f = turned(-135);
+    txt(f, 'GO TO', -30, 17);
+    el('path', { d: 'M-26 6 H20 M8 -6 L22 6 L8 18', fill: 'none', stroke: 'var(--brick)', 'stroke-width': 6,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, f);
+    txt(f, 'JAIL', 50, 26);
+  }
+  node.flash = el('rect', { x: 0, y: 0, width: C, height: C, fill: '#fff6c2', 'fill-opacity': 0, 'pointer-events': 'none' }, g);
+}
+const hud = {};
+function drawCentre(svg) {
+  const g = el('g', {}, svg);
+  const pile = (x, y, label, colour, kind) => {
+    const p = el('g', { transform: `translate(${x},${y}) rotate(-45)` }, g);
+    el('rect', { x: -72, y: -43, width: 144, height: 86, rx: 9, fill: 'rgba(255,255,255,.25)', stroke: colour, 'stroke-width': 3,
+      'stroke-dasharray': '9 6' }, p);
+    el('text', { x: 0, y: 32, 'text-anchor': 'middle', class: 'hud-small', 'font-size': 13, fill: colour }, p).textContent = label;
+    glyph(p, kind, 0, -8, 0.9);
+  };
+  pile(262, 262, 'COMMUNITY CHEST', 'var(--chest)', 'chest');
+  pile(738, 738, 'CHANCE', 'var(--chance)', 'chance');
+  hud.kind = el('text', { x: 500, y: 322, 'text-anchor': 'middle', class: 'hud-small', 'font-size': 12.5 }, g);
+  hud.round = el('text', { x: 500, y: 352, 'text-anchor': 'middle', class: 'big', 'font-size': 20, fill: '#3f4c42' }, g);
+  hud.dice = el('g', { transform: 'translate(500,432)' }, g);
+  hud.banner = el('text', { x: 500, y: 548, 'text-anchor': 'middle', class: 'big', 'font-size': 26 }, g);
+  hud.sub = el('text', { x: 500, y: 576, 'text-anchor': 'middle', class: 'hud-small', 'font-size': 14.5 }, g);
+  hud.card = el('g', { opacity: 0 }, g);
+}
+function drawDie(parent, x, value, speedDie = false) {
+  const d = el('g', { transform: `translate(${x},0)` }, parent);
+  el('rect', { x: -30, y: -30, width: 60, height: 60, rx: 11, fill: speedDie ? '#c4452f' : '#fffdf7', stroke: '#1f1b15', 'stroke-width': 2.2 }, d);
+  if (speedDie && value > 3) {
+    el('text', { x: 0, y: value === 4 ? 6 : 10, 'text-anchor': 'middle', class: 'big', 'font-size': value === 4 ? 17 : 28, fill: '#fff' }, d)
+      .textContent = value === 4 ? 'BUS' : '★';
+    return;
+  }
+  const P = { 1: [[0, 0]], 2: [[-13, -13], [13, 13]], 3: [[-13, -13], [0, 0], [13, 13]], 4: [[-13, -13], [13, -13], [-13, 13], [13, 13]],
+    5: [[-13, -13], [13, -13], [0, 0], [-13, 13], [13, 13]], 6: [[-13, -14], [13, -14], [-13, 0], [13, 0], [-13, 14], [13, 14]] }[value] || [];
+  for (const [px, py] of P) el('circle', { cx: px, cy: py, r: 6, fill: speedDie ? '#fff' : '#1f1b15' }, d);
+}
+let lastRoll = [1, 1], lastSpeed = null;
+function showDice(d1, d2, sp = null) {
+  hud.dice.replaceChildren();
+  const xs = sp != null ? [-72, 0, 72] : [-38, 38];
+  drawDie(hud.dice, xs[0], d1); drawDie(hud.dice, xs[1], d2);
+  if (sp != null) drawDie(hud.dice, xs[2], sp, true);
+}
+async function tumble(d1, d2) {
+  if (speed < 8 && !skipping) {
+    for (let k = 0; k < 4; k++) { showDice(1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)); await sleep(50 / speed); }
+  }
+  showDice(d1, d2);
+}
+function banner(text, sub = '', colour = 'var(--ink)') {
+  hud.banner.textContent = text; hud.banner.setAttribute('fill', colour); hud.sub.textContent = sub;
+}
+async function showCard(deck, text, p) {
+  const box = $(deck === 'chance' ? 'lastChance' : 'lastChest');
+  box.querySelector('.tx').textContent = text;
+  box.querySelector('.who').innerHTML = `drawn by ${who(p)} · turn ${shownTurn + 1}`;
+  if (skipping || speed >= 8) return;
+  const g = hud.card; g.replaceChildren();
+  const colour = deck === 'chance' ? 'var(--chance)' : 'var(--chest)';
+  el('rect', { x: 320, y: 376, width: 360, height: 210, rx: 14, fill: '#fffdf7', stroke: colour, 'stroke-width': 5 }, g);
+  el('path', { d: 'M320 420 V390 a14 14 0 0 1 14 -14 H666 a14 14 0 0 1 14 14 V420 Z', fill: colour }, g);
+  el('text', { x: 500, y: 407, 'text-anchor': 'middle', class: 'big', 'font-size': 20, fill: '#fff' }, g).textContent =
+    deck === 'chance' ? 'CHANCE' : 'COMMUNITY CHEST';
+  textLines(g, wrapWords(text, 30), 500, 462, 'big', 27, { 'font-size': 19 });
+  g.setAttribute('opacity', 1);
+  await sleep(1400 / speed);
+  g.setAttribute('opacity', 0);
+}
+
+// ------------------------------------------------------------------ tokens
+function makeTokens(n) {
+  const layer = $('tokens'); layer.replaceChildren(); tokens = [];
+  for (let p = 0; p < n; p++) {
+    const t = el('g', {}, layer);
+    el('circle', { cx: 0, cy: 3, r: 16, fill: '#000', 'fill-opacity': .28 }, t);
+    el('circle', { cx: 0, cy: 0, r: 16, fill: PCOL[p], stroke: '#fff', 'stroke-width': 3.5 }, t);
+    el('text', { x: 0, y: 5.5, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: '#fff', 'font-family': 'system-ui, sans-serif' }, t)
+      .textContent = p + 1;
+    t.pos = [500, 500];
+    tokens.push(t);
+  }
+}
+function setTok(p, x, y) { tokens[p].pos = [x, y]; tokens[p].setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)})`); }
+function layoutTokens(skip = -1) {
+  const groups = {};
+  state.pos.forEach((sq, p) => {
+    if (!state.alive[p]) return;
+    const key = sq === B.jail && state.jail[p] ? 'j' : String(sq);
+    (groups[key] = groups[key] || []).push(p);
+  });
+  for (const [key, ps] of Object.entries(groups)) ps.forEach((p, k) => {
+    if (p !== skip) setTok(p, ...spot(key === 'j' ? B.jail : +key, k, ps.length, key === 'j'));
+  });
+  state.alive.forEach((a, p) => tokens[p].setAttribute('opacity', a ? 1 : 0));
+}
+async function glide(p, to, ms, arc = 0) {
+  const [x0, y0] = tokens[p].pos, [x1, y1] = to;
+  if (skipping || ms < 8) { setTok(p, x1, y1); return; }
+  const t0 = performance.now();
+  await new Promise(res => {
+    const step = now => {
+      const f = Math.min(1, (now - t0) / ms), e = f < .5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+      setTok(p, x0 + (x1 - x0) * e, y0 + (y1 - y0) * e - arc * Math.sin(Math.PI * f));
+      f < 1 && !skipping ? requestAnimationFrame(step) : res();
+    };
+    requestAnimationFrame(step);
+  });
+  setTok(p, x1, y1);
+}
+async function hop(p, from, steps) {
+  const per = Math.max(16, 90 / speed);
+  for (let k = 1; k <= steps && !skipping; k++) {
+    const sq = (from + k) % N;
+    await glide(p, spot(sq), per, 12);
+    if (paused) await sleep(0);
+    if (sq === 0) flashSquare(0);
+  }
+}
+function flashSquare(i, colour = '#fff6c2') {
+  const f = SQ[i] && SQ[i].flash;
+  if (!f || skipping) return;
+  f.setAttribute('fill', colour); f.classList.remove('flash'); void f.getBoundingClientRect(); f.classList.add('flash');
+}
+
+// ------------------------------------------------------------------ state and panels
+function applyState(s) {
+  state = JSON.parse(JSON.stringify(s));
+  B.ownable.forEach((sq, k) => {
+    const n = SQ[sq], o = s.owner[k];
+    n.owner.setAttribute('opacity', o >= 0 ? 1 : 0);
+    if (o >= 0) { n.owner.firstChild.setAttribute('fill', PCOL[o]); n.ownerText.textContent = o + 1; }
+    n.veil.setAttribute('opacity', s.mortgaged[k] ? 1 : 0);
+    if (n.houses) drawHouses(n, s.level[k]);
+  });
+  layoutTokens();
+  renderPlayers();
+  renderBank();
+}
+function drawHouses(n, level) {
+  if (n.level === level) return;
+  n.level = level; n.houses.replaceChildren();
+  if (level === 5) {
+    el('path', { d: `M${W / 2 - 18} 22 V11 L${W / 2} 4 L${W / 2 + 18} 11 V22 Z`, fill: '#d63b2f', stroke: '#1f1b15', 'stroke-width': 1.3 }, n.houses);
+    return;
+  }
+  for (let k = 0; k < level; k++) {
+    const x = 6 + k * 18.2;
+    el('path', { d: `M${x} 22 V12 L${x + 7} 5 L${x + 14} 12 V22 Z`, fill: '#2d9d4a', stroke: '#1f1b15', 'stroke-width': 1.2 }, n.houses);
+  }
+}
+function setOwner(sq, p) {
+  const k = ownIdx[sq];
+  if (k === undefined) return;
+  state.owner[k] = p;
+  const n = SQ[sq];
+  n.owner.setAttribute('opacity', p >= 0 ? 1 : 0);
+  if (p >= 0) { n.owner.firstChild.setAttribute('fill', PCOL[p]); n.ownerText.textContent = p + 1; }
+}
+function smoothedOdds() {
+  // exponential smoothing over the turns estimated so far (each estimate is ±8 points or so)
+  if (!odds.length) return null;
+  let cur = odds[0].p.slice(), none = odds[0].none;
+  for (const o of odds.slice(1)) { cur = cur.map((v, k) => 0.5 * v + 0.5 * o.p[k]); none = 0.5 * none + 0.5 * o.none; }
+  return { p: cur, none };
+}
+function renderPlayers() {
+  if (!game || !state) return;
+  const box = $('players'), s = state, sm = oddsOn ? smoothedOdds() : null;
+  const final = s.winner != null;
+  box.replaceChildren();
+  game.players.forEach((pl, p) => {
+    const row = document.createElement('div'), out = !s.alive[p], win = s.winner === p;
+    row.className = 'pl' + (out ? ' out' : '') + (!final && s.current === p && !out ? ' turn' : '') + (win ? ' win' : '');
+    const mine = B.ownable.map((sq, k) => [sq, k]).filter(([sq, k]) => s.owner[k] === p);
+    const groupsFull = new Set(B.groups.filter(gr => gr.squares.every(sq => s.owner[ownIdx[sq]] === p)).map(gr => gr.name));
+    const pips = mine.map(([sq, k]) => `<i class="${groupsFull.has(B.squares[sq].group) ? 'set' : ''}${s.mortgaged[k] ? ' m' : ''}"
+      style="background:${B.squares[sq].colour}" title="${esc(B.squares[sq].name)}"></i>`).join('');
+    let houses = 0, hotels = 0;
+    mine.forEach(([sq, k]) => { if (s.level[k] === 5) hotels++; else houses += s.level[k]; });
+    const extras = [`worth ${money(s.worth ? s.worth[p] : s.cash[p])}`];
+    if (houses || hotels) extras.push([houses && `🏠 ${houses}`, hotels && `🏨 ${hotels}`].filter(Boolean).join(' · '));
+    if (s.goojf && s.goojf[p]) extras.push(`🎟 ${s.goojf[p]} jail card${s.goojf[p] > 1 ? 's' : ''}`);
+    if (s.jail[p] && !out) extras.push('in jail');
+    const pct = sm ? (final ? (win ? 1 : 0) : sm.p[p]) : null;
+    row.innerHTML = `<div class="tok" style="background:${PCOL[p]}">${p + 1}</div>
+      <div class="name">${esc(pl.label)}${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
+      <div class="money">${money(s.cash[p])}</div>
+      <div class="detail"><span class="pips">${pips || '<span>no property</span>'}</span>${extras.map(x => `<span>${x}</span>`).join('')}</div>
+      ${pct != null ? `<div class="odds"><div class="bar"><i style="width:${(100 * pct).toFixed(1)}%;background:${PCOL[p]}"></i></div>
+        <b>${Math.round(100 * pct)}%</b></div>` : ''}`;
+    box.appendChild(row);
+  });
+  $('oddsNote').textContent = oddsOn ? (sm && game.scoring === 'loss' && sm.none > 0.02 ? `no winner (time limit): ${Math.round(100 * sm.none)}%` : 'win chances') : '';
+}
+function renderBank() {
+  if (!state) return;
+  $('bank').innerHTML = `Bank: <b>${state.bank_houses}</b> houses<br><b>${state.bank_hotels}</b> hotels`;
+}
+function renderChart() {
+  const svg = $('chart'); svg.replaceChildren();
+  const w = 340, h = 150, L = 28, R = 8, T = 8, Bm = 20;
+  const total = Math.max(game ? game.log.turns.length : 1, 1);
+  const x = t => L + (w - L - R) * t / total, y = v => T + (h - T - Bm) * (1 - v);
+  for (const v of [0, .25, .5, .75, 1]) {
+    el('line', { x1: L, x2: w - R, y1: y(v), y2: y(v), stroke: '#e3dccb', 'stroke-width': 1 }, svg);
+    el('text', { x: L - 4, y: y(v) + 3.5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `${v * 100}%`;
+  }
+  el('text', { x: L, y: h - 5, 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = 'turn 0';
+  el('text', { x: w - R, y: h - 5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `turn ${total}`;
+  el('line', { x1: x(shownTurn), x2: x(shownTurn), y1: T, y2: h - Bm, stroke: '#b9b09c', 'stroke-dasharray': '3 3' }, svg);
+  if (!game || !odds.length || !oddsOn) {
+    $('chartNote').textContent = oddsOn ? 'Estimating…' : 'Win chances are off (they use a little CPU).';
+    return;
+  }
+  // smoothed series
+  const series = game.players.map(() => []), none = [];
+  let cur = null, cn = null;
+  for (const o of odds) {
+    cur = cur ? cur.map((v, k) => 0.5 * v + 0.5 * o.p[k]) : o.p.slice();
+    cn = cn === null ? o.none : 0.5 * cn + 0.5 * o.none;
+    cur.forEach((v, k) => series[k].push([o.turn, v]));
+    none.push([o.turn, cn]);
+  }
+  if (game.scoring === 'loss' && none.some(([, v]) => v > 0.02))
+    el('polyline', { points: none.map(([t, v]) => `${x(t)},${y(v)}`).join(' '), fill: 'none', stroke: '#8a8272', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }, svg);
+  series.forEach((pts, k) => {
+    el('polyline', { points: pts.map(([t, v]) => `${x(t)},${y(v)}`).join(' '), fill: 'none', stroke: PCOL[k], 'stroke-width': 2.4,
+      'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+    const [lt, lv] = pts[pts.length - 1];
+    el('circle', { cx: x(lt), cy: y(lv), r: 3.5, fill: PCOL[k], stroke: '#fff', 'stroke-width': 1.5 }, svg);
+  });
+  const last = odds[odds.length - 1];
+  $('chartNote').textContent = `Each point: ${last.n} quick playouts of the position after that turn (about ${last.cpu_seconds ?? '?'} s of one thread).`;
+}
+function logEvent(text, p = null, turn = null, key = null) {
+  // key: consecutive events with the same key (e.g. one player's building spree in one turn) share a line
+  const ul = $('events');
+  let li = key && ul.firstChild && ul.firstChild.dataset.key === key ? ul.firstChild : null;
+  if (!li) {
+    li = document.createElement('li');
+    if (key) li.dataset.key = key;
+    ul.prepend(li);
+  }
+  li.innerHTML = `<span class="t">${turn != null ? 'T' + turn : ''}</span><span class="chip" style="background:${p != null && p >= 0 ? PCOL[p] : 'transparent'}"></span><span>${text}</span>`;
+  while (ul.children.length > 18) ul.lastChild.remove();
+}
+let spree = null;  // a run of builds by one player in one turn: {key, houses, hotels, squares}
+const runs = {};
+function logGrouped(kind, p, turnNo, sq, text) {
+  // one line per player, turn and kind of action (selling, mortgaging...), however many squares it covers
+  const key = `${kind}-${turnNo}-${p}`;
+  const r = runs[kind] && runs[kind].key === key ? runs[kind] : (runs[kind] = { key, n: 0, squares: [] });
+  r.n++;
+  if (!r.squares.includes(sq)) r.squares.push(sq);
+  logEvent(text(r.n, r.squares.map(nm).join(', ')), p, turnNo, key);
+}
+const who = p => `<b style="color:${PCOL[p]}">P${p + 1}</b>`;
+const nm = sq => esc(B.squares[sq].name);
+
+// ------------------------------------------------------------------ replay
+const dur = ms => (skipping ? 0 : ms / speed);
+async function playEvent(ev, turnNo) {
+  const p = ev.p;
+  if (ev.cash) { state.cash = ev.cash; renderPlayers(); }
+  switch (ev.e) {
+    case 'roll':
+      lastRoll = ev.d; lastSpeed = null;
+      await tumble(ev.d[0], ev.d[1]);
+      if (state.jail[p]) banner(ev.d[0] === ev.d[1] ? 'DOUBLES: OUT OF JAIL' : 'STILL IN JAIL', `P${p + 1} rolls ${ev.d[0]} + ${ev.d[1]}`, PCOL[p]);
+      else if (ev.d[0] === ev.d[1]) banner('DOUBLES', `P${p + 1} rolls ${ev.d[0]} + ${ev.d[1]} and goes again`, PCOL[p]);
+      else banner('', `P${p + 1} rolls ${ev.d[0]} + ${ev.d[1]} = ${ev.d[0] + ev.d[1]}`);
+      break;
+    case 'speed': lastSpeed = ev.v; showDice(lastRoll[0], lastRoll[1], ev.v);
+      if (ev.v > 3) banner(ev.v === 4 ? 'BUS' : 'MR MONOPOLY FACE', ev.v === 4 ? 'move by one die or both' : 'on to the next unowned property', PCOL[p]);
+      break;
+    case 'move':
+      state.jail[p] = false; layoutTokens(p);
+      await hop(p, ev.frm, ev.steps);
+      state.pos[p] = ev.to; layoutTokens();
+      if (ev.go) logEvent(`${who(p)} passes GO and collects ${money(B.go_salary)}`, p, turnNo);
+      break;
+    case 'jump':
+      layoutTokens(p);
+      if (ev.fwd) await hop(p, state.pos[p], (ev.to - state.pos[p] + N) % N || N);
+      else await glide(p, spot(ev.to), dur(450), 30);
+      state.pos[p] = ev.to; layoutTokens();
+      break;
+    case 'jail':
+      layoutTokens(p);
+      await glide(p, spot(B.jail, 0, 1, true), dur(600), 60);
+      state.pos[p] = B.jail; state.jail[p] = true; layoutTokens(); flashSquare(B.jail, '#ffd6cf');
+      banner('GO TO JAIL', `P${p + 1}`, PCOL[p]); logEvent(`${who(p)} goes to jail`, p, turnNo);
+      await sleep(dur(450));
+      break;
+    case 'goojf': state.jail[p] = false; logEvent(`${who(p)} uses a Get Out of Jail Free card`, p, turnNo); break;
+    case 'card':
+      logEvent(`${who(p)} draws ${ev.deck === 'chance' ? 'Chance' : 'Community Chest'}: “${esc(ev.text)}”`, p, turnNo);
+      await showCard(ev.deck, ev.text, p);
+      break;
+    case 'buy':
+      setOwner(ev.sq, p); flashSquare(ev.sq); renderPlayers();
+      banner(`P${p + 1} BUYS ${B.squares[ev.sq].name.toUpperCase()}`, money(ev.price), PCOL[p]);
+      logEvent(`${who(p)} buys ${nm(ev.sq)} for ${money(ev.price)}`, p, turnNo);
+      await sleep(dur(520));
+      break;
+    case 'auction':
+      if (ev.winner == null) { logEvent(`${nm(ev.sq)} is auctioned: no bids`, null, turnNo); break; }
+      setOwner(ev.sq, ev.winner); flashSquare(ev.sq); renderPlayers();
+      banner(`AUCTION: ${B.squares[ev.sq].name.toUpperCase()}`, `P${ev.winner + 1} wins it for ${money(ev.price)}`, PCOL[ev.winner]);
+      logEvent(`Auction: ${who(ev.winner)} wins ${nm(ev.sq)} for ${money(ev.price)}`, ev.winner, turnNo);
+      await sleep(dur(750));
+      break;
+    case 'pay': {
+      if (ev.to >= 0) {
+        const here = state.pos[p], k = ownIdx[here], rent = k !== undefined && state.owner[k] === ev.to;
+        if (rent) flashSquare(here, '#ffd6cf');
+        banner(`${rent ? 'RENT' : 'PAY'} ${money(ev.amount)}`, `P${p + 1} → P${ev.to + 1}${rent ? ' · ' + B.squares[here].name : ''}`, PCOL[ev.to]);
+        logEvent(`${who(p)} pays ${money(ev.amount)}${rent ? ' rent' : ''} to ${who(ev.to)}`, p, turnNo);
+        await sleep(dur(ev.amount >= 200 ? 700 : 380));
+      } else {
+        const fine = state.jail[p] && ev.amount === B.jail_fine;
+        const tax = !fine && B.squares[state.pos[p]].type === 'tax' && ev.amount === B.squares[state.pos[p]].tax;
+        if (fine) { state.jail[p] = false; banner('PAYS TO LEAVE JAIL', `P${p + 1} · ${money(ev.amount)}`, PCOL[p]); }
+        if (tax) banner(B.squares[state.pos[p]].name.toUpperCase(), `P${p + 1} pays ${money(ev.amount)}`, PCOL[p]);
+        logEvent(`${who(p)} pays ${money(ev.amount)} ${fine ? 'to get out of jail' : tax ? B.squares[state.pos[p]].name.toLowerCase() : 'to the bank'}`, p, turnNo);
+        await sleep(dur(fine || tax ? 400 : 180));
+      }
+      break;
+    }
+    case 'build': {
+      state.level[ownIdx[ev.sq]] = ev.level; drawHouses(SQ[ev.sq], ev.level); flashSquare(ev.sq, '#d9f5dc');
+      banner(ev.level === 5 ? 'HOTEL!' : 'BUILDING', `P${p + 1} · ${B.squares[ev.sq].name}`, PCOL[p]);
+      const key = `build-${turnNo}-${p}`;
+      if (!spree || spree.key !== key) spree = { key, houses: 0, hotels: 0, squares: [] };
+      if (ev.level === 5) spree.hotels++; else spree.houses++;
+      if (!spree.squares.includes(ev.sq)) spree.squares.push(ev.sq);
+      const parts = [spree.houses && `${spree.houses} house${spree.houses > 1 ? 's' : ''}`, spree.hotels && `${spree.hotels} hotel${spree.hotels > 1 ? 's' : ''}`].filter(Boolean);
+      logEvent(`${who(p)} builds ${parts.join(' and ')} on ${spree.squares.map(nm).join(', ')}`, p, turnNo, key);
+      await sleep(dur(240));
+      break;
+    }
+    case 'sell':
+      state.level[ownIdx[ev.sq]] = ev.level; drawHouses(SQ[ev.sq], ev.level);
+      logGrouped('sell', p, turnNo, ev.sq, (n, sqs) => `${who(p)} sells ${n} building${n > 1 ? 's' : ''} on ${sqs} to raise cash`);
+      await sleep(dur(200));
+      break;
+    case 'mortgage':
+      state.mortgaged[ownIdx[ev.sq]] = true; SQ[ev.sq].veil.setAttribute('opacity', 1);
+      logGrouped('mortgage', p, turnNo, ev.sq, (n, sqs) => `${who(p)} mortgages ${sqs}`);
+      await sleep(dur(200));
+      break;
+    case 'unmortgage':
+      state.mortgaged[ownIdx[ev.sq]] = false; SQ[ev.sq].veil.setAttribute('opacity', 0);
+      logGrouped('unmortgage', p, turnNo, ev.sq, (n, sqs) => `${who(p)} pays off the mortgage on ${sqs}`);
+      await sleep(dur(200));
+      break;
+    case 'trade': {
+      ev.a_gives.forEach(sq => { setOwner(sq, ev.b); flashSquare(sq, '#e4dcff'); });
+      ev.b_gives.forEach(sq => { setOwner(sq, ev.a); flashSquare(sq, '#e4dcff'); });
+      renderPlayers();
+      const part = (ps, m) => [...ps.map(nm), ...(m > 0 ? [money(m)] : [])].join(' + ') || 'nothing';
+      banner('TRADE!', `P${ev.a + 1} ⇄ P${ev.b + 1}`, '#6b4fd8');
+      logEvent(`Trade: ${who(ev.a)} gives ${part(ev.a_gives, ev.money)} for ${who(ev.b)}'s ${part(ev.b_gives, -ev.money)}`, ev.a, turnNo);
+      await sleep(dur(1400));
+      break;
+    }
+    case 'bankrupt':
+      banner(`P${p + 1} IS BANKRUPT`, ev.to >= 0 ? `everything goes to P${ev.to + 1}` : 'property goes back to the bank', '#7a1f17');
+      logEvent(`${who(p)} goes bankrupt${ev.to >= 0 ? ' to ' + who(ev.to) : ''}`, p, turnNo);
+      await glide(p, [500, 500], dur(700));
+      state.alive[p] = false; tokens[p].setAttribute('opacity', 0); renderPlayers();
+      await sleep(dur(900));
+      break;
+  }
+}
+function setRound(t) {
+  shownTurn = t;
+  const n = game.n_players, round = Math.floor(t / n) + 1;
+  $('round').textContent = `Round ${round}` + (game.max_rounds ? ` of ${game.max_rounds}` : '');
+  $('turnSub').textContent = `Turn ${t + 1} of ${game.log.turns.length}`;
+  hud.round.textContent = `ROUND ${round} · TURN ${t + 1}`;
+}
+async function playGame(g) {
+  game = g; skipping = false; nextNow = false; odds = []; shownTurn = 0; oddsWanted = 0;
+  $('events').replaceChildren();
+  ['lastChance', 'lastChest'].forEach(id => { $(id).querySelector('.tx').textContent = '—'; $(id).querySelector('.who').textContent = ''; });
+  $('gameTitle').textContent = g.kind === 'live' ? 'Now replaying a real game from your PC' : 'Demo game';
+  $('about').textContent = g.about || (g.step ? `From step ${g.step.split('/').pop()}` : '');
+  const when = g.sampled_at ? new Date(g.sampled_at * 1000).toLocaleTimeString('en-GB') : '';
+  $('gameMeta').textContent = `${g.n_players} players · ${g.rules} · seed ${g.seed}` + (g.kind === 'live' ? ` · picked at ${when}` : '');
+  makeTokens(g.n_players);
+  hud.kind.textContent = g.kind === 'live' ? 'A REAL GAME FROM YOUR PC' : 'DEMO GAME';
+  applyState({ ...g.log.start, winner: null });
+  setRound(0);
+  renderChart();
+  banner(g.kind === 'live' ? 'A REAL GAME FROM YOUR PC' : 'DEMO GAME', `${g.n_players} players · ${g.rules}`);
+  showDice(1, 1);
+  await sleep(1500);
+  const turns = g.log.turns;
+  for (let t = 0; t < turns.length && !nextNow; t++) {
+    const tr = turns[t];
+    setRound(t);
+    state.current = tr.p;
+    if (!skipping) renderPlayers();
+    for (const ev of tr.events) {
+      if (ev.e === 'roll') lastRoll = ev.d;
+      if (!skipping) await playEvent(ev, t + 1);
+    }
+    applyState(tr.state);
+    oddsWanted = t + 1;
+    if (!skipping) await sleep(Math.max(0, 240 / speed));
+  }
+  const r = g.log.result;
+  const final = turns.length ? turns[turns.length - 1].state : g.log.start;
+  applyState({ ...final, winner: r.capped && g.scoring === 'loss' ? null : r.winner });
+  if (r.capped) {
+    banner('TIME LIMIT', g.scoring === 'loss' ? 'nobody wins a stopped game' : `P${r.winner + 1} leads on net worth`, r.winner != null ? PCOL[r.winner] : 'var(--ink)');
+    logEvent(`Time limit: the game stops after ${Math.round(r.turns / g.n_players)} rounds`);
+  } else {
+    banner(`P${r.winner + 1} WINS!`, game.players[r.winner].label, PCOL[r.winner]);
+    logEvent(`${who(r.winner)} wins after ${r.turns} turns`, r.winner);
+  }
+  renderChart();
+  skipping = false;
+  for (let k = 0; k < 45 && !nextNow; k++) await sleep(100);
+}
+
+// ------------------------------------------------------------------ win chances
+// Asks the viewer server for one estimate at a time, at most two a second, so it never takes more than a
+// slice of one thread on the PC (and the server runs at the lowest priority, below any job).
+let oddsWanted = 0;
+const ODDS_GAP_MS = 500;
+async function oddsLoop() {
+  let lastAsked = -1, lastGame = null, lastAt = 0;
+  while (true) {
+    if (!oddsOn || paused || !game || (game.id === lastGame && oddsWanted === lastAsked)) { await new Promise(r => setTimeout(r, 200)); continue; }
+    const wait = ODDS_GAP_MS - (performance.now() - lastAt);
+    if (wait > 0) { await new Promise(r => setTimeout(r, wait)); continue; }
+    const gid = game.id, t = oddsWanted;
+    lastGame = gid; lastAsked = t; lastAt = performance.now();
+    try {
+      const r = await (await fetch(`/api/odds?id=${encodeURIComponent(gid)}&turn=${t}&n=${ODDS_PLAYOUTS}`)).json();
+      if (r.p && game && game.id === gid) {
+        odds = odds.filter(o => o.turn !== r.turn).concat([r]).sort((a, b) => a.turn - b.turn);
+        renderPlayers(); renderChart();
+      }
+    } catch (e) { await new Promise(r => setTimeout(r, 1000)); }
+  }
+}
+
+// ------------------------------------------------------------------ job status
+let status = null, statusAt = 0;
+async function pollStatus() {
+  try { status = await (await fetch('/api/status')).json(); statusAt = performance.now(); renderStatus(); }
+  catch (e) { $('liveText').textContent = 'viewer stopped'; $('live').classList.remove('live'); }
+  setTimeout(pollStatus, 2000);
+}
+const fmtDur = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+  return h ? `${h} h ${m} min` : `${m} min ${s % 60} s`; };
+function renderStatus() {
+  const j = status && status.job, live = j && j.state === 'running';
+  $('where').textContent = status ? `viewer on ${status.host}` : '';
+  $('live').classList.toggle('live', !!live);
+  $('liveText').textContent = live ? 'LIVE' : !j ? 'no job running' : j.state === 'finished' ? 'job finished' : j.state === 'failed' ? 'job failed' : 'job stopped';
+  const steps = $('steps'); steps.replaceChildren();
+  (j ? j.steps : []).forEach(s => {
+    const c = document.createElement('span'), now = live && s.name === j.step;
+    c.className = 'step' + (s.done ? ' done' : now ? ' now' : '');
+    c.textContent = (s.done ? '✓ ' : now ? '▶ ' : '') + s.name;
+    steps.appendChild(c);
+  });
+  $('gamesSub').textContent = j ? `games simulated in this job${j.rate ? ` · about ${Math.round(j.rate).toLocaleString('en-GB')} a second` : ''}` : 'games simulated';
+  $('jobName').textContent = j ? `Job ${j.name}` + (j.started ? ` · ${live ? 'running for' : 'started'} ${fmtDur(status.now - Date.parse(j.started) / 1000)}${live ? '' : ' ago'}` : '')
+    : 'Start a job in Ubuntu (for example make exploit) and it shows up here.';
+  $('joblog').textContent = j && j.log.length ? j.log.join('\n') : 'waiting for a job…';
+}
+function tickCounter() {
+  const j = status && status.job;
+  let v = j ? j.games : 0;
+  if (j && j.state === 'running' && j.inflight && j.rate) {
+    const elapsed = status.now - j.inflight_since + (performance.now() - statusAt) / 1000;
+    v += Math.min(j.inflight, Math.max(0, elapsed * j.rate));
+  }
+  $('games').textContent = Math.floor(v).toLocaleString('en-GB');
+  requestAnimationFrame(tickCounter);
+}
+
+// ------------------------------------------------------------------ toolbar
+function buildToolbar() {
+  const bar = $('toolbar');
+  const btn = (label, cls, onclick) => { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.onclick = onclick; bar.appendChild(b); return b; };
+  const pause = btn('⏸ Pause', '', () => { paused = !paused; pause.textContent = paused ? '▶ Resume' : '⏸ Pause'; pause.className = paused ? 'on' : ''; });
+  bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
+  const speeds = [['1×', 1], ['2×', 2], ['5×', 5], ['20×', 20]].map(([label, v]) => {
+    const b = btn(label, v === speed ? 'on' : '', () => { speed = v; speeds.forEach(x => x.className = ''); b.className = 'on'; });
+    return b;
+  });
+  bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
+  btn('Skip to the end', '', () => { skipping = true; });
+  btn('Next game', 'go', () => { skipping = true; nextNow = true; });
+  bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
+  const showOdds = () => {
+    ob.textContent = `Win chances: ${oddsOn ? 'on' : 'off'}`; ob.className = oddsOn ? 'on' : '';
+    $('chartCard').style.display = oddsOn ? '' : 'none'; renderPlayers(); renderChart();
+  };
+  const ob = btn('', '', () => { oddsOn = !oddsOn; showOdds(); });
+  showOdds();
+}
+
+// ------------------------------------------------------------------ start
+async function main() {
+  B = await (await fetch('/api/board')).json();
+  B.ownable.forEach((sq, k) => { ownIdx[sq] = k; });
+  const groups = {};
+  B.squares.forEach(sq => { if (sq.type === 'street') (groups[sq.group] = groups[sq.group] || []).push(sq.i); });
+  B.groups = Object.entries(groups).map(([name, squares]) => ({ name, squares }));
+  const svg = $('board');
+  el('rect', { x: -40, y: -40, width: 1080, height: 1080, rx: 26, fill: '#e9e2cc' }, svg);
+  el('rect', { x: 0, y: 0, width: 1000, height: 1000, fill: 'var(--board)', stroke: 'var(--board-line)', 'stroke-width': 3 }, svg);
+  drawCentre(svg);
+  B.squares.forEach(sq => drawSquare(svg, sq));
+  el('rect', { x: C, y: C, width: 1000 - 2 * C, height: 1000 - 2 * C, fill: 'none', stroke: 'var(--board-line)', 'stroke-width': 2.4 }, svg);
+  el('g', { id: 'tokens' }, svg);
+  buildToolbar();
+  pollStatus();
+  requestAnimationFrame(tickCounter);
+  oddsLoop();
+  while (true) {
+    let g;
+    try {
+      g = await (await fetch('/api/game?since=' + since)).json();
+      if (g.error) throw new Error(g.error);
+    } catch (e) {
+      banner('WAITING FOR THE VIEWER', String(e.message || e)); await new Promise(r => setTimeout(r, 3000)); continue;
+    }
+    if (g.kind === 'live') since = g.sampled_at;
+    await playGame(g);
+  }
+}
+main();
+</script>
+</body>
+</html>

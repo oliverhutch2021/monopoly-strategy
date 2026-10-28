@@ -8,6 +8,7 @@ from dataclasses import asdict
 
 import pandas as pd
 
+from . import watch
 from .engine import Game, Rules
 from .policies import bot_label, make_bot
 
@@ -52,11 +53,18 @@ def run_games(lineup: list, n_games: int, seed0: int = 0, rules: Rules | None = 
     seeds = list(range(seed0, seed0 + n_games))
     chunks = [seeds[i::workers] for i in range(workers)]
     args = [(lineup, c, asdict(rules), rotate) for c in chunks if c]
+    if watch.folder():  # the live viewer: offer one of these games for replay
+        def describe(seed):
+            shift = seed % len(lineup) if rotate else 0
+            return {"lineup": lineup[shift:] + lineup[:shift], "seat": None, "seed": seed}
+        watch.sample(seeds, rules, describe)
+    t0 = watch.started(n_games)
     if workers == 1:
         rows = [r for a in args for r in _play_chunk(a)]
     else:
         with ProcessPoolExecutor(workers) as ex:
             rows = [r for chunk in ex.map(_play_chunk, args) for r in chunk]
+    watch.finished(n_games, t0)
     return pd.DataFrame(rows).sort_values("seed").reset_index(drop=True)
 
 

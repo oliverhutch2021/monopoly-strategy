@@ -7,9 +7,13 @@ VENV ?= $(HOME)/.venvs/monopoly-strategy
 PY := $(VENV)/bin/python
 FORCE ?=
 FORCE_FLAG := $(if $(FORCE),--force,)
+WATCH ?= 1
+JOB_FLAGS := $(FORCE_FLAG) $(if $(filter 0,$(WATCH)),--no-watch,)
+HOST ?= 127.0.0.1
+PORT ?= 8765
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test golden doctor sync status v03 exploit smoke
+.PHONY: help setup test golden doctor sync status watch v03 exploit smoke
 
 help:  ## List the commands
 	@grep -hE '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 14
@@ -35,11 +39,14 @@ sync:  ## Fast-forward to the code Claude left in .sync/claude.bundle
 status:  ## Show which job steps are done
 	$(PY) scripts/jobs.py status
 
+watch:  ## Watch the running job's games live on a board in your browser (Ctrl+C stops it; the job carries on)
+	$(PY) scripts/watch.py --host $(HOST) --port $(PORT)
+
 v03:  ## Run 2: finish v0.3 (about an hour; resumable; FORCE=1 restarts on new code)
-	$(PY) scripts/jobs.py run v03 $(FORCE_FLAG)
+	$(PY) scripts/jobs.py run v03 $(JOB_FLAGS)
 
 exploit:  ## Run 3: can a bigger search beat the meta agents? (2-3 hours; resumable)
-	$(PY) scripts/jobs.py run exploit $(FORCE_FLAG)
+	$(PY) scripts/jobs.py run exploit $(JOB_FLAGS)
 
 smoke:  ## Two-minute check that the job runner works end to end
-	$(PY) scripts/jobs.py run smoke $(FORCE_FLAG)
+	$(PY) scripts/jobs.py run smoke $(JOB_FLAGS)

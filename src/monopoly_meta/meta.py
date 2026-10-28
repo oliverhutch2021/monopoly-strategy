@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from . import watch
 from .engine import Game, Rules, championship_rules
 from .policies import make_bot
 
@@ -130,11 +131,15 @@ def evaluate(candidates: list[dict], pool: list[dict], n_players: int, games: in
             lineup.insert(seat, cspec)
             tasks.append((ci, gi, seat, lineup, gseed))
     chunks = [(tasks[i::workers], rules) for i in range(workers)]
+    if watch.folder():  # the live viewer: count the games and offer one of them for replay
+        watch.sample(tasks, rules, lambda t: {"lineup": t[3], "seat": t[2], "seed": t[4]})
+    t0 = watch.started(len(tasks))
     if workers == 1:
         results = _eval_chunk(chunks[0])
     else:
         with ProcessPoolExecutor(workers) as ex:
             results = [x for part in ex.map(_eval_chunk, chunks) for x in part]
+    watch.finished(len(tasks), t0)
     per_game = np.zeros((len(candidates), games))
     capped = np.zeros(len(candidates))
     for ci, gi, credit, was_capped in results:

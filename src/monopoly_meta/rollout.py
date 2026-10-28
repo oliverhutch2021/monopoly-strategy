@@ -13,6 +13,7 @@ from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import pandas as pd
 
+from . import watch
 from .engine import Game, GameState, Rules
 from .policies import make_bot
 
@@ -48,11 +49,13 @@ def rollout(state: GameState, bot_kinds: list[str], n: int, seed0: int = 0,
     seeds = np.arange(seed0, seed0 + n)
     chunks = np.array_split(seeds, workers)
     args = [(state, bot_kinds, c.tolist(), rules, tuple(frozen), horizon) for c in chunks if len(c)]
+    t0 = watch.started(n)  # counted by the live viewer (rollouts start mid-game, so none is replayed)
     if workers == 1:
         parts = [_rollouts(a) for a in args]
     else:
         with ProcessPoolExecutor(workers) as ex:
             parts = list(ex.map(_rollouts, args))
+    watch.finished(n, t0)
     return tuple(np.concatenate([p[k] for p in parts]) for k in range(3))
 
 
