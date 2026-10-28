@@ -130,6 +130,11 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fbfcfd"/><stop offset=".38" stop-color="#d3d8dd"/>
+    <stop offset=".62" stop-color="#a1a9b1"/><stop offset="1" stop-color="#68717a"/>
+  </linearGradient></defs></svg>
 <header>
   <div class="brand">MONOPOLY <span>META</span></div>
   <div id="live" class="pill"><span class="dot"></span><span id="liveText">connecting…</span></div>
@@ -201,64 +206,93 @@ const NS = 'http://www.w3.org/2000/svg';
 const C = 134, N = 40, W = (1000 - 2 * C) / 9, BAND = 27;
 const PCOL = ['#e23d3d', '#2f6fde', '#1f9d5a', '#f0a500', '#8e44ad', '#ff7a1a'];
 const ODDS_PLAYOUTS = 64;
-// The players' pieces: the project's own designs (none of them is one of the classic game's tokens).
-// Drawn in a box about 36 units tall around (0, 0); roles say how each part is coloured.
+// The players' pieces: the classic six (top hat, racing car, Scottie dog, battleship, boot, thimble), drawn
+// as plain silhouettes of those everyday objects in polished metal, each outlined in a light tint of its
+// player's colour. Drawn in a box about 36 units tall around (0, 0); roles say how each part is shaded.
+function thimbleDimples() {
+  const dots = [];
+  for (let r = 0; r < 5; r++) {
+    const y = -11 + r * 4.3, half = 5.6 + r * 0.85, n = Math.floor((2 * half) / 3.3);
+    for (let k = 0; k < n; k++) dots.push(['circle', { cx: -half + 1.6 + k * (2 * half - 3.2) / Math.max(1, n - 1), cy: y, r: 0.85 }, 'dots']);
+  }
+  return dots;
+}
 const PIECES = [
-  { name: 'Crown', parts: [
-    ['path', { d: 'M-13 6 L-15.5 -9 L-6.5 -1.5 L0 -13.5 L6.5 -1.5 L15.5 -9 L13 6 Z' }, 'body'],
-    ['path', { d: 'M-13.5 6 H13.5 V10 Q13.5 12.5 11 12.5 H-11 Q-13.5 12.5 -13.5 10 Z' }, 'body'],
-    ['circle', { cx: -15.5, cy: -9, r: 2.6 }, 'gold'], ['circle', { cx: 0, cy: -13.5, r: 2.8 }, 'gold'],
-    ['circle', { cx: 15.5, cy: -9, r: 2.6 }, 'gold'],
-    ['circle', { cx: -7, cy: 9.2, r: 1.5 }, 'light'], ['circle', { cx: 0, cy: 9.2, r: 1.5 }, 'light'],
-    ['circle', { cx: 7, cy: 9.2, r: 1.5 }, 'light']] },
-  { name: 'Rocket', parts: [
-    ['path', { d: 'M-4.2 9 Q0 19.5 4.2 9 Z' }, 'flame'],
-    ['path', { d: 'M-6.5 1 L-13 11 L-6.5 9.5 Z M6.5 1 L13 11 L6.5 9.5 Z' }, 'body'],
-    ['path', { d: 'M0 -17.5 C8 -10.5 9 1 6.5 9.5 H-6.5 C-9 1 -8 -10.5 0 -17.5 Z' }, 'body'],
-    ['circle', { cx: 0, cy: -4, r: 3.8 }, 'glass']] },
-  { name: 'Anchor', parts: [
-    ['circle', { cx: 0, cy: -12.5, r: 3.8 }, 'stroke2'],
-    ['path', { d: 'M0 -8.7 V13.5 M-7.5 -4.5 H7.5 M-13 3 Q-11.5 13.5 0 13.5 Q11.5 13.5 13 3' }, 'stroke2'],
-    ['path', { d: 'M-15.5 6.5 L-13 1.5 L-9.5 5.5 M15.5 6.5 L13 1.5 L9.5 5.5' }, 'stroke2']] },
-  { name: 'Balloon', parts: [
-    ['path', { d: 'M-3.6 8.5 L-3.2 12 M3.6 8.5 L3.2 12' }, 'line'],
-    ['path', { d: 'M0 -17.5 C11 -17.5 14.5 -7 9.2 1.5 L3.8 8.5 H-3.8 L-9.2 1.5 C-14.5 -7 -11 -17.5 0 -17.5 Z' }, 'body'],
-    ['path', { d: 'M0 -17.5 C-5.5 -10 -5.5 0 -1.9 8.5 M0 -17.5 C5.5 -10 5.5 0 1.9 8.5' }, 'lightline'],
-    ['rect', { x: -4.8, y: 11.5, width: 9.6, height: 6, rx: 1.3 }, 'brown']] },
-  { name: 'Umbrella', parts: [
-    ['path', { d: 'M0 1 V13 Q0 17 -3.9 17 Q-7.4 17 -7.4 13.6' }, 'stroke2'],
-    ['path', { d: 'M0 -16 V-19' }, 'stroke2'],
-    ['path', { d: 'M-15.5 1.5 C-15.5 -10.5 -8.5 -16 0 -16 C8.5 -16 15.5 -10.5 15.5 1.5 Q11.6 -2.2 7.75 1.5 Q3.9 -2.2 0 1.5 Q-3.9 -2.2 -7.75 1.5 Q-11.6 -2.2 -15.5 1.5 Z' }, 'body'],
-    ['path', { d: 'M0 -16 Q-3.2 -7.5 -3.9 -0.7 M0 -16 Q3.2 -7.5 3.9 -0.7' }, 'lightline']] },
-  { name: 'Key', parts: [
-    ['path', { d: 'M0 -18 A7.2 7.2 0 1 1 0 -3.6 A7.2 7.2 0 1 1 0 -18 Z M0 -13.7 A2.9 2.9 0 1 0 0 -7.9 A2.9 2.9 0 1 0 0 -13.7 Z', 'fill-rule': 'evenodd' }, 'body'],
-    ['path', { d: 'M-2.4 -4.2 H2.4 V17 H-2.4 Z M2.4 7.2 H8 V10.4 H2.4 Z M2.4 12.8 H6.5 V16 H2.4 Z' }, 'body']] },
+  { name: 'Top hat', parts: [
+    ['path', { d: 'M-8.5 -15 Q0 -17.4 8.5 -15 L7.6 5 H-7.6 Z' }, 'metal'],
+    ['path', { d: 'M-7.8 0.2 H7.8 L7.6 5 H-7.6 Z' }, 'dark'],
+    ['path', { d: 'M-16.5 7.2 Q-15.5 3.6 -7.6 4.2 H7.6 Q15.5 3.6 16.5 7.2 Q15.8 11 0 11 Q-15.8 11 -16.5 7.2 Z' }, 'metal'],
+    ['ellipse', { cx: 0, cy: -15, rx: 8.5, ry: 2.5 }, 'metal'],
+    ['path', { d: 'M-5.4 -12 V-1.6' }, 'shine']] },
+  { name: 'Racing car', parts: [
+    ['path', { d: 'M-18 5 Q-18.4 -1 -13 -2 L-3 -3.2 Q-1 -9 4 -9.6 Q8 -9.8 8.6 -5.2 L16 -3.6 Q19.2 -2.6 18.6 2 L18 5 Z' }, 'metal'],
+    ['path', { d: 'M-1.2 -3.4 Q0.6 -7.2 4 -7.4 Q6.6 -7.4 6.9 -4.6' }, 'groove'],
+    ['circle', { cx: 2.4, cy: -10.8, r: 2.7 }, 'metal'],
+    ['circle', { cx: -11, cy: 6.2, r: 5.8 }, 'wheel'], ['circle', { cx: 12, cy: 6.2, r: 5.8 }, 'wheel'],
+    ['circle', { cx: -11, cy: 6.2, r: 2.1 }, 'hub'], ['circle', { cx: 12, cy: 6.2, r: 2.1 }, 'hub'],
+    ['path', { d: 'M-14.5 -0.6 H-4' }, 'shine']] },
+  { name: 'Scottie dog', parts: [
+    ['path', { d: 'M-15 -1 L-18 -11 L-13 -3 L4 -3 L5 -10 L6.5 -15.5 L8.5 -10 L10.5 -15.5 L12 -9 L18 -6 L18 -3 L13 -1 L12 3 L10 3 L10 10.5 L6 10.5 L6 5 L-8 5 L-9 10.5 L-14 10.5 Z' }, 'metal'],
+    ['circle', { cx: 13.4, cy: -6.9, r: 1.15 }, 'dark'],
+    ['path', { d: 'M12.6 -2.6 L16.8 -3.8' }, 'groove'],
+    ['path', { d: 'M-11.5 -1.3 H2' }, 'shine']] },
+  { name: 'Battleship', parts: [
+    ['path', { d: 'M-12 1.2 V-1.6 H-8 V1.2 Z M8 1.2 V-1.6 H12 V1.2 Z' }, 'metal'],
+    ['path', { d: 'M-10.5 -0.3 L-17.8 -2.6 M10.5 -0.3 L17.8 -2.6' }, 'gun'],
+    ['path', { d: 'M-18.5 1.2 H18.5 L15.2 8 H-14.6 Z' }, 'metal'],
+    ['path', { d: 'M-7 1.2 V-3 H6 V1.2 Z' }, 'metal'],
+    ['path', { d: 'M-3.2 -3 V-8.2 H2.6 V-3 Z' }, 'metal'],
+    ['path', { d: 'M-0.9 -8.2 V-15 H1.3 V-8.2 Z' }, 'metal'],
+    ['path', { d: 'M-14.8 4.6 H15.2' }, 'groove'],
+    ['path', { d: 'M-12 2.8 H6' }, 'shine']] },
+  { name: 'Boot', parts: [
+    ['path', { d: 'M-10 10.6 H-3 V13.8 H-10 Z' }, 'metal'],
+    ['path', { d: 'M-9 -16 H4 L5 -1 Q11 1 16 3.5 Q18.6 5 18.6 8.6 V10.6 H-10 V6 Q-10.4 0 -9 -16 Z' }, 'metal'],
+    ['path', { d: 'M-3 10.6 H18.6 V12.6 H-3 Z' }, 'dark'],
+    ['path', { d: 'M-0.6 -11 L3.4 -10 M-0.6 -6.6 L3.6 -5.6 M-0.6 -2.4 L4.6 -1.2' }, 'groove'],
+    ['path', { d: 'M-6.4 -12.5 V3' }, 'shine']] },
+  { name: 'Thimble', parts: [
+    ['path', { d: 'M-10 10 L-8.6 -6 Q-8 -16 0 -16 Q8 -16 8.6 -6 L10 10 Z' }, 'metal'],
+    ...thimbleDimples(),
+    ['path', { d: 'M-11.8 8.2 H11.8 Q12.8 8.2 12.8 9.6 V12 Q12.8 13.6 11.6 13.6 H-11.6 Q-12.8 13.6 -12.8 12 V9.6 Q-12.8 8.2 -11.8 8.2 Z' }, 'metal'],
+    ['path', { d: 'M-5.6 -11.5 Q-6.8 -3 -6.6 5.5' }, 'shine']] },
 ];
 const PNAME = PIECES.map(x => x.name);
 const INK = '#1f1b15';
-function drawPiece(parent, p, colour = PCOL[p], outline = INK) {
-  const look = {
-    body: { fill: colour, stroke: outline, 'stroke-width': 1.5, 'stroke-linejoin': 'round' },
-    gold: { fill: '#f2c94c', stroke: outline, 'stroke-width': 1.2 },
-    light: { fill: '#fff' },
-    glass: { fill: '#dff3ff', stroke: outline, 'stroke-width': 1.5 },
-    flame: { fill: '#ff9f1c', stroke: outline, 'stroke-width': 1 },
-    brown: { fill: '#8a5a3b', stroke: outline, 'stroke-width': 1.2 },
-    line: { fill: 'none', stroke: outline, 'stroke-width': 1.3 },
-    lightline: { fill: 'none', stroke: 'rgba(255,255,255,.75)', 'stroke-width': 1.4, 'stroke-linecap': 'round' },
-  };
-  for (const [tag, attrs, role] of PIECES[p % PIECES.length].parts) {
-    if (role === 'stroke2') {  // an outlined line: a dark stroke under a coloured one
-      const round = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
-      el(tag, { ...attrs, ...round, stroke: outline, 'stroke-width': 6.2 }, parent);
-      el(tag, { ...attrs, ...round, stroke: colour, 'stroke-width': 3.4 }, parent);
-    } else el(tag, { ...attrs, ...look[role] }, parent);
+const tint = (hex, f) => {  // mix a colour with white
+  const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * f));
+  return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+};
+const PLIGHT = PCOL.map(c => tint(c, 0.3));  // each player's light outline
+const METAL_EDGE = '#3d434a';
+// shading of each part; parts with a halo also get the player's outline drawn round them
+const LOOK = {
+  metal: { fill: 'url(#metal)', stroke: METAL_EDGE, 'stroke-width': 1.1, 'stroke-linejoin': 'round' },
+  wheel: { fill: '#50575e', stroke: '#2b3035', 'stroke-width': 1.1 },
+  hub: { fill: 'url(#metal)', stroke: '#2b3035', 'stroke-width': 0.8 },
+  dark: { fill: '#5b636b' },
+  dots: { fill: '#6f777f' },
+  groove: { fill: 'none', stroke: METAL_EDGE, 'stroke-width': 1.1, 'stroke-linecap': 'round' },
+  gun: { fill: 'none', stroke: METAL_EDGE, 'stroke-width': 1.7, 'stroke-linecap': 'round' },
+  shine: { fill: 'none', stroke: 'rgba(255,255,255,.9)', 'stroke-width': 1.3, 'stroke-linecap': 'round' },
+};
+const HALO = { metal: 1, wheel: 1, gun: 1 };
+function drawPiece(parent, p, outline = PLIGHT[p], width = 4.6) {
+  const parts = PIECES[p % PIECES.length].parts;
+  const halo = el('g', {}, parent), body = el('g', {}, parent);
+  for (const [tag, attrs, role] of parts) {
+    if (HALO[role]) {
+      const filled = role !== 'gun';
+      el(tag, { ...attrs, fill: filled ? outline : 'none', stroke: outline, 'stroke-width': (filled ? 0 : 1.7) + width,
+        'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, halo);
+    }
+    el(tag, { ...attrs, ...LOOK[role] }, body);
   }
   return parent;
 }
 function pieceSVG(p, size = 22) {
   const s = document.createElementNS(NS, 'svg');
-  s.setAttribute('viewBox', '-19 -20 38 40'); s.setAttribute('width', size); s.setAttribute('height', size);
+  s.setAttribute('viewBox', '-21 -21 42 42'); s.setAttribute('width', size); s.setAttribute('height', size);
   drawPiece(s, p);
   return s.outerHTML;
 }
@@ -559,10 +593,6 @@ function makeTokens(n) {
   for (let p = 0; p < n; p++) {
     const t = el('g', {}, layer);
     el('ellipse', { cx: 0, cy: 16, rx: 13, ry: 3.6, fill: '#000', 'fill-opacity': .3 }, t);
-    // a white halo keeps each piece readable on any square colour
-    const halo = el('g', { opacity: .9 }, t);
-    drawPiece(halo, p, '#fff', '#fff');
-    halo.querySelectorAll('*').forEach(e => { e.setAttribute('stroke', '#fff'); e.setAttribute('stroke-width', 5); });
     drawPiece(el('g', {}, t), p);
     el('title', {}, t).textContent = `${PNAME[p]}: ${game ? game.players[p].label : ''}`;
     t.pos = [500, 500];
@@ -642,7 +672,7 @@ function showOwner(n, p) {
   n.ownerId = p;
   n.owner.firstChild.setAttribute('fill', PCOL[p]);
   n.ownerPiece.replaceChildren();
-  drawPiece(n.ownerPiece, p, '#fff');
+  drawPiece(n.ownerPiece, p, '#fff', 3.6);
 }
 function setOwner(sq, p) {
   const k = ownIdx[sq];
@@ -1183,6 +1213,15 @@ async function main() {
   el('g', { id: 'tokens' }, svg);
   drawJailBars(svg);
   hud.deed = el('g', { opacity: 0, 'pointer-events': 'none' }, svg);
+  if (URLP.has('gallery')) {  // ?gallery: the six pieces, large, for checking how they look
+    PIECES.forEach((pc, k) => {
+      const x = 260 + (k % 3) * 240, y = 330 + Math.floor(k / 3) * 300;
+      el('ellipse', { cx: x, cy: y + 76, rx: 60, ry: 15, fill: '#000', 'fill-opacity': .25 }, svg);
+      drawPiece(el('g', { transform: `translate(${x},${y}) scale(4.4)` }, svg), k);
+      el('text', { x, y: y + 118, 'text-anchor': 'middle', class: 'big', 'font-size': 22, fill: PCOL[k] }, svg).textContent = pc.name;
+    });
+    return;
+  }
   buildToolbar();
   pollStatus();
   requestAnimationFrame(tickCounter);
