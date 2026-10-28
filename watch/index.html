@@ -131,10 +131,21 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#fbfcfd"/><stop offset=".38" stop-color="#d3d8dd"/>
-    <stop offset=".62" stop-color="#a1a9b1"/><stop offset="1" stop-color="#68717a"/>
-  </linearGradient></defs></svg>
+  <linearGradient id="metalV" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".22" stop-color="#e2e6ea"/><stop offset=".5" stop-color="#b4bbc2"/>
+    <stop offset=".78" stop-color="#899199"/><stop offset="1" stop-color="#5a626b"/></linearGradient>
+  <linearGradient id="metalH" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#5d656d"/><stop offset=".15" stop-color="#b6bdc4"/><stop offset=".3" stop-color="#ffffff"/>
+    <stop offset=".46" stop-color="#ccd2d7"/><stop offset=".72" stop-color="#8d959d"/><stop offset="1" stop-color="#4e565e"/></linearGradient>
+  <radialGradient id="metalR" cx=".36" cy=".3" r=".78">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#c2c8ce"/><stop offset="1" stop-color="#58606a"/></radialGradient>
+  <linearGradient id="metalTop" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#d2d8dd"/><stop offset="1" stop-color="#959da5"/></linearGradient>
+  <linearGradient id="steelDark" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#7d868e"/><stop offset="1" stop-color="#383f45"/></linearGradient>
+  <radialGradient id="tyre" cx=".42" cy=".36" r=".7">
+    <stop offset="0" stop-color="#5c636a"/><stop offset="1" stop-color="#1c2125"/></radialGradient>
+</defs></svg>
 <header>
   <div class="brand">MONOPOLY <span>META</span></div>
   <div id="live" class="pill"><span class="dot"></span><span id="liveText">connecting…</span></div>
@@ -206,56 +217,141 @@ const NS = 'http://www.w3.org/2000/svg';
 const C = 134, N = 40, W = (1000 - 2 * C) / 9, BAND = 27;
 const PCOL = ['#e23d3d', '#2f6fde', '#1f9d5a', '#f0a500', '#8e44ad', '#ff7a1a'];
 const ODDS_PLAYOUTS = 64;
-// The players' pieces: the classic six (top hat, racing car, Scottie dog, battleship, boot, thimble), drawn
-// as plain silhouettes of those everyday objects in polished metal, each outlined in a light tint of its
-// player's colour. Drawn in a box about 36 units tall around (0, 0); roles say how each part is shaded.
-function thimbleDimples() {
-  const dots = [];
-  for (let r = 0; r < 5; r++) {
-    const y = -11 + r * 4.3, half = 5.6 + r * 0.85, n = Math.floor((2 * half) / 3.3);
-    for (let k = 0; k < n; k++) dots.push(['circle', { cx: -half + 1.6 + k * (2 * half - 3.2) / Math.max(1, n - 1), cy: y, r: 0.85 }, 'dots']);
+// The players' pieces: the classic six (top hat, racing car, Scottie dog, battleship, boot, thimble), drawn here
+// as polished-metal figures of those everyday objects, each outlined in a light tint of its player's colour.
+// Designed in a 100-unit box around (0, 0) and drawn at 0.4 scale (about 40 board units tall).
+// A part is [tag, attributes, part of the silhouette (gets the player's outline), text].
+const EDGE = '#2c3237';
+const MS = grad => ({ fill: `url(#${grad})`, stroke: EDGE, 'stroke-width': 2.2, 'stroke-linejoin': 'round' });
+const MD = fill => ({ fill, stroke: EDGE, 'stroke-width': 1.6, 'stroke-linejoin': 'round' });
+const LN = (stroke, w = 2.2, extra = {}) => ({ fill: 'none', stroke, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', ...extra });
+const SH = (w = 3, o = .85) => LN(`rgba(255,255,255,${o})`, w);
+function topHat() {
+  return [
+    ['ellipse', { cx: 0, cy: 31.5, rx: 45, ry: 13, ...MD('url(#steelDark)') }, true],
+    ['ellipse', { cx: 0, cy: 27.5, rx: 45, ry: 12.5, ...MS('metalV') }, true],
+    ['path', { d: 'M-44 24 Q-46 26 -43 30', ...SH(2, .8) }], ['path', { d: 'M30 36 Q38 35 42 31', ...SH(1.8, .5) }],
+    ['path', { d: 'M-23 26 C-23.6 4 -25 -18 -25.6 -36 A25.6 7.5 0 0 1 25.6 -36 C25 -18 23.6 4 23 26 A23 6.6 0 0 1 -23 26 Z', ...MS('metalH') }, true],
+    ['path', { d: 'M-23.4 10 A23.4 6.6 0 0 0 23.4 10 L23.1 24.5 A23.1 6.6 0 0 1 -23.1 24.5 Z', ...MD('url(#steelDark)') }],
+    ['path', { d: 'M-21 13.5 A23 6.4 0 0 0 21 13.5', ...LN('rgba(255,255,255,.35)', 1.4) }],
+    ['rect', { x: -6.5, y: 14, width: 13, height: 11.5, rx: 2.2, fill: 'none', stroke: '#eef1f3', 'stroke-width': 2.2 }],
+    ['ellipse', { cx: 0, cy: -36, rx: 25.6, ry: 7.5, ...MS('metalTop') }, true],
+    ['path', { d: 'M-13.5 -29 C-14.6 -12 -14.6 0 -14 8', ...SH(3.4, .9) }],
+    ['path', { d: 'M-18 -39 Q0 -44.5 18 -39', ...SH(1.8, .75) }],
+  ];
+}
+function racingCar() {
+  const P = [
+    ['path', { d: 'M-47 6 C-47 -3 -40 -8 -28 -9.5 L-6 -11 C-2 -11 2 -11.5 6 -12 L20 -12.5 C31 -12.5 40 -9 45 -4 C48.5 -0.5 48.5 5 46 8.5 L-44 8.5 C-46.5 8.5 -47 7.5 -47 6 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M-6 -11.2 C-5 -18 10 -18.5 12 -12.2 Z', ...MD('#3a4046') }],
+    ['circle', { cx: 2.5, cy: -19.5, r: 7.4, ...MS('metalR') }, true],
+    ['path', { d: 'M-4.5 -21 H9.5', ...LN(EDGE, 3.4) }],
+    ['circle', { cx: 8.2, cy: -21, r: 2.5, fill: '#d6ecff', stroke: EDGE, 'stroke-width': 1.3 }],
+    ['path', { d: 'M12.5 -12.4 L16 -19.5 L18.4 -12.6 Z', fill: 'rgba(214,236,255,.9)', stroke: EDGE, 'stroke-width': 1.3 }],
+    ['path', { d: 'M20 0 C6 2.4 -12 2.4 -32 0', ...LN(EDGE, 5.4) }], ['path', { d: 'M20 0 C6 2.4 -12 2.4 -32 0', ...LN('#e6eaed', 2.8) }],
+    ['circle', { cx: -16, cy: -3.5, r: 6.6, fill: '#f6f8f9', stroke: EDGE, 'stroke-width': 1.6 }],
+    ['text', { x: -16, y: 0.3, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 800, fill: EDGE, 'font-family': 'system-ui, sans-serif' }, false, '7'],
+    ['path', { d: 'M-38 -6 C-28 -8.6 -14 -9.2 -8 -9.6', ...SH(2.6, .9) }], ['path', { d: 'M22 -10.6 C30 -10 38 -7 42 -3.6', ...SH(2.2, .8) }],
+  ];
+  for (const x of [40.5, 43, 45.5]) P.push(['line', { x1: x, y1: -2.4 + (x - 40.5) * 0.7, x2: x, y2: 6.6, ...LN(EDGE, 1.2) }]);
+  for (const cx of [-28, 30]) {
+    P.push(['circle', { cx, cy: 13, r: 15, fill: 'url(#tyre)', stroke: '#1a1e22', 'stroke-width': 2 }, true]);
+    P.push(['circle', { cx, cy: 13, r: 10, ...MS('metalR') }]);
+    for (let k = 0; k < 8; k++) {
+      const a = k * Math.PI / 4 + 0.2;
+      P.push(['line', { x1: cx + 3 * Math.cos(a), y1: 13 + 3 * Math.sin(a), x2: cx + 9.4 * Math.cos(a), y2: 13 + 9.4 * Math.sin(a), ...LN(EDGE, 1.3) }]);
+    }
+    P.push(['circle', { cx, cy: 13, r: 3.3, fill: '#f6f8f9', stroke: EDGE, 'stroke-width': 1.2 }]);
+    P.push(['path', { d: `M${cx - 11} ${4} A14 14 0 0 1 ${cx + 2} ${-1.2}`, ...SH(1.8, .35) }]);
   }
-  return dots;
+  return P;
+}
+function scottie() {
+  const body = 'M-36 -12 L-41 -42 L-34 -40 L-30 -15 L12 -15 L15 -24 L17 -46 L23 -29 L28 -46 L32 -27 L46 -21 L51 -16 L51 -10 L46 -8 ' +
+    'L47 -2 L43 -4 L44 2 L40 0 L40 6 L36 3 L35 10 L33 14 L33 36 L22 36 L22 22 L18 26 L15 21 L11 26 L8 21 L4 26 L1 21 L-3 26 L-6 21 ' +
+    'L-10 26 L-13 21 L-17 22 L-19 36 L-31 36 L-32 20 L-38 12 L-38 0 Z';
+  return [
+    ['path', { d: 'M27 22 L28 35.5 L35 35.5 L34 18 Z M-26 21 L-25 35.5 L-18.5 35.5 L-19.5 22 Z', ...MD('url(#steelDark)') }, true],
+    ['path', { d: body, ...MS('metalV') }, true],
+    ['path', { d: 'M13 -14.5 C19 -10.5 27 -8.6 34 -9.5 L34.4 -4.4 C27 -3.4 18 -5.4 12.6 -9.4 Z', ...MD('url(#steelDark)') }],
+    ['circle', { cx: 25, cy: -1.5, r: 3.1, ...MS('metalR') }],
+    ['path', { d: 'M33 -26.5 L41 -24', ...LN(EDGE, 1.8) }],
+    ['ellipse', { cx: 37.6, cy: -21.8, rx: 2.5, ry: 2.1, fill: EDGE }], ['circle', { cx: 38.3, cy: -22.5, r: .8, fill: '#fff' }],
+    ['path', { d: 'M48.6 -16.4 L51 -16 L51 -10.6 L48 -11 Z', fill: EDGE }],
+    ['path', { d: 'M20 -38 L22.6 -31', ...LN(EDGE, 1.3) }],
+    ['path', { d: 'M-27 -12.5 H8 M-34 -30 L-31.6 -17', ...SH(2.6, .85) }],
+    ['path', { d: 'M-24 -6 l3 4 M-16 -6 l3 4 M-8 -6 l3 4 M0 -6 l3 4 M-28 6 l3 4 M-20 7 l3 4 M-12 7 l3 4 M-4 7 l3 4 M4 7 l3 4', ...LN('rgba(44,50,55,.45)', 1.2) }],
+    ['path', { d: 'M38 -3 l-2 5 M41.6 -6 l-1.5 5', ...LN('rgba(255,255,255,.6)', 1.2) }],
+  ];
+}
+function battleship() {
+  const P = [
+    ['path', { d: 'M-34 0 V-4 Q-34 -7 -30 -7 H-24 Q-21 -7 -21 -4 V0 Z M21 0 V-4 Q21 -7 25 -7 H31 Q34 -7 34 -4 V0 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M-24 -5 L-47 -9.5 M-24 -2.5 L-47 -7 M31 -5 L48 -9.5 M31 -2.5 L48 -7', ...LN(EDGE, 3.6) }, true],
+    ['path', { d: 'M-24 -5 L-47 -9.5 M-24 -2.5 L-47 -7 M31 -5 L48 -9.5 M31 -2.5 L48 -7', ...LN('#dfe3e6', 1.6) }],
+    ['path', { d: 'M-1 -21 V-43 M-8 -35 H6 M-7 -29 H5', ...LN(EDGE, 2.6) }, true],
+    ['path', { d: 'M-1 -43 L9 -40 L-1 -37 Z', ...MS('metalTop') }],
+    ['path', { d: 'M-47 0 L36 0 L44 -4 L49.5 -5 L45.5 6 L40.5 14 L-40 14 L-46 8 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M-43.4 10 L42.6 10 L40.5 14 L-40 14 Z', ...MD('url(#steelDark)') }],
+    ['path', { d: 'M-18 0 V-7 H16 V0 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M-12 -7 V-14 H10 V-7 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M-7 -14 V-21 H5 V-14 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M11 -7 L13 -24 H21 L22 -7 Z', ...MS('metalH') }, true],
+    ['path', { d: 'M13 -24 H21 L20.6 -20.5 H13.4 Z', fill: EDGE }],
+    ['path', { d: 'M-5 -19.4 H-2 M0 -19.4 H3 M-10 -11 H-6 M-3 -11 H1 M4 -11 H8', ...LN(EDGE, 1.6) }],
+    ['path', { d: 'M-40 2.5 L33 2.5', ...SH(2, .85) }],
+  ];
+  for (let x = -34; x <= 34; x += 8.5) P.push(['circle', { cx: x, cy: 5.8, r: 1.4, fill: EDGE }]);
+  return P;
+}
+function boot() {
+  const eyelets = [[7.4, -37], [8.2, -30.5], [9.1, -24], [10.1, -17.5], [11.3, -11]];
+  const P = [
+    ['path', { d: 'M-26 22 H-8 V31.5 H-26 Z', ...MD('url(#steelDark)') }, true],
+    ['path', { d: 'M-8 22 H44 Q47.6 22 47.6 25.4 V28 Q47.6 30.6 44 30.6 H-8 Z', ...MD('url(#steelDark)') }, true],
+    ['path', { d: 'M-22 -44 C-27 -52 -16 -55 -15 -44', ...LN(EDGE, 5) }, true], ['path', { d: 'M-22 -44 C-27 -52 -16 -55 -15 -44', ...LN('#dfe3e6', 2.4) }],
+    ['path', { d: 'M2.6 -43 C4 -50 12 -51 13.6 -44 L12.4 -35 Z', ...MS('metalTop') }, true],
+    ['path', { d: 'M-24 -44 L9 -44 C10 -30 11 -18 13 -9 C22 -7 34 -2 41 4 C46 8 47.4 15 45 22 L-26 22 C-27.5 8 -28 -14 -24 -44 Z', ...MS('metalV') }, true],
+    ['path', { d: 'M-24.3 -44 L9 -44 L9.4 -38.2 L-24.9 -38.2 Z', ...MD('url(#steelDark)') }],
+    ['path', { d: 'M23 -5.4 C30 0 31 13 27.4 22', ...LN('rgba(44,50,55,.55)', 1.4, { 'stroke-dasharray': '3 3' }) }],
+    ['path', { d: 'M-21 -36 C-22 -18 -22 0 -20 14', ...LN('rgba(44,50,55,.4)', 1.3, { 'stroke-dasharray': '3 3' }) }],
+    ['path', { d: 'M-16.5 -35 C-17.6 -20 -17.6 -4 -15.6 10', ...SH(3.2, .9) }],
+    ['path', { d: 'M27 4 C33 6.4 37.6 10.4 39 14.4', ...SH(2.4, .8) }],
+  ];
+  eyelets.forEach(([x, y], k) => {
+    P.push(['circle', { cx: x, cy: y, r: 2, fill: '#f2f4f6', stroke: EDGE, 'stroke-width': 1.3 }]);
+    if (k < eyelets.length - 1) P.push(['path', { d: `M${x} ${y} L${eyelets[k + 1][0] + 4.5} ${eyelets[k + 1][1] - 1.5}`, ...LN(EDGE, 1.6) }]);
+  });
+  for (let x = -4; x <= 40; x += 6) P.push(['line', { x1: x, y1: 27, x2: x + 2, y2: 30.6, ...LN('rgba(255,255,255,.35)', 1.2) }]);
+  return P;
+}
+function thimble() {
+  const P = [
+    ['path', { d: 'M-27 26 L-23.5 -16 C-23.5 -40 23.5 -40 23.5 -16 L27 26 Z', ...MS('metalH') }, true],
+  ];
+  for (let y = -12; y <= 20; y += 6.4) {  // dimples round the side: squeezed towards the edges, like a cylinder
+    const r = 23.5 + 3.5 * (y + 16) / 42;
+    for (let deg = -66; deg <= 66; deg += 16.5) {
+      const t = deg * Math.PI / 180, x = r * Math.sin(t);
+      P.push(['ellipse', { cx: x, cy: y, rx: 2.1 * Math.cos(t) + .3, ry: 1.9, fill: '#5d656e' }]);
+      P.push(['path', { d: `M${x - 1.3 * Math.cos(t)} ${y + 1.6} Q${x} ${y + 2.6} ${x + 1.3 * Math.cos(t)} ${y + 1.6}`, ...LN('rgba(255,255,255,.55)', .8) }]);
+    }
+  }
+  for (const [y, r, n] of [[-20, 17, 7], [-27, 11.5, 5], [-32.5, 5.5, 3]]) {  // and over the dome
+    for (let k = 0; k < n; k++) {
+      const t = (-1 + 2 * k / (n - 1)) * 1.1, x = r * Math.sin(t);
+      P.push(['ellipse', { cx: x, cy: y + 1.5 * Math.cos(t), rx: 1.9 * Math.cos(t) + .3, ry: 1.5, fill: '#5d656e' }]);
+    }
+  }
+  P.push(['path', { d: 'M-30 21.5 H30 Q32.4 21.5 32.4 24.6 V32 Q32.4 35.4 29 35.4 H-29 Q-32.4 35.4 -32.4 32 V24.6 Q-32.4 21.5 -30 21.5 Z', ...MS('metalH') }, true]);
+  for (let x = -28.5; x <= 28.5; x += 3) P.push(['line', { x1: x, y1: 24, x2: x, y2: 33, ...LN('rgba(44,50,55,.35)', .9) }]);
+  P.push(['path', { d: 'M-13.6 -27 C-15.4 -10 -15.4 6 -14.6 19', ...SH(3.4, .85) }]);
+  P.push(['ellipse', { cx: -7, cy: -31, rx: 7, ry: 3.2, fill: 'rgba(255,255,255,.55)' }]);
+  return P;
 }
 const PIECES = [
-  { name: 'Top hat', parts: [
-    ['path', { d: 'M-8.5 -15 Q0 -17.4 8.5 -15 L7.6 5 H-7.6 Z' }, 'metal'],
-    ['path', { d: 'M-7.8 0.2 H7.8 L7.6 5 H-7.6 Z' }, 'dark'],
-    ['path', { d: 'M-16.5 7.2 Q-15.5 3.6 -7.6 4.2 H7.6 Q15.5 3.6 16.5 7.2 Q15.8 11 0 11 Q-15.8 11 -16.5 7.2 Z' }, 'metal'],
-    ['ellipse', { cx: 0, cy: -15, rx: 8.5, ry: 2.5 }, 'metal'],
-    ['path', { d: 'M-5.4 -12 V-1.6' }, 'shine']] },
-  { name: 'Racing car', parts: [
-    ['path', { d: 'M-18 5 Q-18.4 -1 -13 -2 L-3 -3.2 Q-1 -9 4 -9.6 Q8 -9.8 8.6 -5.2 L16 -3.6 Q19.2 -2.6 18.6 2 L18 5 Z' }, 'metal'],
-    ['path', { d: 'M-1.2 -3.4 Q0.6 -7.2 4 -7.4 Q6.6 -7.4 6.9 -4.6' }, 'groove'],
-    ['circle', { cx: 2.4, cy: -10.8, r: 2.7 }, 'metal'],
-    ['circle', { cx: -11, cy: 6.2, r: 5.8 }, 'wheel'], ['circle', { cx: 12, cy: 6.2, r: 5.8 }, 'wheel'],
-    ['circle', { cx: -11, cy: 6.2, r: 2.1 }, 'hub'], ['circle', { cx: 12, cy: 6.2, r: 2.1 }, 'hub'],
-    ['path', { d: 'M-14.5 -0.6 H-4' }, 'shine']] },
-  { name: 'Scottie dog', parts: [
-    ['path', { d: 'M-15 -1 L-18 -11 L-13 -3 L4 -3 L5 -10 L6.5 -15.5 L8.5 -10 L10.5 -15.5 L12 -9 L18 -6 L18 -3 L13 -1 L12 3 L10 3 L10 10.5 L6 10.5 L6 5 L-8 5 L-9 10.5 L-14 10.5 Z' }, 'metal'],
-    ['circle', { cx: 13.4, cy: -6.9, r: 1.15 }, 'dark'],
-    ['path', { d: 'M12.6 -2.6 L16.8 -3.8' }, 'groove'],
-    ['path', { d: 'M-11.5 -1.3 H2' }, 'shine']] },
-  { name: 'Battleship', parts: [
-    ['path', { d: 'M-12 1.2 V-1.6 H-8 V1.2 Z M8 1.2 V-1.6 H12 V1.2 Z' }, 'metal'],
-    ['path', { d: 'M-10.5 -0.3 L-17.8 -2.6 M10.5 -0.3 L17.8 -2.6' }, 'gun'],
-    ['path', { d: 'M-18.5 1.2 H18.5 L15.2 8 H-14.6 Z' }, 'metal'],
-    ['path', { d: 'M-7 1.2 V-3 H6 V1.2 Z' }, 'metal'],
-    ['path', { d: 'M-3.2 -3 V-8.2 H2.6 V-3 Z' }, 'metal'],
-    ['path', { d: 'M-0.9 -8.2 V-15 H1.3 V-8.2 Z' }, 'metal'],
-    ['path', { d: 'M-14.8 4.6 H15.2' }, 'groove'],
-    ['path', { d: 'M-12 2.8 H6' }, 'shine']] },
-  { name: 'Boot', parts: [
-    ['path', { d: 'M-10 10.6 H-3 V13.8 H-10 Z' }, 'metal'],
-    ['path', { d: 'M-9 -16 H4 L5 -1 Q11 1 16 3.5 Q18.6 5 18.6 8.6 V10.6 H-10 V6 Q-10.4 0 -9 -16 Z' }, 'metal'],
-    ['path', { d: 'M-3 10.6 H18.6 V12.6 H-3 Z' }, 'dark'],
-    ['path', { d: 'M-0.6 -11 L3.4 -10 M-0.6 -6.6 L3.6 -5.6 M-0.6 -2.4 L4.6 -1.2' }, 'groove'],
-    ['path', { d: 'M-6.4 -12.5 V3' }, 'shine']] },
-  { name: 'Thimble', parts: [
-    ['path', { d: 'M-10 10 L-8.6 -6 Q-8 -16 0 -16 Q8 -16 8.6 -6 L10 10 Z' }, 'metal'],
-    ...thimbleDimples(),
-    ['path', { d: 'M-11.8 8.2 H11.8 Q12.8 8.2 12.8 9.6 V12 Q12.8 13.6 11.6 13.6 H-11.6 Q-12.8 13.6 -12.8 12 V9.6 Q-12.8 8.2 -11.8 8.2 Z' }, 'metal'],
-    ['path', { d: 'M-5.6 -11.5 Q-6.8 -3 -6.6 5.5' }, 'shine']] },
+  { name: 'Top hat', parts: topHat() }, { name: 'Racing car', parts: racingCar() }, { name: 'Scottie dog', parts: scottie() },
+  { name: 'Battleship', parts: battleship() }, { name: 'Boot', parts: boot() }, { name: 'Thimble', parts: thimble() },
 ];
 const PNAME = PIECES.map(x => x.name);
 const INK = '#1f1b15';
@@ -264,35 +360,25 @@ const tint = (hex, f) => {  // mix a colour with white
   return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
 };
 const PLIGHT = PCOL.map(c => tint(c, 0.3));  // each player's light outline
-const METAL_EDGE = '#3d434a';
-// shading of each part; parts with a halo also get the player's outline drawn round them
-const LOOK = {
-  metal: { fill: 'url(#metal)', stroke: METAL_EDGE, 'stroke-width': 1.1, 'stroke-linejoin': 'round' },
-  wheel: { fill: '#50575e', stroke: '#2b3035', 'stroke-width': 1.1 },
-  hub: { fill: 'url(#metal)', stroke: '#2b3035', 'stroke-width': 0.8 },
-  dark: { fill: '#5b636b' },
-  dots: { fill: '#6f777f' },
-  groove: { fill: 'none', stroke: METAL_EDGE, 'stroke-width': 1.1, 'stroke-linecap': 'round' },
-  gun: { fill: 'none', stroke: METAL_EDGE, 'stroke-width': 1.7, 'stroke-linecap': 'round' },
-  shine: { fill: 'none', stroke: 'rgba(255,255,255,.9)', 'stroke-width': 1.3, 'stroke-linecap': 'round' },
-};
-const HALO = { metal: 1, wheel: 1, gun: 1 };
-function drawPiece(parent, p, outline = PLIGHT[p], width = 4.6) {
-  const parts = PIECES[p % PIECES.length].parts;
-  const halo = el('g', {}, parent), body = el('g', {}, parent);
-  for (const [tag, attrs, role] of parts) {
-    if (HALO[role]) {
-      const filled = role !== 'gun';
-      el(tag, { ...attrs, fill: filled ? outline : 'none', stroke: outline, 'stroke-width': (filled ? 0 : 1.7) + width,
-        'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, halo);
+const PIECE_SCALE = 0.4;
+function drawPiece(parent, p, outline = PLIGHT[p], width = 13) {
+  // the player's outline: the silhouette parts drawn again underneath with a wide stroke in their colour
+  const g = el('g', { transform: `scale(${PIECE_SCALE})` }, parent);
+  const halo = el('g', {}, g), body = el('g', {}, g);
+  for (const [tag, attrs, silhouette, text] of PIECES[p % PIECES.length].parts) {
+    if (silhouette) {
+      const line = attrs.fill === 'none';
+      el(tag, { ...attrs, fill: line ? 'none' : outline, stroke: outline,
+        'stroke-width': (line ? +attrs['stroke-width'] : 0) + width, 'stroke-dasharray': 'none' }, halo);
     }
-    el(tag, { ...attrs, ...LOOK[role] }, body);
+    const e = el(tag, attrs, body);
+    if (text) e.textContent = text;
   }
   return parent;
 }
 function pieceSVG(p, size = 22) {
   const s = document.createElementNS(NS, 'svg');
-  s.setAttribute('viewBox', '-21 -21 42 42'); s.setAttribute('width', size); s.setAttribute('height', size);
+  s.setAttribute('viewBox', '-24 -24 48 48'); s.setAttribute('width', size); s.setAttribute('height', size);
   drawPiece(s, p);
   return s.outerHTML;
 }
@@ -351,7 +437,7 @@ function spot(i, k = 0, n = 1, jailed = false) {
     if (r.side === 0) cy += out; else if (r.side === 1) cx -= out; else if (r.side === 2) cy -= out; else cx += out;
   }
   const cols = Math.min(n, 3), col = k % 3, row = Math.floor(k / 3), rows = Math.ceil(n / 3);
-  const along = (col - (cols - 1) / 2) * 23, across = (row - (rows - 1) / 2) * 23;
+  const along = (col - (cols - 1) / 2) * 25, across = (row - (rows - 1) / 2) * 25;
   if (i % 10 && (r.side === 1 || r.side === 3)) return [cx + across, cy + along];
   return [cx + along, cy + across];
 }
@@ -592,7 +678,7 @@ function makeTokens(n) {
   const layer = $('tokens'); layer.replaceChildren(); tokens = [];
   for (let p = 0; p < n; p++) {
     const t = el('g', {}, layer);
-    el('ellipse', { cx: 0, cy: 16, rx: 13, ry: 3.6, fill: '#000', 'fill-opacity': .3 }, t);
+    el('ellipse', { cx: 0, cy: 16, rx: 15, ry: 4, fill: '#000', 'fill-opacity': .3 }, t);
     drawPiece(el('g', {}, t), p);
     el('title', {}, t).textContent = `${PNAME[p]}: ${game ? game.players[p].label : ''}`;
     t.pos = [500, 500];
@@ -672,7 +758,7 @@ function showOwner(n, p) {
   n.ownerId = p;
   n.owner.firstChild.setAttribute('fill', PCOL[p]);
   n.ownerPiece.replaceChildren();
-  drawPiece(n.ownerPiece, p, '#fff', 3.6);
+  drawPiece(n.ownerPiece, p, '#fff', 10);
 }
 function setOwner(sq, p) {
   const k = ownIdx[sq];
