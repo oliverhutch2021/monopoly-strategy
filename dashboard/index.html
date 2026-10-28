@@ -1,0 +1,1252 @@
+<meta name="dash-one-writer">
+<style>
+.mm { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); max-width: 1240px; margin-inline: auto; min-width: 0; }
+.mm-head { display: grid; gap: var(--cds-gap-sm); min-width: 0; }
+.mm-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+.mm-lede { margin: 0; color: var(--color-fg-muted); max-width: 72ch; }
+.mm .mm-lede b, .mm .mm-take b { font-weight: 600; }
+.mm-take { margin: 0; max-width: 72ch; }
+.mm-bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-lg); align-items: center; }
+.mm-ctl { display: inline-flex; align-items: center; gap: var(--cds-gap-sm); flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.mm-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.mm-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+.mm-seg button { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); background: transparent; color: var(--color-fg); border: 0; border-left: 1px solid var(--color-border-line); cursor: pointer; font-variant-numeric: tabular-nums; min-height: 2rem; }
+.mm-seg button:first-child { border-left: 0; }
+.mm-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.mm-icon { font: inherit; background: transparent; color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; min-height: 2rem; }
+.mm [hidden] { display: none !important; }
+.mm-seg button:focus-visible, .mm-tabs button:focus-visible, .mm-icon:focus-visible, .mm select:focus-visible, .mm input:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.mm select { font: inherit; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); max-width: 100%; min-width: 0; min-height: 2rem; }
+.mm-tabs { display: flex; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); overflow-x: auto; scrollbar-width: none; }
+.mm-tabs button { font: inherit; background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: var(--cds-pad-sm) var(--cds-pad-md); cursor: pointer; white-space: nowrap; }
+.mm-tabs button[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
+.mm-page { display: grid; gap: var(--cds-gap-lg); min-width: 0; }
+.mm-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
+.mm-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; display: grid; gap: var(--cds-gap-sm); align-content: start; }
+.mm-card h2, .mm-card h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); text-wrap: balance; }
+.mm-cardhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cds-gap-sm); }
+.mm-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 80ch; }
+.mm-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); }
+.mm-tile { gap: var(--cds-gap-xs); }
+.mm-tile-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.mm-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; overflow-wrap: anywhere; }
+.mm-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.mm-chart { position: relative; min-height: 280px; min-width: 0; }
+.mm-chart.mm-tall { min-height: 360px; }
+.mm-chart svg { display: block; overflow: visible; }
+.mm-drag { cursor: grab; touch-action: pan-y; }
+.mm-drag:active { cursor: grabbing; }
+.mm-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 3; color: var(--color-fg); }
+.mm-tip .mm-tip-head { color: var(--cds-text-secondary); }
+.mm-tip i { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; margin-right: 0.35rem; }
+.mm-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.mm-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.mm-legend i { display: inline-block; width: 0.75rem; height: 0.25rem; border-radius: 2px; }
+.mm-legend i.mm-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; }
+.mm-split { display: grid; gap: var(--cds-gap-md); grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+.mm-dl { display: grid; grid-template-columns: auto 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: 0; font-variant-numeric: tabular-nums; }
+.mm-dl dt { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); align-self: center; }
+.mm-dl dd { margin: 0; text-align: right; }
+.mm-rent { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
+.mm-rent th, .mm-rent td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); text-align: right; }
+.mm-rent th:first-child, .mm-rent td:first-child { text-align: left; }
+.mm-tablewrap { overflow: auto; max-height: 26rem; }
+.mm-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
+.mm-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; }
+.mm-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+.mm-table td.num, .mm-table th.num { text-align: right; }
+.mm-range { width: min(100%, 20rem); accent-color: var(--color-fg); }
+.mm-readouts { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
+.mm-readout { display: grid; gap: 2px; padding: var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+.mm-readout .mm-big { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-sans); font-weight: var(--cds-font-weight-medium); }
+.mm-pos { color: var(--color-ok); }
+.mm-neg { color: var(--color-bad); }
+.mm-callout { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border-left: 3px solid var(--color-border-line); font-size: var(--cds-font-size-body); max-width: 80ch; }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+@media (max-width: 760px) {
+  .mm-split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .mm { gap: var(--cds-gap-md); }
+  .mm-lede, .mm-wide-only { display: none; }
+  .mm-card { padding: var(--cds-pad-md); }
+  .mm-tabs button { padding: var(--cds-pad-sm) var(--cds-pad-sm); }
+  .mm-big { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-sans); font-weight: var(--cds-font-weight-medium); }
+  .mm-chart, .mm-chart.mm-tall { min-height: 220px; }
+  .mm-range { width: 100%; }
+  .mm-ctl.mm-grow { flex: 1 1 100%; }
+  .mm-ctl.mm-grow select { flex: 1 1 auto; }
+}
+</style>
+
+<div class="mm">
+  <header class="mm-head" id="top">
+    <h1 class="mm-title">Monopoly Meta</h1>
+    <p class="mm-lede">Classic UK Monopoly at every table size from 2 to 6 players: exact landing odds, property payback, Monte Carlo tournaments, trade valuations from paired rollouts, and meta agents found by self-play.</p>
+    <p class="mm-take" id="takeaway">With <b data-draw="take-n">—</b> players, <b data-draw="take-set" data-source="set_economics" data-field="group">—</b> pays for itself fastest and the first player wins <b data-draw="take-seat" data-source="seats" data-field="relative">—</b> their fair share.</p>
+    <div class="mm-bar">
+      <div class="mm-ctl"><span class="mm-label" id="lbl-players">Players</span>
+        <div class="mm-seg" role="group" aria-labelledby="lbl-players">
+          <button type="button" data-players="2" aria-pressed="false">2</button>
+          <button type="button" data-players="3" aria-pressed="false">3</button>
+          <button type="button" data-players="4" aria-pressed="true">4</button>
+          <button type="button" data-players="5" aria-pressed="false">5</button>
+          <button type="button" data-players="6" aria-pressed="false">6</button>
+        </div>
+      </div>
+      <div class="mm-ctl"><span class="mm-label" id="lbl-rules">Rules</span>
+        <div class="mm-seg" role="group" aria-labelledby="lbl-rules">
+          <button type="button" data-rules="Official rules" aria-pressed="true">Official</button>
+          <button type="button" data-rules="Championship rules" aria-pressed="false">Championship<span class="mm-wide-only"> (Speed Die)</span></button>
+        </div>
+      </div>
+    </div>
+    <nav class="mm-tabs" role="tablist" aria-label="Sections">
+      <button type="button" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button type="button" role="tab" data-tab="properties" aria-selected="false">Properties</button>
+      <button type="button" role="tab" data-tab="trades" aria-selected="false">Trades</button>
+      <button type="button" role="tab" data-tab="strategies" aria-selected="false">Strategies</button>
+      <button type="button" role="tab" data-tab="meta" aria-selected="false">Meta<span class="mm-wide-only"> agents</span></button>
+    </nav>
+  </header>
+
+  <!-- ============================== OVERVIEW ============================== -->
+  <section class="mm-page" id="overview" data-page="overview">
+    <div class="mm-tiles">
+      <div class="mm-card mm-tile" id="tile-landed">
+        <span class="mm-tile-label">Most-landed property</span>
+        <span class="mm-big" data-draw="kpi-landed-name" data-source="squares" data-field="name">—</span>
+        <span class="mm-sub"><span data-draw="kpi-landed-rate" data-source="squares" data-field="landings_per_100_turns">—</span> landings per 100 turns</span>
+      </div>
+      <div class="mm-card mm-tile" id="tile-payback">
+        <span class="mm-tile-label">Fastest payback with hotels</span>
+        <span class="mm-big" data-draw="kpi-set-name" data-source="set_economics" data-field="group">—</span>
+        <span class="mm-sub"><span data-draw="kpi-set-rounds" data-source="set_economics" data-field="payback_rounds">—</span> rounds to repay set and hotels</span>
+      </div>
+      <div class="mm-card mm-tile" id="tile-seat">
+        <span class="mm-tile-label">First player's edge</span>
+        <span class="mm-big" data-draw="kpi-seat" data-source="seats" data-field="relative">—</span>
+        <span class="mm-sub">times their fair share, identical bots</span>
+      </div>
+      <div class="mm-card mm-tile" id="tile-length">
+        <span class="mm-tile-label">Median game length</span>
+        <span class="mm-big" data-draw="kpi-length" data-source="game_length" data-field="median_rounds">—</span>
+        <span class="mm-sub">rounds, simple bots</span>
+      </div>
+      <div class="mm-card mm-tile" id="tile-deal">
+        <span class="mm-tile-label">Vine Street deal zone</span>
+        <span class="mm-big"><span data-draw="kpi-deal-lo" data-source="deal_zones" data-field="seller_break_even">—</span> – <span data-draw="kpi-deal-hi" data-source="deal_zones" data-field="buyer_maximum">—</span></span>
+        <span class="mm-sub">prices where buyer and seller both gain, simple bots</span>
+      </div>
+      <div class="mm-card mm-tile" id="tile-meta">
+        <span class="mm-tile-label">Meta agent vs a simple bot</span>
+        <span class="mm-big" data-draw="kpi-meta" data-source="meta_checks" data-field="relative">—</span>
+        <span class="mm-sub">wins, relative to a simple bot in its seat</span>
+      </div>
+    </div>
+
+    <div class="mm-split">
+      <div class="mm-card" id="board-card">
+        <div class="mm-cardhead">
+          <h2>Where the dice take you</h2>
+          <div class="mm-ctl">
+            <div class="mm-seg" role="group" aria-label="Board view">
+              <button type="button" data-view="3d" aria-pressed="true">3D</button>
+              <button type="button" data-view="flat" aria-pressed="false">Flat</button>
+            </div>
+            <button type="button" class="mm-icon" data-rotate="-1" aria-label="Rotate left">⟲</button>
+            <button type="button" class="mm-icon" data-rotate="1" aria-label="Rotate right">⟳</button>
+          </div>
+        </div>
+        <p class="mm-note">Expected landings per 100 turns from the exact Markov chain (players stay in jail and roll for doubles). The taller and darker the tower, the more often players land there. Landing odds don't depend on the number of players. Drag to rotate; select a square for its rents.</p>
+        <div class="mm-chart mm-tall" id="board" data-draw="board" data-source="squares"></div>
+      </div>
+      <div class="mm-card" id="square-card">
+        <h2 data-draw="sq-name" data-source="squares" data-field="name">—</h2>
+        <dl class="mm-dl">
+          <dt>Landings per 100 turns</dt><dd data-draw="sq-rate" data-source="squares" data-field="landings_per_100_turns">—</dd>
+          <dt>If players leave jail at once</dt><dd data-draw="sq-rate-short" data-source="squares" data-field="landings_per_100_turns_short_jail">—</dd>
+          <dt>Share of all landings</dt><dd data-draw="sq-share" data-source="squares" data-field="landing_share_pct">—</dd>
+          <dt>Price</dt><dd data-draw="sq-price" data-source="squares" data-field="price">—</dd>
+        </dl>
+        <table class="mm-rent" aria-label="Rent by development level">
+          <thead><tr><th>Development</th><th>Rent</th></tr></thead>
+          <tbody>
+            <tr><td>Site only</td><td data-draw="rent-site" data-source="squares" data-field="rent_site">—</td></tr>
+            <tr><td>Full colour set</td><td data-draw="rent-set" data-source="squares" data-field="rent_set">—</td></tr>
+            <tr><td>1 house</td><td data-draw="rent-1" data-source="squares" data-field="rent_1_house">—</td></tr>
+            <tr><td>2 houses</td><td data-draw="rent-2" data-source="squares" data-field="rent_2_houses">—</td></tr>
+            <tr><td>3 houses</td><td data-draw="rent-3" data-source="squares" data-field="rent_3_houses">—</td></tr>
+            <tr><td>4 houses</td><td data-draw="rent-4" data-source="squares" data-field="rent_4_houses">—</td></tr>
+            <tr><td>Hotel</td><td data-draw="rent-h" data-source="squares" data-field="rent_hotel">—</td></tr>
+          </tbody>
+        </table>
+        <p class="mm-note">Stations, utilities and other squares have no house rents.</p>
+      </div>
+    </div>
+
+    <div class="mm-card" id="ranking-card">
+      <h2>Which properties get landed on most</h2>
+      <p class="mm-note">All 28 properties ranked by expected landings per 100 turns, in their board colours. Select one for its rents.</p>
+      <div class="mm-chart" data-draw="ranking" data-source="squares"></div>
+    </div>
+  </section>
+
+  <!-- ============================== PROPERTIES ============================== -->
+  <section class="mm-page" id="properties" data-page="properties" hidden>
+    <div class="mm-grid">
+      <div class="mm-card" id="payback-card">
+        <h2>How fast each set pays for itself</h2>
+        <p class="mm-note">Rounds until a set and its buildings pay for themselves: total cost ÷ expected rent per round from every opponent, at the chosen table size. The ranking is the same at every size; more opponents make every set pay back faster.</p>
+        <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>3 houses</span><span><i style="background: var(--mm-c1)"></i>Hotels</span></div>
+        <div class="mm-chart" data-draw="payback" data-source="set_economics"></div>
+      </div>
+      <div class="mm-card" id="marginal-card">
+        <h2>Which building is the best buy</h2>
+        <p class="mm-note">Extra rent per round for every £100 spent on that building level, at the chosen table size. The third house is the best buy for every set except brown.</p>
+        <div class="mm-chart" data-draw="marginal" data-source="set_economics"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== TRADES ============================== -->
+  <section class="mm-page" id="trades" data-page="trades" hidden>
+    <div class="mm-card" id="property-trade-card">
+      <h2>What is a property worth to the player it completes a set for?</h2>
+      <p class="mm-note">Ten rounds in, the seller owns the chosen property and the buyer owns the rest of its group; everyone else holds unrelated properties. Each price was played out 1,000 times (2,000 for Vine Street), each sale paired with keeping the property on the same dice. The shaded band is the deal zone, where both sides gain.</p>
+      <div class="mm-bar">
+        <label class="mm-ctl mm-grow"><span class="mm-label">Property</span>
+          <select data-draw="property-select" data-source="squares" aria-label="Property"></select>
+        </label>
+        <label class="mm-ctl mm-grow"><span class="mm-label">Rest of the game played by</span>
+          <select id="sel-popp" aria-label="Rest of the game played by">
+            <option value="Simple bots">Simple bots</option>
+            <option value="Meta agents, official rules">Meta agents, official rules</option>
+          </select>
+        </label>
+        <label class="mm-ctl mm-grow"><span class="mm-label">Price</span>
+          <input id="pprice" class="mm-range" type="range" min="0" max="1200" step="25" value="600" aria-label="Price">
+          <b data-draw="pprice-label">—</b>
+        </label>
+      </div>
+      <div class="mm-readouts">
+        <div class="mm-readout"><span class="mm-label">Buyer's win chance</span><span class="mm-big" data-draw="pro-buyer" data-source="property_trades" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Seller's win chance</span><span class="mm-big" data-draw="pro-seller" data-source="property_trades" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Everyone else's</span><span class="mm-big" data-draw="pro-others" data-source="property_trades" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Seller's net worth 40 turns later</span><span class="mm-big" data-draw="pro-networth" data-source="property_trades" data-field="d_networth">—</span></div>
+      </div>
+      <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>Buyer</span><span><i style="background: var(--mm-c1)"></i>Seller</span><span><i style="background: var(--mm-muted)"></i>Everyone else</span><span><i style="background: var(--mm-c2); opacity: .35"></i>Deal zone</span></div>
+      <div class="mm-chart mm-tall" id="property-trade-chart" data-draw="property-chart" data-source="property_trades property_zones"></div>
+      <p class="mm-note mm-property-empty" hidden>These rollouts haven't been run yet for this combination.</p>
+    </div>
+
+    <div class="mm-card" id="all-zones-card">
+      <h2>Deal zones for every property</h2>
+      <p class="mm-note">For the chosen table size: the lowest price at which selling stops hurting the seller, and the highest at which buying still helps the buyer. Between them both sides gain. An arrow means the buyer still gains at £1,200, all the cash they have (or, for the seller, that no price tested makes up for it). A hollow dot marks a break-even that is uncertain, usually because the seller rarely wins either way. Sorted by the buyer's maximum; select a row to plot it above.</p>
+      <div class="mm-legend"><span><i class="mm-dot" style="background: var(--mm-c1)"></i>Seller's break-even</span><span><i class="mm-dot" style="background: var(--mm-c0)"></i>Buyer's maximum</span><span><i style="background: var(--mm-c2); opacity: .5"></i>Deal zone</span></div>
+      <div class="mm-chart" data-draw="all-zones" data-source="property_zones"></div>
+    </div>
+
+    <div class="mm-card" id="trade-card">
+      <h2>Vine Street in depth: who plays on, and who buys</h2>
+      <p class="mm-note">The same Vine Street sale with 2,000 rollouts per price, played out by simple bots or by meta agents under either rule set, and sold to a player who needs it or one who doesn't.</p>
+      <div class="mm-bar">
+        <label class="mm-ctl mm-grow"><span class="mm-label">Rest of the game played by</span>
+          <select id="sel-opponents" aria-label="Rest of the game played by">
+            <option value="Simple bots">Simple bots</option>
+            <option value="Meta agents, official rules">Meta agents, official rules</option>
+            <option value="Meta agents, championship rules">Meta agents, championship rules</option>
+          </select>
+        </label>
+        <label class="mm-ctl mm-grow"><span class="mm-label">Who buys</span>
+          <select id="sel-deal" aria-label="Who buys">
+            <option value="Completes the buyer's set">The player it completes a set for</option>
+            <option value="Buyer doesn't need it">A player who doesn't need it</option>
+          </select>
+        </label>
+        <label class="mm-ctl mm-grow"><span class="mm-label">Price</span>
+          <input id="price" class="mm-range" type="range" min="0" max="1200" step="50" value="650" aria-label="Price">
+          <b data-draw="price-label">—</b>
+        </label>
+      </div>
+      <div class="mm-readouts">
+        <div class="mm-readout"><span class="mm-label">Buyer's win chance</span><span class="mm-big" data-draw="ro-buyer" data-source="trade_curves" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Seller's win chance</span><span class="mm-big" data-draw="ro-seller" data-source="trade_curves" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Everyone else's</span><span class="mm-big" data-draw="ro-others" data-source="trade_curves" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Seller's net worth 40 turns later</span><span class="mm-big" data-draw="ro-networth" data-source="trade_curves" data-field="d_networth">—</span></div>
+      </div>
+      <div class="mm-chart mm-tall" id="vine-trade-chart" data-draw="trade-chart" data-source="trade_curves deal_zones"></div>
+      <p class="mm-note mm-trade-empty" hidden>No rollouts for this combination. A buyer who doesn't need Vine Street was only tested with simple bots, at 3 or more players.</p>
+      <h3>Vine Street deal zones at every table size</h3>
+      <p class="mm-note">Seller's break-even and buyer's maximum, judged by win chance and by expected net worth. "+" means the buyer still gains at £1,200. Valuing in pounds underprices the set-completing property at every size.</p>
+      <div class="mm-tablewrap">
+        <table class="mm-table" data-source="deal_zones" data-row-key="key">
+          <thead><tr>
+            <th data-field="n_players">Players</th>
+            <th class="num" data-field="seller_break_even">Seller break-even</th>
+            <th class="num" data-field="buyer_maximum">Buyer maximum</th>
+            <th class="num" data-field="seller_break_even_networth">Break-even, net worth</th>
+            <th class="num" data-field="buyer_maximum_networth">Maximum, net worth</th>
+            <th class="num" data-field="buyer_win_pct_without">Buyer wins without it</th>
+            <th class="num" data-field="buyer_win_pct_if_free">Buyer wins if free</th>
+          </tr></thead>
+          <tbody data-draw="zones-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== STRATEGIES ============================== -->
+  <section class="mm-page" id="strategies" data-page="strategies" hidden>
+    <div class="mm-card" id="tweaks-card">
+      <h2>Which tweaks to the simple bot win?</h2>
+      <p class="mm-note">One tweaked bot against copies of the simple bot, seats rotated, for the chosen rules. Cells show wins relative to a fair share (1.00), shaded one way above it and the other way below; an asterisk marks a result not significant at 95%.</p>
+      <div class="mm-chart" data-draw="tweaks" data-source="strategies"></div>
+    </div>
+    <div class="mm-grid">
+      <div class="mm-card" id="seats-card">
+        <h2>Does going first matter?</h2>
+        <p class="mm-note">Identical simple bots in fixed seats, for the chosen rules. Wins relative to a fair share, with 95% intervals.</p>
+        <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>First player</span><span><i style="background: var(--mm-c1)"></i>Last player</span></div>
+        <div class="mm-chart" data-draw="seats" data-source="seats"></div>
+      </div>
+      <div class="mm-card" id="length-card">
+        <h2>How long games last</h2>
+        <p class="mm-note">Median rounds per game with simple bots, by rule set.</p>
+        <div class="mm-legend" data-draw="length-legend" data-source="game_length"></div>
+        <div class="mm-chart" data-draw="length" data-source="game_length"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== META AGENTS ============================== -->
+  <section class="mm-page" id="meta" data-page="meta" hidden>
+    <div class="mm-card" id="checks-card">
+      <h2>How strong are the meta agents?</h2>
+      <p class="mm-note">Meta agents were evolved by self-play, then hardened: challengers trained to beat them joined the opponent pool until none won by 5% or more, or self-play cycled and the least exploitable agent was kept. 1.0 means level with the player it replaces, on the same 4,000 games.</p>
+      <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>Meta agent vs a simple bot, at a table of simple bots</span><span><i style="background: var(--mm-c1)"></i>Simple bot at a table of meta agents</span><span><i style="background: var(--mm-c2)"></i>Best challenger trained against the meta</span></div>
+      <div class="mm-chart" data-draw="checks" data-source="meta_checks"></div>
+    </div>
+    <div class="mm-card" id="why-card">
+      <h2>Why can a meta agent lose to simple bots?</h2>
+      <p class="mm-note">Official rules, at a table of simple bots: the meta agent, and the meta agent with one group of its settings copied from the simple bot, each against a simple bot in the same seat on the same 3,000 games. A change that lifts it (in colour) shows a setting tuned for meta opponents rather than simple ones. These games are separate from the chart above, so its numbers differ slightly.</p>
+      <p class="mm-callout" data-draw="why-take" data-source="meta_vs_simple" data-field="relative">—</p>
+      <div class="mm-chart" data-draw="why" data-source="meta_vs_simple"></div>
+    </div>
+    <div class="mm-grid">
+      <div class="mm-card" id="ablations-card">
+        <h2>Deviating from the meta</h2>
+        <p class="mm-note">One player changes one thing and plays against meta agents, on the same games as an unchanged meta agent. Bars left of 1.0 lose; faded bars are not significant. Changes the meta agent already makes are left out.</p>
+        <div class="mm-chart mm-tall" data-draw="ablations" data-source="meta_ablations"></div>
+      </div>
+      <div class="mm-card" id="settings-card">
+        <h2>The meta agent's settings</h2>
+        <p class="mm-note">What evolution settled on for the chosen rules and table size. Settings whose ablation barely matters drift freely, so read the ones that matter.</p>
+        <div class="mm-tablewrap">
+          <table class="mm-table" data-source="meta_agents" data-row-key="key">
+            <thead><tr><th data-field="setting">Setting</th><th class="num" data-field="value">Value</th><th data-field="unit">Unit</th></tr></thead>
+            <tbody data-draw="settings-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="mm-card" id="hardening-card">
+      <h2>Hardening rounds</h2>
+      <p class="mm-note">Each round trains a challenger against the current meta agent. The ratio is the challenger's win credit over the meta agent's own at the same table; under 1.05 the meta stands.</p>
+      <div class="mm-tablewrap">
+        <table class="mm-table" data-source="hardening" data-row-key="key">
+          <thead><tr><th data-field="round">Round</th><th class="num" data-field="challenger_vs_meta">Challenger ÷ meta</th><th class="num" data-field="meta_self_credit">Meta's own credit</th><th data-field="kept">Kept</th></tr></thead>
+          <tbody data-draw="hardening-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// ---------------------------------------------------------------- shared helpers
+window.mm = (() => {
+  const P = () => {
+    const p = dash.params();
+    return {
+      n: +(p.players ?? 4), rules: p.rules ?? 'Official rules', opp: p.opponents ?? 'Simple bots',
+      deal: p.deal ?? "Completes the buyer's set", price: +(p.price ?? 650), square: +(p.square ?? 24),
+      view: p.view ?? '3d', property: +(p.property ?? 19), popp: p.popp ?? 'Simple bots', pprice: +(p.pprice ?? 600),
+    };
+  };
+  const GROUP = { brown: 'Brown', light_blue: 'Light blue', pink: 'Pink', orange: 'Orange', red: 'Red',
+    yellow: 'Yellow', green: 'Green', dark_blue: 'Dark blue', stations: 'Stations', utilities: 'Utilities' };
+  const BOARD = { brown: '#8b5a3c', light_blue: '#8fc9e8', pink: '#d0479b', orange: '#ec8a2c', red: '#d93a2b',
+    yellow: '#f1d22a', green: '#2f9e4f', dark_blue: '#28509e', stations: '#5f5e5a', utilities: '#9a9993' };
+  const STREETS = ['brown', 'light_blue', 'pink', 'orange', 'red', 'yellow', 'green', 'dark_blue'];
+  const SHORT = { 'Jail / Just Visiting': 'Jail', 'Community Chest': 'Comm. Chest', 'The Angel Islington': 'Angel', 'Northumberland Avenue': 'Northumb. Ave', 'Kings Cross Station': "King's Cross", 'Marylebone Station': 'Marylebone', 'Fenchurch St Station': 'Fenchurch St', 'Liverpool Street Station': 'Liverpool St', 'Marlborough Street': 'Marlborough St', 'Pentonville Road': 'Pentonville Rd', 'Whitechapel Road': 'Whitechapel Rd', 'Old Kent Road': 'Old Kent Rd', 'Trafalgar Square': 'Trafalgar Sq', 'Leicester Square': 'Leicester Sq', 'Electric Company': 'Electric Co', 'Coventry Street': 'Coventry St', 'Regent Street': 'Regent St', 'Oxford Street': 'Oxford St', 'Bond Street': 'Bond St', 'Fleet Street': 'Fleet St', 'Bow Street': 'Bow St', 'Vine Street': 'Vine St', 'Euston Road': 'Euston Rd' };
+  const ok = (...ids) => ids.every((id) => dash.data(id).status === 'ok');
+  const rows = (id) => (dash.data(id).status === 'ok' ? dash.data(id).data : []);
+  const where = (o) => Object.entries(o).map(([k, v]) => `${k}=${String(v).replace(/%/g, '%25').replace(/&/g, '%26').replace(/=/g, '%3D')}`).join('&');
+  const f1 = d3.format('.1f'), f2 = d3.format('.2f'), money = (v) => '£' + d3.format(',.0f')(v);
+  const signed = (v, digits = 1) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(digits);
+  const svgFor = (el, h) => {
+    const w = Math.max(260, el.clientWidth || 600);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img');
+    return { svg, w, h };
+  };
+  const tip = (el) => {
+    const t = document.createElement('div');
+    t.className = 'mm-tip'; t.hidden = true; el.appendChild(t);
+    return {
+      show(event, parts) {
+        t.replaceChildren(...parts);
+        t.hidden = false;
+        const box = el.getBoundingClientRect();
+        let x = event.clientX - box.left + 12, y = event.clientY - box.top + 12;
+        const tw = t.offsetWidth, th = t.offsetHeight;
+        if (x + tw > box.width) x = Math.max(0, event.clientX - box.left - tw - 12);
+        if (y + th > box.height) y = Math.max(0, event.clientY - box.top - th - 12);
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+      },
+      hide() { t.hidden = true; },
+    };
+  };
+  const line = (text, cls) => { const d = document.createElement('div'); if (cls) d.className = cls; d.textContent = text; return d; };
+  const swatchLine = (color, text) => { const d = document.createElement('div'); const i = document.createElement('i'); i.style.background = color; d.append(i, document.createTextNode(text)); return d; };
+  const axisStyle = (g) => {
+    g.attr('font-size', null).attr('font-family', null);
+    g.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+    g.selectAll('line').attr('stroke', 'var(--cds-chart-grid)');
+    g.select('.domain').attr('stroke', 'var(--cds-chart-axis)');
+  };
+  const textWidth = (svg, texts) => {
+    const probe = svg.append('g');
+    const ws = texts.map((s) => probe.append('text').style('font-size', 'var(--cds-font-size-caption)').text(s).node().getComputedTextLength());
+    probe.remove();
+    return d3.max(ws) || 0;
+  };
+  // A theme colour (a token, var() or light-dark()) as plain rgb, so d3 can blend it: computed style, then one canvas pixel.
+  const pixel = (() => {
+    const cv = document.createElement('canvas'); cv.width = 1; cv.height = 1;
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    return (c) => {
+      ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = '#000'; ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+      return a ? `rgb(${r}, ${g}, ${b})` : null;
+    };
+  })();
+  const rgb = (el, c, fallback) => {
+    const probe = document.createElement('span'); probe.style.color = c; el.appendChild(probe);
+    const v = getComputedStyle(probe).color; probe.remove();
+    return pixel(v) || fallback;
+  };
+  // readable text over a computed fill
+  const ink = (fill) => (d3.lab(fill).l > 62 ? 'rgb(28, 28, 28)' : 'rgb(255, 255, 255)');
+  // trim an SVG label with an ellipsis until it fits maxW
+  const clip = (text, maxW) => {
+    const node = text.node();
+    let s = node.textContent;
+    while (s.length > 1 && node.getComputedTextLength() > maxW) {
+      s = s.slice(0, -1);
+      node.textContent = s.trimEnd() + '…';
+    }
+    return text;
+  };
+  // the heat ramp used by both board views: panel colour to the first series colour
+  const heat = (el, lo, hi) => {
+    const a = rgb(el, 'var(--color-panel)', 'rgb(244, 244, 244)'), b = rgb(el, (dash.colors && dash.colors[0]) || '#2a78d6', 'rgb(42, 120, 214)');
+    return d3.scaleLinear().domain([lo, hi]).range([d3.interpolateRgb(a, b)(0.12), b]).interpolate(d3.interpolateRgb).clamp(true);
+  };
+  // the price curve shared by both trade cards: Δ win chance for buyer, seller and everyone else
+  const ROLES = [['Buyer', 'var(--mm-c0)'], ['Seller', 'var(--mm-c1)'], ['Everyone else', 'var(--mm-muted)']];
+  const nearest = (values, v) => (values.length ? values.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a)) : null);
+  const tradeChart = (el, data, zone, price, pick) => {
+    const H = el.clientWidth < 480 ? 300 : 360, T = 26;
+    const { svg, w } = svgFor(el, H);
+    const yMax = d3.max(data, (r) => +r.d_win_pp + 2 * +r.d_win_se_pp), yMin = d3.min(data, (r) => +r.d_win_pp - 2 * +r.d_win_se_pp);
+    const y = d3.scaleLinear([Math.min(yMin, -5), Math.max(yMax, 5)], [H - 28, T]).nice();
+    const left = textWidth(svg, y.ticks(6).map((v) => (v > 0 ? '+' : '') + v)) + 12;
+    const x = d3.scaleLinear(d3.extent(data, (r) => +r.price), [left, w - 10]);
+    svg.append('g').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => (v > 0 ? '+' : '') + v).tickSize(-(w - left - 10))).call(axisStyle).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('transform', `translate(0,${H - 28})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 80))).tickFormat((v) => '£' + d3.format(',')(v))).call(axisStyle);
+    if (zone && String(zone.deal_zone) === 'True' && zone.seller_break_even !== '' && zone.buyer_maximum !== '') {
+      const a = Math.max(+zone.seller_break_even, x.domain()[0]), b = Math.min(+zone.buyer_maximum, x.domain()[1]);
+      svg.append('rect').attr('x', x(a)).attr('y', T).attr('width', Math.max(0, x(b) - x(a))).attr('height', H - 28 - T).attr('fill', 'var(--mm-c2)').attr('opacity', 0.13);
+    }
+    svg.append('line').attr('x1', left).attr('x2', w - 10).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-reference)');
+    ROLES.forEach(([role, col]) => {
+      const pts = data.filter((r) => r.role === role).map((r) => ({ p: +r.price, v: +r.d_win_pp, se: +r.d_win_se_pp })).sort((a, b) => a.p - b.p);
+      if (!pts.length) return;
+      svg.append('path').attr('d', d3.area().x((d) => x(d.p)).y0((d) => y(d.v - 1.96 * d.se)).y1((d) => y(d.v + 1.96 * d.se))(pts)).attr('fill', col).attr('opacity', 0.14);
+      svg.append('path').attr('d', d3.line().x((d) => x(d.p)).y((d) => y(d.v))(pts)).attr('fill', 'none').attr('stroke', col).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+    });
+    const prices = [...new Set(data.map((r) => +r.price))].sort((a, b) => a - b);
+    const p = nearest(prices, price);
+    svg.append('line').attr('x1', x(p)).attr('x2', x(p)).attr('y1', T).attr('y2', H - 28).attr('stroke', 'var(--color-fg)').attr('stroke-dasharray', '3 3');
+    ROLES.forEach(([role, col]) => {
+      const r = data.find((d) => d.role === role && +d.price === p);
+      if (r) svg.append('circle').attr('cx', x(p)).attr('cy', y(+r.d_win_pp)).attr('r', 4.5).attr('fill', col).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    });
+    svg.append('text').attr('x', 0).attr('y', 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Change in win chance, percentage points');
+    const t = tip(el);
+    const at = (event) => prices[d3.minIndex(prices, (v) => Math.abs(x(v) - d3.pointer(event)[0]))];
+    svg.append('rect').attr('x', left).attr('y', T).attr('width', w - left - 10).attr('height', H - 28 - T).attr('fill', 'transparent').style('cursor', 'pointer')
+      .on('pointermove', (event) => {
+        const q = at(event);
+        t.show(event, [line(`Price £${d3.format(',')(q)}`, 'mm-tip-head'),
+          ...ROLES.map(([role, col]) => { const r = data.find((d) => d.role === role && +d.price === q); return r ? swatchLine(col, `${role} ${signed(+r.d_win_pp)} pp`) : null; }).filter(Boolean)]);
+      })
+      .on('pointerleave', () => t.hide())
+      .on('click', (event) => pick(at(event)));
+  };
+  // a readout of one role's change at the chosen price
+  const readout = (el, data, price, role, field, fmt) => {
+    const p = nearest([...new Set(data.map((r) => +r.price))].sort((a, b) => a - b), price);
+    const r = data.find((d) => d.role === role && +d.price === p);
+    el.classList.remove('mm-pos', 'mm-neg');
+    if (!r) { delete el.dataset.where; el.textContent = '—'; return null; }
+    const v = +r[field];
+    el.textContent = fmt(v);
+    if (Math.abs(v) > 1e-9) el.classList.add(v > 0 ? 'mm-pos' : 'mm-neg');
+    return r;
+  };
+  return { P, GROUP, BOARD, STREETS, SHORT, ok, rows, where, f1, f2, money, signed, svgFor, tip, line, swatchLine, axisStyle, textWidth, rgb, ink, clip, heat, ROLES, nearest, tradeChart, readout };
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- controls, tabs, colours
+(() => {
+  const root = document.querySelector('.mm');
+  const setColors = () => {
+    (dash.colors || []).forEach((c, i) => root.style.setProperty(`--mm-c${i}`, c));
+    root.style.setProperty('--mm-muted', 'var(--cds-chart-muted)');
+  };
+  setColors();
+  document.querySelectorAll('[data-players]').forEach((b) => b.addEventListener('click', () => dash.setParams({ players: +b.dataset.players })));
+  document.querySelectorAll('[data-rules]').forEach((b) => b.addEventListener('click', () => dash.setParams({ rules: b.dataset.rules })));
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => dash.setParams({ view: b.dataset.view })));
+  document.querySelectorAll('#sel-opponents').forEach((s) => s.addEventListener('change', () => {
+    const p = { opponents: s.value };
+    if (s.value !== 'Simple bots') p.deal = "Completes the buyer's set";
+    dash.setParams(p);
+  }));
+  document.querySelectorAll('#sel-deal').forEach((s) => s.addEventListener('change', () => dash.setParams({ deal: s.value })));
+  document.querySelectorAll('#price').forEach((r) => r.addEventListener('input', () => dash.setParams({ price: +r.value })));
+  document.querySelectorAll('#sel-popp').forEach((s) => s.addEventListener('change', () => dash.setParams({ popp: s.value })));
+  document.querySelectorAll('#pprice').forEach((r) => r.addEventListener('input', () => dash.setParams({ pprice: +r.value })));
+  const show = (name) => {
+    document.querySelectorAll('[data-page]').forEach((s) => { s.hidden = s.dataset.page !== name; });
+    document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    dash.setLink(name);
+  };
+  document.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => show(b.dataset.tab)));
+  const start = location.hash.slice(1);
+  if (['overview', 'properties', 'trades', 'strategies', 'meta'].includes(start)) show(start);
+  dash.onData(() => {
+    setColors();
+    const { n, rules, opp, deal, price, view, popp, pprice } = mm.P();
+    document.querySelectorAll('[data-players]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.players === n)));
+    document.querySelectorAll('[data-rules]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.rules === rules)));
+    document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    document.querySelectorAll('[data-rotate]').forEach((b) => { if (b.hidden !== (view !== '3d')) b.hidden = view !== '3d'; });
+    document.querySelectorAll('#sel-opponents').forEach((s) => { s.value = opp; });
+    document.querySelectorAll('#sel-deal').forEach((s) => { s.value = deal; s.disabled = opp !== 'Simple bots'; });
+    document.querySelectorAll('#price').forEach((r) => { if (r !== document.activeElement) r.value = String(price); });
+    document.querySelectorAll('#sel-popp').forEach((s) => { s.value = popp; });
+    document.querySelectorAll('#pprice').forEach((r) => { if (r !== document.activeElement) r.value = String(pprice); });
+  });
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- overview: takeaway and tiles
+(() => {
+  const { P, GROUP, STREETS, ok, rows, where, f1, f2, money } = mm;
+  const bestSet = (n) => d3.least(rows('set_economics').filter((r) => +r.n_players === n && r.level === 'hotel' && STREETS.includes(r.group)), (r) => +r.payback_rounds);
+  const landed = () => d3.greatest(rows('squares').filter((r) => ['street', 'station', 'utility'].includes(r.type)), (r) => +r.landings_per_100_turns);
+  const seat1 = (n, rules) => rows('seats').find((r) => +r.n_players === n && r.rules === rules && +r.seat === 1);
+  const fill = (el, ok_, text, w) => { if (!ok_) { delete el.dataset.where; el.textContent = '—'; return; } el.dataset.where = w; el.textContent = text; };
+
+  dash.draw('take-n', (el) => { el.textContent = String(P().n); });
+  dash.draw('take-set', (el) => {
+    const b = ok('set_economics') && bestSet(P().n);
+    fill(el, b, b && GROUP[b.group], b && where({ group: b.group, level: b.level, n_players: b.n_players }));
+  });
+  dash.draw('take-seat', (el) => {
+    const { n, rules } = P(); const s = ok('seats') && seat1(n, rules);
+    fill(el, s, s && f2(+s.relative) + '×', s && where({ rules: s.rules, n_players: s.n_players, seat: s.seat }));
+  });
+  dash.draw('kpi-landed-name', (el) => { const s = ok('squares') && landed(); fill(el, s, s && s.name, s && where({ square: s.square })); });
+  dash.draw('kpi-landed-rate', (el) => { const s = ok('squares') && landed(); fill(el, s, s && f2(+s.landings_per_100_turns), s && where({ square: s.square })); });
+  dash.draw('kpi-set-name', (el) => {
+    const b = ok('set_economics') && bestSet(P().n);
+    fill(el, b, b && GROUP[b.group], b && where({ group: b.group, level: b.level, n_players: b.n_players }));
+  });
+  dash.draw('kpi-set-rounds', (el) => {
+    const b = ok('set_economics') && bestSet(P().n);
+    fill(el, b, b && f1(+b.payback_rounds), b && where({ group: b.group, level: b.level, n_players: b.n_players }));
+  });
+  dash.draw('kpi-seat', (el) => {
+    const { n, rules } = P(); const s = ok('seats') && seat1(n, rules);
+    fill(el, s, s && f2(+s.relative) + '×', s && where({ rules: s.rules, n_players: s.n_players, seat: s.seat }));
+  });
+  dash.draw('kpi-length', (el) => {
+    const { n, rules } = P(); const g = ok('game_length') && rows('game_length').find((r) => +r.n_players === n && r.rules === rules);
+    fill(el, g, g && f1(+g.median_rounds), g && where({ rules: g.rules, n_players: g.n_players }));
+  });
+  const zone = (n) => rows('deal_zones').find((r) => r.opponents === 'Simple bots' && r.deal === "Completes the buyer's set" && +r.n_players === n);
+  dash.draw('kpi-deal-lo', (el) => {
+    const z = ok('deal_zones') && zone(P().n);
+    const has = z && z.seller_break_even !== '' && z.seller_break_even != null;
+    fill(el, has, has && money(+z.seller_break_even), has && where({ key: z.key }));
+  });
+  dash.draw('kpi-deal-hi', (el) => {
+    const z = ok('deal_zones') && zone(P().n);
+    const has = z && z.buyer_maximum !== '' && z.buyer_maximum != null;
+    fill(el, has, has && money(+z.buyer_maximum) + (String(z.buyer_maximum_is_all_cash) === 'True' ? '+' : ''), has && where({ key: z.key }));
+  });
+  dash.draw('kpi-meta', (el) => {
+    const { n, rules } = P();
+    const c = ok('meta_checks') && rows('meta_checks').find((r) => r.rules === rules && +r.n_players === n && r.check === 'meta agent vs baseline bots');
+    fill(el, c, c && f2(+c.relative) + '×', c && where({ rules: c.rules, n_players: c.n_players, check: c.check }));
+  });
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- board (3D and flat), square details, ranking
+(() => {
+  const { P, BOARD, SHORT, ok, rows, where, f1, f2, money, tip, line, rgb, ink, heat, textWidth, axisStyle, svgFor, clip } = mm;
+  const cell = (i) => {
+    if (i <= 10) return [10 - i, 10];
+    if (i <= 20) return [0, 20 - i];
+    if (i <= 30) return [i - 20, 0];
+    return [10, i - 30];
+  };
+  const pick = (sq) => dash.setParams({ square: +sq });
+  const tipParts = (r) => [line(r.name, 'mm-tip-head'), line(`${f2(+r.landings_per_100_turns)} landings per 100 turns`), ...(r.price ? [line(`Price ${money(+r.price)}`)] : [])];
+  // view angle, kept across redraws; dragging or the rotate buttons turn the board
+  let theta = -0.55;
+  document.querySelectorAll('[data-rotate]').forEach((b) => b.addEventListener('click', () => { theta += (+b.dataset.rotate * Math.PI) / 4; dash.draw('board'); }));
+
+  const flat = (el, data) => {
+    const size = Math.min(Math.max(260, el.clientWidth || 600), 720);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img').attr('aria-label', 'Board heat map of landing rates');
+    const c = size / 11, pad = 1.5;
+    const vals = data.map((r) => +r.landings_per_100_turns);
+    const color = heat(el, d3.min(vals), d3.max(vals));
+    const t = tip(el);
+    const sel = P().square;
+    data.forEach((r) => {
+      const [cx, cy] = cell(+r.square);
+      const fill = color(+r.landings_per_100_turns);
+      const node = svg.append('g').attr('transform', `translate(${cx * c},${cy * c})`).style('cursor', 'pointer')
+        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${r.name}: ${f2(+r.landings_per_100_turns)} landings per 100 turns`);
+      node.append('rect').attr('x', pad).attr('y', pad).attr('width', c - 2 * pad).attr('height', c - 2 * pad).attr('rx', 3).attr('fill', fill)
+        .attr('stroke', +r.square === sel ? 'var(--color-fg)' : 'var(--color-border-line)').attr('stroke-width', +r.square === sel ? 2.5 : 1);
+      if (BOARD[r.group] && r.type === 'street') {
+        const [bx, by, bw, bh] = cy === 10 ? [pad, pad, c - 2 * pad, c * 0.16] : cy === 0 ? [pad, c - pad - c * 0.16, c - 2 * pad, c * 0.16]
+          : cx === 0 ? [c - pad - c * 0.16, pad, c * 0.16, c - 2 * pad] : [pad, pad, c * 0.16, c - 2 * pad];
+        node.append('rect').attr('x', bx).attr('y', by).attr('width', bw).attr('height', bh).attr('fill', BOARD[r.group]);
+      }
+      const fit = (text, maxW) => {
+        const len = text.node().getComputedTextLength();
+        if (len > maxW) text.style('font-size', `${(parseFloat(text.style('font-size')) * maxW) / len}px`);
+      };
+      if (c >= 56) {
+        fit(node.append('text').attr('x', c / 2).attr('y', c * 0.5).attr('text-anchor', 'middle').attr('fill', ink(fill)).style('font-size', `${c * 0.13}px`).text(SHORT[r.name] || r.name), c - 10);
+        fit(node.append('text').attr('x', c / 2).attr('y', c * 0.74).attr('text-anchor', 'middle').attr('fill', ink(fill)).style('font-size', `${c * 0.15}px`).style('font-variant-numeric', 'tabular-nums').text(f2(+r.landings_per_100_turns)), c - 10);
+      } else {
+        fit(node.append('text').attr('x', c / 2).attr('y', c / 2).attr('dy', '0.35em').attr('text-anchor', 'middle').attr('fill', ink(fill)).style('font-size', `${c * 0.26}px`).style('font-variant-numeric', 'tabular-nums').text(f1(+r.landings_per_100_turns)), c - 6);
+      }
+      node.on('click', () => pick(r.square)).on('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); pick(r.square); } })
+        .on('pointermove', (event) => t.show(event, tipParts(r))).on('pointerleave', () => t.hide());
+    });
+    const lw = c * 6, gid = 'mm-heat-' + Math.random().toString(36).slice(2, 7);
+    const grad = svg.append('defs').append('linearGradient').attr('id', gid);
+    grad.append('stop').attr('offset', '0%').attr('stop-color', color(d3.min(vals)));
+    grad.append('stop').attr('offset', '100%').attr('stop-color', color(d3.max(vals)));
+    const lg = svg.append('g').attr('transform', `translate(${c * 2.5},${c * 5})`);
+    lg.append('text').attr('x', lw / 2).attr('y', -c * 0.6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text('Landings per 100 turns');
+    lg.append('rect').attr('width', lw).attr('height', Math.max(6, c * 0.2)).attr('rx', 3).attr('fill', `url(#${gid})`);
+    lg.append('text').attr('y', Math.max(6, c * 0.2) + 14).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(d3.min(vals)));
+    lg.append('text').attr('x', lw).attr('y', Math.max(6, c * 0.2) + 14).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(d3.max(vals)));
+  };
+
+  const tower = (el, data) => {
+    const W = Math.max(260, el.clientWidth || 600), H = Math.round(Math.min(Math.max(W * 0.8, 260), 560));
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('class', 'mm-drag')
+      .attr('role', 'img').attr('aria-label', '3D board: each square is a tower as tall as its landing rate. Drag to rotate.');
+    const vals = data.map((r) => +r.landings_per_100_turns);
+    const vmax = d3.max(vals), HMAX = 3.2, PHI = 0.6, sp = Math.sin(PHI), cp = Math.cos(PHI), R = 5.5 * Math.SQRT2;
+    const color = heat(el, d3.min(vals), vmax);
+    const floorTint = rgb(el, 'var(--color-border-line)', 'rgb(225, 224, 217)'), base = rgb(el, 'var(--color-bg)', 'rgb(250, 250, 248)');
+    const s = Math.min((W - 24) / (2 * R), (H - 64) / (2 * R * sp + HMAX * cp));
+    const ox = W / 2, oy = 12 + HMAX * cp * s + R * sp * s;
+    const t = tip(el);
+    const g = svg.append('g');
+    const legend = svg.append('g');
+    let dragged = 0;
+    const render = () => {
+      g.selectAll('*').remove();
+      const cos = Math.cos(theta), sin = Math.sin(theta);
+      const proj = (x, y, z) => { const xr = x * cos - z * sin, zr = x * sin + z * cos; return [ox + xr * s, oy + zr * sp * s - y * cp * s]; };
+      const depth = (x, z) => x * sin + z * cos;
+      const poly = (pts) => 'M' + pts.map((p) => proj(...p).map((v) => v.toFixed(1)).join(',')).join('L') + 'Z';
+      const quad = (x, z, h, y) => [[x - h, y, z - h], [x + h, y, z - h], [x + h, y, z + h], [x - h, y, z + h]];
+      g.append('path').attr('d', poly(quad(0, 0, 5.55, 0))).attr('fill', base).attr('stroke', 'var(--color-border-line)');
+      g.append('path').attr('d', poly(quad(0, 0, 4.45, 0))).attr('fill', 'none').attr('stroke', 'var(--color-border-line)');
+      const sel = P().square;
+      const items = data.map((r) => { const [cx, cy] = cell(+r.square); return { r, x: cx - 5, z: cy - 5 }; });
+      items.forEach(({ r, x, z }) => {
+        const street = BOARD[r.group] && r.type === 'street';
+        g.append('path').attr('d', poly(quad(x, z, 0.47, 0))).attr('fill', street ? BOARD[r.group] : floorTint).attr('opacity', street ? 0.9 : 0.55);
+      });
+      items.sort((a, b) => depth(a.x, a.z) - depth(b.x, b.z)).forEach(({ r, x, z }) => {
+        const v = +r.landings_per_100_turns, h = (v / vmax) * HMAX, b = 0.3, top = color(v);
+        const node = g.append('g').style('cursor', 'pointer');
+        // the side faces that face the viewer, darker than the top
+        [[1, 0, 0.55], [-1, 0, 0.55], [0, 1, 0.95], [0, -1, 0.95]].forEach(([nx, nz, dark]) => {
+          if (nx * sin + nz * cos <= 0) return;
+          const a = nx ? [[x + nx * b, 0, z - b], [x + nx * b, 0, z + b], [x + nx * b, h, z + b], [x + nx * b, h, z - b]]
+            : [[x - b, 0, z + nz * b], [x + b, 0, z + nz * b], [x + b, h, z + nz * b], [x - b, h, z + nz * b]];
+          node.append('path').attr('d', poly(a)).attr('fill', d3.color(top).darker(dark).formatRgb());
+        });
+        node.append('path').attr('d', poly(quad(x, z, b, h))).attr('fill', top)
+          .attr('stroke', +r.square === sel ? 'var(--color-fg)' : 'none').attr('stroke-width', 2);
+        node.on('pointermove', (event) => { if (!dragged) t.show(event, tipParts(r)); }).on('pointerleave', () => t.hide())
+          .on('click', () => { if (dragged < 4) pick(r.square); });
+      });
+      // corner names beside the corners facing the viewer, where no tower can cover them
+      [[5, 5, 'GO'], [-5, 5, 'Jail'], [-5, -5, 'Free Parking'], [5, -5, 'Go to Jail']].forEach(([x, z, name]) => {
+        if (depth(x, z) < -1) return;
+        const [px, py] = proj(x * 1.1, 0, z * 1.1), right = px >= ox;
+        const label = g.append('text').attr('x', right ? px + 8 : px - 8).attr('y', py).attr('dy', '0.35em').attr('text-anchor', right ? 'start' : 'end')
+          .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').style('pointer-events', 'none').text(name);
+        const box = label.node().getBBox();
+        if (box.x < 2) label.attr('text-anchor', 'start').attr('x', 2);
+        if (box.x + box.width > W - 2) label.attr('text-anchor', 'end').attr('x', W - 2);
+      });
+    };
+    // legend: a ramp of the tower colours, bottom left
+    const gid = 'mm-heat3d-' + Math.random().toString(36).slice(2, 7);
+    const grad = legend.append('defs').append('linearGradient').attr('id', gid);
+    grad.append('stop').attr('offset', '0%').attr('stop-color', color(d3.min(vals)));
+    grad.append('stop').attr('offset', '100%').attr('stop-color', color(vmax));
+    const lw = Math.min(140, W * 0.35);
+    legend.attr('transform', `translate(4,${H - 24})`);
+    legend.append('rect').attr('width', lw).attr('height', 6).attr('rx', 3).attr('fill', `url(#${gid})`);
+    legend.append('text').attr('y', 20).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(d3.min(vals)));
+    legend.append('text').attr('x', lw).attr('y', 20).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(vmax));
+    let startX = null;
+    svg.on('pointerdown', (event) => { startX = event.clientX; dragged = 0; })
+      .on('pointermove.rotate', (event) => {
+        if (startX == null || !(event.buttons & 1)) return;
+        const dx = event.clientX - startX;
+        if (Math.abs(dx) < 1) return;
+        dragged += Math.abs(dx); startX = event.clientX; theta += dx * 0.012; t.hide(); render();
+      })
+      .on('pointerup pointercancel', () => { startX = null; setTimeout(() => { dragged = 0; }, 0); });
+    render();
+  };
+
+  dash.draw('board', (el) => {
+    el.replaceChildren();
+    if (!ok('squares')) return;
+    if (P().view === 'flat') flat(el, rows('squares'));
+    else tower(el, rows('squares'));
+  });
+
+  const current = () => rows('squares').find((r) => +r.square === P().square);
+  const field = (name, fmt) => (el) => {
+    const r = ok('squares') && current();
+    if (!r || r[name] === '' || r[name] == null) { delete el.dataset.where; el.textContent = '—'; return; }
+    el.dataset.where = where({ square: r.square });
+    el.textContent = fmt(r[name]);
+  };
+  dash.draw('sq-name', field('name', (v) => v));
+  dash.draw('sq-rate', field('landings_per_100_turns', (v) => f2(+v)));
+  dash.draw('sq-rate-short', field('landings_per_100_turns_short_jail', (v) => f2(+v)));
+  dash.draw('sq-share', field('landing_share_pct', (v) => f2(+v) + '%'));
+  dash.draw('sq-price', field('price', (v) => money(+v)));
+  [['rent-site', 'rent_site'], ['rent-set', 'rent_set'], ['rent-1', 'rent_1_house'], ['rent-2', 'rent_2_houses'],
+    ['rent-3', 'rent_3_houses'], ['rent-4', 'rent_4_houses'], ['rent-h', 'rent_hotel']].forEach(([d, f]) => dash.draw(d, field(f, (v) => money(+v))));
+
+  dash.draw('ranking', (el) => {
+    el.replaceChildren();
+    if (!ok('squares')) return;
+    const data = rows('squares').filter((r) => ['street', 'station', 'utility'].includes(r.type)).sort((a, b) => +b.landings_per_100_turns - +a.landings_per_100_turns);
+    const narrow = el.clientWidth < 520, rowH = 22, H = data.length * rowH + 26;
+    const { svg, w } = svgFor(el, H);
+    const name = (r) => (narrow ? SHORT[r.name] || r.name : r.name);
+    const left = textWidth(svg, data.map(name)) + 22;
+    const x = d3.scaleLinear([0, d3.max(data, (r) => +r.landings_per_100_turns) * 1.08], [left, w - 40]);
+    const y = d3.scaleBand(data.map((r) => r.square), [4, H - 22]).padding(0.22);
+    svg.append('g').attr('transform', `translate(0,${H - 22})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 70))).tickSize(-(H - 26))).call(axisStyle).call((g) => g.select('.domain').remove());
+    const t = tip(el), sel = P().square;
+    data.forEach((r) => {
+      const v = +r.landings_per_100_turns, yy = y(r.square);
+      const row = svg.append('g').style('cursor', 'pointer').on('click', () => pick(r.square))
+        .on('pointermove', (event) => t.show(event, tipParts(r))).on('pointerleave', () => t.hide());
+      row.append('rect').attr('x', 0).attr('y', yy - 2).attr('width', w).attr('height', y.bandwidth() + 4).attr('fill', 'transparent');
+      row.append('rect').attr('x', left - 14).attr('y', yy + y.bandwidth() / 2 - 4).attr('width', 8).attr('height', 8).attr('rx', 2).attr('fill', BOARD[r.group] || 'var(--mm-muted)');
+      clip(row.append('text').attr('x', left - 20).attr('y', yy + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
+        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', +r.square === sel ? 600 : 400).text(name(r)), left - 22);
+      row.append('rect').attr('x', left).attr('y', yy).attr('width', Math.max(0, x(v) - left)).attr('height', y.bandwidth()).attr('rx', 3)
+        .attr('fill', 'var(--mm-c0)').attr('opacity', +r.square === sel ? 1 : 0.7);
+      row.append('text').attr('x', x(v) + 4).attr('y', yy + y.bandwidth() / 2).attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)')
+        .style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').text(f2(v));
+    });
+  });
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- properties: payback and marginal return
+(() => {
+  const { P, GROUP, STREETS, ok, rows, f1, svgFor, tip, line, axisStyle, textWidth, rgb, ink } = mm;
+  dash.draw('payback', (el) => {
+    el.replaceChildren();
+    if (!ok('set_economics')) return;
+    const { n } = P();
+    const data = rows('set_economics').filter((r) => +r.n_players === n && STREETS.includes(r.group));
+    const get = (g, lvl) => +(data.find((r) => r.group === g && r.level === lvl) || {}).payback_rounds;
+    const groups = [...STREETS].sort((a, b) => get(a, 'hotel') - get(b, 'hotel'));
+    const top = 6, bottom = 28, H = groups.length * 46 + top + bottom;
+    const { svg, w } = svgFor(el, H);
+    const left = textWidth(svg, groups.map((g) => GROUP[g])) + 12;
+    const right = 44;
+    const x = d3.scaleLinear([0, d3.max(groups, (g) => Math.max(get(g, '3 houses'), get(g, 'hotel'))) * 1.05], [left, w - right]);
+    const y = d3.scaleBand(groups, [top, H - bottom]).padding(0.2);
+    const sub = d3.scaleBand(['3 houses', 'hotel'], [0, y.bandwidth()]).padding(0.08);
+    svg.append('g').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left - right) / 70))).tickSize(-(H - bottom - top))).call(axisStyle).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).tickSize(0).tickFormat((g) => GROUP[g])).call(axisStyle).call((g) => g.select('.domain').remove())
+      .selectAll('text').attr('fill', 'var(--color-fg)');
+    const t = tip(el);
+    groups.forEach((g) => ['3 houses', 'hotel'].forEach((lvl, i) => {
+      const v = get(g, lvl);
+      svg.append('rect').attr('x', left).attr('y', y(g) + sub(lvl)).attr('height', sub.bandwidth()).attr('width', Math.max(0, x(v) - left)).attr('rx', 3)
+        .attr('fill', `var(--mm-c${i})`)
+        .on('pointermove', (event) => t.show(event, [line(`${GROUP[g]}, ${lvl === 'hotel' ? 'hotels' : '3 houses'}`, 'mm-tip-head'), line(`${f1(v)} rounds to pay back`)]))
+        .on('pointerleave', () => t.hide());
+      svg.append('text').attr('x', x(v) + 4).attr('y', y(g) + sub(lvl) + sub.bandwidth() / 2).attr('dy', '0.35em')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f1(v));
+    }));
+  });
+
+  dash.draw('marginal', (el) => {
+    el.replaceChildren();
+    if (!ok('set_economics')) return;
+    const { n } = P();
+    const levels = ['1 house', '2 houses', '3 houses', '4 houses', 'hotel'];
+    const names = { '1 house': '1st', '2 houses': '2nd', '3 houses': '3rd', '4 houses': '4th', hotel: 'Hotel' };
+    const data = rows('set_economics').filter((r) => +r.n_players === n && STREETS.includes(r.group) && levels.includes(r.level));
+    const H = 300;
+    const { svg, w } = svgFor(el, H);
+    const left = textWidth(svg, STREETS.map((g) => GROUP[g])) + 12, top = 24;
+    const x = d3.scaleBand(levels, [left, w]).padding(0.06);
+    const y = d3.scaleBand(STREETS, [top, H]).padding(0.06);
+    const max = d3.max(data, (r) => +r.marginal_return_pct);
+    const hi = rgb(el, (dash.colors && dash.colors[0]) || '#2a78d6', 'rgb(42, 120, 214)');
+    const lo = rgb(el, 'var(--color-panel)', 'rgb(244, 244, 244)');
+    const color = (v) => d3.interpolateRgb(lo, hi)(0.08 + 0.92 * (v / max));
+    levels.forEach((l) => svg.append('text').attr('x', x(l) + x.bandwidth() / 2).attr('y', top - 8).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(names[l]));
+    STREETS.forEach((g) => svg.append('text').attr('x', left - 8).attr('y', y(g) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(GROUP[g]));
+    const t = tip(el);
+    data.forEach((r) => {
+      const v = +r.marginal_return_pct;
+      svg.append('rect').attr('x', x(r.level)).attr('y', y(r.group)).attr('width', x.bandwidth()).attr('height', y.bandwidth()).attr('rx', 3).attr('fill', color(v))
+        .on('pointermove', (event) => t.show(event, [line(`${GROUP[r.group]}, ${names[r.level]}${r.level === 'hotel' ? '' : ' house'}`, 'mm-tip-head'), line(`£${f1(v)} extra rent per round per £100`)]))
+        .on('pointerleave', () => t.hide());
+      svg.append('text').attr('x', x(r.level) + x.bandwidth() / 2).attr('y', y(r.group) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'middle')
+        .attr('fill', ink(color(v))).style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').style('pointer-events', 'none')
+        .text((x.bandwidth() >= 44 ? '£' : '') + f1(v));
+    });
+  });
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- trades: every property, and Vine Street in depth
+(() => {
+  const { P, GROUP, BOARD, SHORT, STREETS, ok, rows, where, f1, money, signed, svgFor, tip, line, axisStyle, textWidth, clip, tradeChart, readout, nearest } = mm;
+
+  // ---- every property
+  const propCurve = () => {
+    const { n, property, popp } = P();
+    return rows('property_trades').filter((r) => r.opponents === popp && +r.n_players === n && +r.square === property);
+  };
+  const propZone = () => {
+    const { n, property, popp } = P();
+    return rows('property_zones').find((r) => r.opponents === popp && +r.n_players === n && +r.square === property);
+  };
+  dash.draw('property-select', (sel) => {
+    const squares = rows('squares').filter((r) => ['street', 'station', 'utility'].includes(r.type));
+    const order = [...STREETS, 'stations', 'utilities'];
+    sel.replaceChildren(...order.map((g) => {
+      const og = document.createElement('optgroup'); og.label = GROUP[g];
+      squares.filter((r) => r.group === g).forEach((r) => og.appendChild(new Option(r.name, String(+r.square))));
+      return og;
+    }).filter((og) => og.children.length));
+    sel.value = String(P().property);
+    sel.onchange = () => dash.setParams({ property: +sel.value });
+  });
+  dash.draw('pprice-label', (el) => {
+    const data = ok('property_trades') ? propCurve() : [];
+    const p = nearest([...new Set(data.map((r) => +r.price))].sort((a, b) => a - b), P().pprice);
+    el.textContent = money(p == null ? P().pprice : p);
+  });
+  const pro = (role, field, fmt) => (el) => {
+    const r = readout(el, ok('property_trades') ? propCurve() : [], P().pprice, role, field, fmt);
+    if (r) el.dataset.where = where({ opponents: r.opponents, n_players: r.n_players, square: r.square, price: r.price, role: r.role });
+  };
+  dash.draw('pro-buyer', pro('Buyer', 'd_win_pp', (v) => signed(v) + ' pp'));
+  dash.draw('pro-seller', pro('Seller', 'd_win_pp', (v) => signed(v) + ' pp'));
+  dash.draw('pro-others', pro('Everyone else', 'd_win_pp', (v) => signed(v) + ' pp'));
+  dash.draw('pro-networth', pro('Seller', 'd_networth', (v) => (v >= 0 ? '+' : '−') + money(Math.abs(v))));
+  dash.draw('property-chart', (el) => {
+    el.replaceChildren();
+    const data = ok('property_trades') ? propCurve() : [];
+    const noRuns = ok('property_trades') && !data.length;
+    document.querySelectorAll('.mm-property-empty').forEach((p) => { if (p.hidden === noRuns) p.hidden = !noRuns; });
+    if (!ok('property_trades', 'property_zones') || !data.length) return;
+    tradeChart(el, data, propZone(), P().pprice, (price) => dash.setParams({ pprice: price }));
+  });
+
+  dash.draw('all-zones', (el) => {
+    el.replaceChildren();
+    if (!ok('property_zones')) return;
+    const { n, popp, property } = P();
+    const cap = (r) => (r.buyer_maximum === '' ? 0 : +r.buyer_maximum);
+    const floor = (r) => (r.seller_break_even === '' ? 1e4 : +r.seller_break_even);
+    const data = rows('property_zones').filter((r) => r.opponents === popp && +r.n_players === n).sort((a, b) => cap(b) - cap(a) || floor(a) - floor(b));
+    if (!data.length) return;
+    const narrow = el.clientWidth < 520, rowH = narrow ? 34 : 24, top = 4, H = data.length * rowH + top + 24;
+    const { svg, w } = svgFor(el, H);
+    const name = (r) => (narrow ? SHORT[r.name] || r.name : r.name);
+    const left = narrow ? 8 : textWidth(svg, data.map(name)) + 26;
+    const x = d3.scaleLinear([0, 1200], [left, w - 16]);
+    svg.append('g').attr('transform', `translate(0,${H - 22})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 80))).tickFormat((v) => '£' + d3.format(',')(v)).tickSize(-(H - 26))).call(axisStyle).call((g) => g.select('.domain').remove());
+    const t = tip(el);
+    data.forEach((r, i) => {
+      const y0 = top + i * rowH, yc = narrow ? y0 + 24 : y0 + rowH / 2;
+      const lo = r.seller_break_even === '' ? null : +r.seller_break_even, hi = r.buyer_maximum === '' ? null : +r.buyer_maximum;
+      const cens = String(r.buyer_maximum_is_all_cash) === 'True', zone = String(r.deal_zone) === 'True';
+      const row = svg.append('g').style('cursor', 'pointer').on('click', () => dash.setParams({ property: +r.square }));
+      row.append('rect').attr('x', 0).attr('y', y0).attr('width', w).attr('height', rowH).attr('fill', +r.square === property ? 'var(--cds-chart-grid)' : 'transparent');
+      const sw = narrow ? 8 : left - 18;
+      row.append('rect').attr('x', sw).attr('y', (narrow ? y0 + 4 : yc - 4)).attr('width', 8).attr('height', 8).attr('rx', 2).attr('fill', BOARD[r.group] || 'var(--mm-muted)');
+      if (narrow) {
+        row.append('text').attr('x', sw + 14).attr('y', y0 + 8).attr('dy', '0.35em').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(name(r));
+      } else {
+        clip(row.append('text').attr('x', sw - 6).attr('y', yc).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(name(r)), sw - 8);
+      }
+      if (lo != null && hi != null) {
+        if (zone) row.append('rect').attr('x', x(lo)).attr('y', yc - 4).attr('width', Math.max(2, x(hi) - x(lo))).attr('height', 8).attr('rx', 4).attr('fill', 'var(--mm-c2)').attr('opacity', 0.45);
+        else row.append('line').attr('x1', x(Math.min(lo, hi))).attr('x2', x(Math.max(lo, hi))).attr('y1', yc).attr('y2', yc).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-dasharray', '2 2');
+      }
+      // a seller who rarely wins either way has a flat curve, so its break-even is shown hollow
+      const shaky = +r.seller_win_pct_without < 2 || +r.seller_break_even_se > 150;
+      const arrow = (v, colour) => row.append('path').attr('d', `M${x(v) - 2},${yc - 5}L${x(v) + 6},${yc}L${x(v) - 2},${yc + 5}Z`).attr('fill', colour);
+      const dot = (v, colour, hollow) => row.append('circle').attr('cx', x(v)).attr('cy', yc).attr('r', 4.5).attr('fill', hollow ? 'var(--color-panel)' : colour)
+        .attr('stroke', hollow ? colour : 'var(--color-panel)').attr('stroke-width', hollow ? 2 : 1.5);
+      if (lo != null) dot(lo, 'var(--mm-c1)', shaky);
+      else if (r.seller_note) arrow(1200, 'var(--mm-c1)');
+      if (hi != null) { if (cens) arrow(hi, 'var(--mm-c0)'); else dot(hi, 'var(--mm-c0)', false); } else if (r.buyer_note) dot(0, 'var(--mm-c0)', true);
+      const fmt = (v, se) => (v == null ? 'none' : money(v) + (se && +se > 0 ? ` (±${money(+se)})` : ''));
+      const sellerLine = r.seller_note && lo == null ? `Seller ${r.seller_note}` : r.seller_note ? `Seller ${r.seller_note}` : `Seller breaks even at ${fmt(lo, r.seller_break_even_se)}`;
+      const buyerLine = r.buyer_note ? `Buyer ${r.buyer_note}` : `Buyer gains up to ${fmt(hi, cens ? null : r.buyer_maximum_se)}${cens ? '+' : ''}`;
+      row.on('pointermove', (event) => t.show(event, [line(r.name, 'mm-tip-head'), line(sellerLine), line(buyerLine),
+        line(`Seller wins ${f1(+r.seller_win_pct_without)}% without the sale${shaky ? ', so its break-even is uncertain' : ''}`), line(zone ? 'Both gain in between' : 'No price suits both')]))
+        .on('pointerleave', () => t.hide());
+    });
+  });
+
+  // ---- Vine Street in depth
+  const curve = () => {
+    const { n, opp, deal } = P();
+    return rows('trade_curves').filter((r) => r.opponents === opp && r.deal === deal && +r.n_players === n);
+  };
+  const zoneRow = () => {
+    const { n, opp, deal } = P();
+    return rows('deal_zones').find((r) => r.opponents === opp && r.deal === deal && +r.n_players === n);
+  };
+  dash.draw('price-label', (el) => {
+    const data = ok('trade_curves') ? curve() : [];
+    const p = nearest([...new Set(data.map((r) => +r.price))].sort((a, b) => a - b), P().price);
+    el.textContent = money(p == null ? P().price : p);
+  });
+  const ro = (role, field, fmt) => (el) => {
+    const r = readout(el, ok('trade_curves') ? curve() : [], P().price, role, field, fmt);
+    if (r) el.dataset.where = where({ opponents: r.opponents, deal: r.deal, n_players: r.n_players, price: r.price, role: r.role });
+  };
+  dash.draw('ro-buyer', ro('Buyer', 'd_win_pp', (v) => signed(v) + ' pp'));
+  dash.draw('ro-seller', ro('Seller', 'd_win_pp', (v) => signed(v) + ' pp'));
+  dash.draw('ro-others', ro('Everyone else', 'd_win_pp', (v) => signed(v) + ' pp'));
+  dash.draw('ro-networth', ro('Seller', 'd_networth', (v) => (v >= 0 ? '+' : '−') + money(Math.abs(v))));
+  dash.draw('trade-chart', (el) => {
+    el.replaceChildren();
+    const data = ok('trade_curves') ? curve() : [];
+    const noRuns = ok('trade_curves') && !data.length;
+    document.querySelectorAll('.mm-trade-empty').forEach((p) => { if (p.hidden === noRuns) p.hidden = !noRuns; });
+    if (!ok('trade_curves', 'deal_zones') || !data.length) return;
+    tradeChart(el, data, zoneRow(), P().price, (price) => dash.setParams({ price }));
+  });
+  dash.draw('zones-body', (el) => {
+    el.replaceChildren();
+    if (!ok('deal_zones')) return;
+    const { opp, deal } = P();
+    const fmt = (v, cens) => (v === '' || v == null ? 'none' : money(+v) + (cens ? '+' : ''));
+    rows('deal_zones').filter((r) => r.opponents === opp && r.deal === deal).sort((a, b) => +a.n_players - +b.n_players).forEach((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.key;
+      const cens = String(r.buyer_maximum_is_all_cash) === 'True';
+      [String(+r.n_players), fmt(r.seller_break_even), fmt(r.buyer_maximum, cens), fmt(r.seller_break_even_networth), fmt(r.buyer_maximum_networth),
+        f1(+r.buyer_win_pct_without) + '%', f1(+r.buyer_win_pct_if_free) + '%'].forEach((v, i) => {
+        const td = document.createElement('td'); if (i) td.className = 'num'; td.textContent = v; tr.appendChild(td);
+      });
+      el.appendChild(tr);
+    });
+  });
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- strategies
+(() => {
+  const { P, ok, rows, f2, f1, svgFor, tip, line, axisStyle, textWidth, rgb, ink, clip } = mm;
+  dash.draw('tweaks', (el) => {
+    el.replaceChildren();
+    if (!ok('strategies')) return;
+    const { rules } = P();
+    const data = rows('strategies').filter((r) => r.rules === rules && r.strategy !== 'Random decisions');
+    if (!data.length) return;
+    const order = [...d3.rollup(data, (v) => d3.mean(v, (r) => +r.relative), (r) => r.strategy)].sort((a, b) => b[1] - a[1]).map((d) => d[0]);
+    const counts = [2, 3, 4, 5, 6];
+    // narrow screens put each strategy's name above its row of cells
+    const narrow = el.clientWidth < 560, cellH = 28, labelH = narrow ? 18 : 0, rowH = cellH + labelH + 6;
+    const H = order.length * rowH + 24;
+    const { svg, w } = svgFor(el, H);
+    const left = narrow ? 0 : Math.min(textWidth(svg, order) + 14, w * 0.45);
+    const x = d3.scaleBand(counts, [left, w]).padding(0.06);
+    const roomy = x.bandwidth() >= 64;
+    const lim = d3.max(data, (r) => Math.abs(Math.log2(+r.relative))) || 1;
+    const blue = rgb(el, (dash.colors && dash.colors[0]) || '#2a78d6', 'rgb(42, 120, 214)');
+    const red = rgb(el, 'var(--cds-chart-status-critical)', 'rgb(208, 59, 59)');
+    const mid = rgb(el, 'var(--color-panel)', 'rgb(244, 244, 244)');
+    const color = (v) => { const s = Math.log2(v) / lim; return s >= 0 ? d3.interpolateRgb(mid, blue)(Math.min(1, s)) : d3.interpolateRgb(mid, red)(Math.min(1, -s)); };
+    counts.forEach((n) => svg.append('text').attr('x', x(n) + x.bandwidth() / 2).attr('y', 14).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(roomy ? `${n} players` : `${n}p`));
+    const t = tip(el);
+    order.forEach((s, i) => {
+      const y0 = 24 + i * rowH;
+      if (narrow) svg.append('text').attr('x', 0).attr('y', y0 + 12).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(s);
+      else clip(svg.append('text').attr('x', left - 8).attr('y', y0 + cellH / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(s), left - 10);
+      data.filter((r) => r.strategy === s).forEach((r) => {
+        const v = +r.relative, sig = +r.rel_low > 1 || +r.rel_high < 1, yy = y0 + labelH;
+        svg.append('rect').attr('x', x(+r.n_players)).attr('y', yy).attr('width', x.bandwidth()).attr('height', cellH).attr('rx', 3).attr('fill', color(v))
+          .on('pointermove', (event) => t.show(event, [line(`${r.strategy}, ${r.n_players} players`, 'mm-tip-head'), line(`${f2(v)}× fair share (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`)]))
+          .on('pointerleave', () => t.hide());
+        svg.append('text').attr('x', x(+r.n_players) + x.bandwidth() / 2).attr('y', yy + cellH / 2).attr('dy', '0.35em').attr('text-anchor', 'middle')
+          .attr('fill', ink(color(v))).style('font-size', 'var(--cds-font-size-caption)').style('pointer-events', 'none')
+          .style('font-variant-numeric', 'tabular-nums').text(f2(v) + (roomy ? '×' : '') + (sig ? '' : '*'));
+      });
+    });
+  });
+
+  dash.draw('seats', (el) => {
+    el.replaceChildren();
+    if (!ok('seats')) return;
+    const { rules } = P();
+    const data = rows('seats').filter((r) => r.rules === rules);
+    if (!data.length) return;
+    const counts = [2, 3, 4, 5, 6];
+    const pick = (n, last) => { const s = data.filter((r) => +r.n_players === n); return last ? d3.greatest(s, (r) => +r.seat) : s.find((r) => +r.seat === 1); };
+    const H = 280;
+    const pts = counts.flatMap((n) => [['First', pick(n, false), 0], ['Last', pick(n, true), 1]].filter((d) => d[1]).map(([k, r, i]) => ({ k, n, i, v: +r.relative, lo: +r.ci_low / +r.fair_share, hi: +r.ci_high / +r.fair_share })));
+    const { svg, w } = svgFor(el, H);
+    const y = d3.scaleLinear([Math.min(0.7, d3.min(pts, (d) => d.lo)), Math.max(1.3, d3.max(pts, (d) => d.hi))], [H - 28, 10]).nice();
+    const left = textWidth(svg, y.ticks(5).map((v) => f2(v))) + 14;
+    const x = d3.scalePoint(counts, [left + 20, w - 20]);
+    svg.append('g').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(f2).tickSize(-(w - left))).call(axisStyle).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('transform', `translate(0,${H - 28})`).call(d3.axisBottom(x).tickFormat((n) => (x.step() >= 72 ? `${n} players` : `${n}p`))).call(axisStyle);
+    svg.append('line').attr('x1', left).attr('x2', w).attr('y1', y(1)).attr('y2', y(1)).attr('stroke', 'var(--cds-chart-reference)');
+    const t = tip(el);
+    pts.forEach((d) => {
+      const cx = x(d.n) + (d.i ? 8 : -8);
+      svg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', y(d.lo)).attr('y2', y(d.hi)).attr('stroke', `var(--mm-c${d.i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round');
+      svg.append('circle').attr('cx', cx).attr('cy', y(d.v)).attr('r', 5).attr('fill', `var(--mm-c${d.i})`).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2)
+        .on('pointermove', (event) => t.show(event, [line(`${d.k} player, ${d.n} players`, 'mm-tip-head'), line(`${f2(d.v)}× fair share (95% CI ${f2(d.lo)}–${f2(d.hi)})`)]))
+        .on('pointerleave', () => t.hide());
+    });
+  });
+
+  dash.draw('length-legend', (el) => {
+    el.replaceChildren();
+    if (!ok('game_length')) return;
+    [...new Set(rows('game_length').map((r) => r.rules))].forEach((name, i) => {
+      const s = document.createElement('span'); const k = document.createElement('i'); k.style.background = `var(--mm-c${i})`;
+      s.append(k, document.createTextNode(name)); el.appendChild(s);
+    });
+  });
+  dash.draw('length', (el) => {
+    el.replaceChildren();
+    if (!ok('game_length')) return;
+    const data = rows('game_length');
+    const names = [...new Set(data.map((r) => r.rules))];
+    const H = 280;
+    const { svg, w } = svgFor(el, H);
+    const y = d3.scaleLinear([0, d3.max(data, (r) => +r.median_rounds) * 1.1], [H - 28, 10]).nice();
+    const left = textWidth(svg, y.ticks(5).map(String)) + 14;
+    const x = d3.scalePoint([2, 3, 4, 5, 6], [left + 16, w - 16]);
+    svg.append('g').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - left))).call(axisStyle).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('transform', `translate(0,${H - 28})`).call(d3.axisBottom(x).tickFormat((n) => (x.step() >= 72 ? `${n} players` : `${n}p`))).call(axisStyle);
+    const t = tip(el);
+    names.forEach((name, i) => {
+      const pts = data.filter((r) => r.rules === name).map((r) => ({ n: +r.n_players, v: +r.median_rounds })).sort((a, b) => a.n - b.n);
+      svg.append('path').attr('d', d3.line().x((d) => x(d.n)).y((d) => y(d.v))(pts)).attr('fill', 'none').attr('stroke', `var(--mm-c${i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+      pts.forEach((d) => svg.append('circle').attr('cx', x(d.n)).attr('cy', y(d.v)).attr('r', 4).attr('fill', `var(--mm-c${i})`).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2)
+        .on('pointermove', (event) => t.show(event, [line(`${name}, ${d.n} players`, 'mm-tip-head'), line(`median ${f1(d.v)} rounds`)]))
+        .on('pointerleave', () => t.hide()));
+    });
+  });
+})();
+</script>
+
+<script>
+// ---------------------------------------------------------------- meta agents
+(() => {
+  const { P, ok, rows, where, f2, svgFor, tip, line, axisStyle, textWidth, clip } = mm;
+  const CHECKS = [['meta agent vs baseline bots', 0, 'Meta agent vs a simple bot'], ['baseline bot vs meta agents', 1, 'Simple bot at a table of meta agents'], ['best challenger vs meta agents', 2, 'Best challenger']];
+  dash.draw('checks', (el) => {
+    el.replaceChildren();
+    if (!ok('meta_checks')) return;
+    const { rules } = P();
+    const data = rows('meta_checks').filter((r) => r.rules === rules && CHECKS.some(([c]) => c === r.check) && r.rel_low !== '');
+    if (!data.length) return;
+    const H = 280;
+    const { svg, w } = svgFor(el, H);
+    const y = d3.scaleLinear([Math.min(0.5, d3.min(data, (r) => +r.rel_low)), Math.max(1.3, d3.max(data, (r) => +r.rel_high))], [H - 28, 10]).nice();
+    const left = textWidth(svg, y.ticks(5).map((v) => f2(v))) + 14;
+    const x = d3.scalePoint([2, 3, 4, 5, 6], [left + 24, w - 24]);
+    svg.append('g').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(f2).tickSize(-(w - left))).call(axisStyle).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('transform', `translate(0,${H - 28})`).call(d3.axisBottom(x).tickFormat((n) => (x.step() >= 72 ? `${n} players` : `${n}p`))).call(axisStyle);
+    svg.append('line').attr('x1', left).attr('x2', w).attr('y1', y(1)).attr('y2', y(1)).attr('stroke', 'var(--cds-chart-reference)');
+    const t = tip(el);
+    data.forEach((r) => {
+      const [, i, label] = CHECKS.find(([c]) => c === r.check);
+      const cx = x(+r.n_players) + (i - 1) * 10;
+      svg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', y(+r.rel_low)).attr('y2', y(+r.rel_high)).attr('stroke', `var(--mm-c${i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round');
+      svg.append('circle').attr('cx', cx).attr('cy', y(+r.relative)).attr('r', 5).attr('fill', `var(--mm-c${i})`).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2)
+        .on('pointermove', (event) => t.show(event, [line(`${r.n_players} players`, 'mm-tip-head'), line(`${label}: ${f2(+r.relative)}× (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`)]))
+        .on('pointerleave', () => t.hide());
+    });
+  });
+
+  // a horizontal interval chart: one row per item, a bar from 1.0 to its value, and its 95% interval
+  const intervals = (el, data, label, describe) => {
+    const narrow = el.clientWidth < 560, barH = 14, labelH = narrow ? 16 : 0, rowH = barH + labelH + 12;
+    const H = data.length * rowH + 30;
+    const { svg, w } = svgFor(el, H);
+    const left = narrow ? 0 : Math.min(textWidth(svg, data.map(label)) + 14, w * 0.5);
+    const x = d3.scaleLinear([Math.min(0.5, d3.min(data, (r) => +r.rel_low)), Math.max(1.2, d3.max(data, (r) => +r.rel_high))], [left + 4, w - 10]).nice();
+    svg.append('g').attr('transform', `translate(0,${H - 24})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 70))).tickFormat((v) => f2(v) + '×').tickSize(-(H - 28))).call(axisStyle).call((g) => g.select('.domain').remove());
+    svg.append('line').attr('x1', x(1)).attr('x2', x(1)).attr('y1', 4).attr('y2', H - 24).attr('stroke', 'var(--cds-chart-reference)');
+    const t = tip(el);
+    data.forEach((r, i) => {
+      const v = +r.relative, sig = String(r.significant) === 'True', y0 = 4 + i * rowH, yb = y0 + labelH;
+      const col = v >= 1 ? 'var(--mm-c0)' : 'var(--cds-chart-status-critical)';
+      if (narrow) svg.append('text').attr('x', 0).attr('y', y0 + 10).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(label(r));
+      else clip(svg.append('text').attr('x', left - 8).attr('y', yb + barH / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(label(r)), left - 10);
+      svg.append('rect').attr('x', Math.min(x(1), x(v))).attr('y', yb).attr('width', Math.abs(x(v) - x(1))).attr('height', barH).attr('rx', 3)
+        .attr('fill', col).attr('opacity', sig ? 1 : 0.35)
+        .on('pointermove', (event) => t.show(event, [line(label(r), 'mm-tip-head'), line(describe(r)), line(sig ? 'Significant at 95%' : 'Not significant')]))
+        .on('pointerleave', () => t.hide());
+      svg.append('line').attr('x1', x(+r.rel_low)).attr('x2', x(+r.rel_high)).attr('y1', yb + barH / 2).attr('y2', yb + barH / 2).attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 1);
+    });
+  };
+
+  dash.draw('ablations', (el) => {
+    el.replaceChildren();
+    if (!ok('meta_ablations')) return;
+    const { n, rules } = P();
+    const data = rows('meta_ablations').filter((r) => r.rules === rules && +r.n_players === n && r.change !== 'Unchanged meta agent')
+      .sort((a, b) => +b.relative - +a.relative);
+    if (!data.length) return;
+    intervals(el, data, (r) => r.change, (r) => `${f2(+r.relative)}× an unchanged meta agent (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`);
+  });
+
+  const why = () => {
+    const { n } = P();
+    return rows('meta_vs_simple').filter((r) => +r.n_players === n && r.candidate !== 'Simple bot');
+  };
+  const swapName = (c) => c.replace("Meta agent, simple bot's ", '');
+  const whyLabel = (r) => {
+    if (r.candidate === 'Meta agent') return 'Meta agent as evolved';
+    const swap = swapName(r.candidate);
+    return swap.startsWith('all ') ? `With all the simple bot's ${swap.slice(4)}` : `With the simple bot's ${swap}`;
+  };
+  dash.draw('why', (el) => {
+    el.replaceChildren();
+    if (!ok('meta_vs_simple')) return;
+    const all = why(), meta = all.find((r) => r.candidate === 'Meta agent');
+    // single buying weights are summed up by "all buying weights"; the chart keeps the groups
+    const data = all.filter((r) => !r.candidate.includes('buying weight,')).sort((a, b) => +b.relative - +a.relative);
+    if (!data.length || !meta) return;
+    const narrow = el.clientWidth < 560, labelH = narrow ? 16 : 0, rowH = labelH + 24, top = 22, H = data.length * rowH + top + 26;
+    const { svg, w } = svgFor(el, H);
+    const left = narrow ? 8 : Math.min(textWidth(svg, data.map(whyLabel)) + 16, w * 0.5);
+    const x = d3.scaleLinear([Math.min(0.6, d3.min(data, (r) => +r.rel_low)), Math.max(1.4, d3.max(data, (r) => +r.rel_high))], [left, w - 12]).nice();
+    svg.append('g').attr('transform', `translate(0,${H - 24})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 70))).tickFormat((v) => f2(v) + '×').tickSize(-(H - 24 - top))).call(axisStyle).call((g) => g.select('.domain').remove());
+    // the two references every swap is read against
+    [[1, 'simple bot', 'var(--cds-chart-reference)'], [+meta.relative, 'as evolved', 'var(--mm-muted)']].forEach(([v, name, col], i) => {
+      svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', top - 4).attr('y2', H - 24).attr('stroke', col).attr('stroke-dasharray', i ? '3 3' : null);
+      svg.append('text').attr('x', x(v)).attr('y', 10).attr('text-anchor', i ? (+meta.relative < 1 ? 'end' : 'start') : (+meta.relative < 1 ? 'start' : 'end'))
+        .attr('dx', i ? (+meta.relative < 1 ? -4 : 4) : (+meta.relative < 1 ? 4 : -4)).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(name);
+    });
+    const t = tip(el);
+    data.forEach((r, i) => {
+      const y0 = top + i * rowH, yc = y0 + labelH + 12, lift = +r.relative - +meta.relative, col = r === meta ? 'var(--mm-muted)' : lift > 0.05 ? 'var(--mm-c0)' : 'var(--color-fg-muted)';
+      if (narrow) svg.append('text').attr('x', left).attr('y', y0 + 11).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', lift > 0.05 ? 600 : 400).text(whyLabel(r));
+      else clip(svg.append('text').attr('x', left - 10).attr('y', yc).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', lift > 0.05 ? 600 : 400).text(whyLabel(r)), left - 12);
+      svg.append('line').attr('x1', x(+r.rel_low)).attr('x2', x(+r.rel_high)).attr('y1', yc).attr('y2', yc).attr('stroke', col).attr('stroke-width', 2).attr('stroke-linecap', 'round');
+      svg.append('circle').attr('cx', x(+r.relative)).attr('cy', yc).attr('r', 5).attr('fill', col).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5)
+        .on('pointermove', (event) => t.show(event, [line(whyLabel(r), 'mm-tip-head'), line(`${f2(+r.relative)}× a simple bot in the same seat (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`)]))
+        .on('pointerleave', () => t.hide());
+    });
+  });
+  dash.draw('why-take', (el) => {
+    const data = ok('meta_vs_simple') ? why() : [];
+    const meta = data.find((r) => r.candidate === 'Meta agent');
+    const best = d3.greatest(data.filter((r) => r.candidate !== 'Meta agent'), (r) => +r.relative);
+    if (!meta || !best) { delete el.dataset.where; el.textContent = '—'; return; }
+    el.dataset.where = where({ n_players: meta.n_players, candidate: meta.candidate });
+    const lift = +best.relative - +meta.relative;
+    el.textContent = `With ${meta.n_players} players the meta agent wins ${f2(+meta.relative)}× as much as a simple bot in its seat. `
+      + (lift > 0.05 ? `The biggest single fix is the simple bot's ${swapName(best.candidate)}, which takes it to ${f2(+best.relative)}×.` : 'No single change moves it by more than 0.05×.');
+  });
+
+  dash.draw('settings-body', (el) => {
+    el.replaceChildren();
+    if (!ok('meta_agents')) return;
+    const { n, rules } = P();
+    rows('meta_agents').filter((r) => r.rules === rules && +r.n_players === n).forEach((r) => {
+      const tr = document.createElement('tr'); tr.dataset.key = r.key;
+      const num = r.value !== '' && !isNaN(+r.value);
+      const val = !num ? r.value : r.unit === '£' ? d3.format(',.0f')(+r.value) : f2(+r.value);
+      [r.setting, val, r.unit].forEach((v, i) => { const td = document.createElement('td'); if (i === 1) td.className = 'num'; td.textContent = v; tr.appendChild(td); });
+      el.appendChild(tr);
+    });
+  });
+
+  dash.draw('hardening-body', (el) => {
+    el.replaceChildren();
+    if (!ok('hardening')) return;
+    const { n, rules } = P();
+    rows('hardening').filter((r) => r.rules === rules && +r.n_players === n).sort((a, b) => +a.round - +b.round).forEach((r) => {
+      const tr = document.createElement('tr'); tr.dataset.key = r.key;
+      [String(+r.round), f2(+r.challenger_vs_meta) + '×', r.meta_self_credit === '' ? '—' : f2(+r.meta_self_credit), r.kept || ''].forEach((v, i) => {
+        const td = document.createElement('td'); if (i === 1 || i === 2) td.className = 'num'; td.textContent = v; tr.appendChild(td);
+      });
+      el.appendChild(tr);
+    });
+  });
+})();
+</script>

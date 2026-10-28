@@ -1,0 +1,92 @@
+"""Write the dashboard's store documents (dataset docs + page) as JSON for one ArtifactData batch.
+
+blobs.json maps each dataset id to its uploaded CSV asset; versions.json holds the store versions last written."""
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+HERE = Path(__file__).parent
+blobs = json.loads((HERE / "blobs.json").read_text())
+now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+BY = "Claude, from the monopoly-meta simulation results"
+D = {
+    "squares": ("Board squares and landing odds",
+                "Every square of the classic UK board with its price, rent at each development level and expected "
+                "landings per 100 turns from the exact 123-state Markov chain (staying in jail to roll for doubles, "
+                "and leaving at once). Exported by scripts/08_dashboard_data.py."),
+    "set_economics": ("Set payback and building returns",
+                      "For each set, station and utility group at 2 to 6 players: cost of each development level, "
+                      "expected rent per round from every opponent, rounds to pay back, and extra rent per round "
+                      "per £100 spent on each building level. Computed from the Markov chain."),
+    "strategies": ("Strategy tweaks vs simple bots",
+                   "One tweaked bot against copies of the simple bot at 2 to 6 players, seats rotated: wins relative "
+                   "to a fair share with 95% Wilson intervals (10,000 games per cell under official rules, 6,000 "
+                   "under championship rules)."),
+    "seats": ("Win rate by seat",
+              "Identical simple bots in fixed seats at 2 to 6 players: win rate per seat with 95% intervals and "
+              "relative to a fair share (10,000 games per table size under official rules, 6,000 under "
+              "championship rules)."),
+    "game_length": ("Game length by rule set",
+                    "Median and 90th-percentile rounds per game with simple bots, by rule set and table size, and "
+                    "the share of games stopped by the time limit."),
+    "trade_curves": ("Vine Street price curves",
+                     "Change in win chance (percentage points, with standard errors) and in net worth 40 turns "
+                     "later for the buyer, the seller and everyone else when Vine Street is sold at each price, "
+                     "from 2,000 paired rollouts per price."),
+    "deal_zones": ("Vine Street deal zones",
+                   "Seller's break-even price and buyer's maximum for the Vine Street sale, judged by win chance and "
+                   "by net worth, for each opponent type and table size."),
+    "meta_agents": ("Meta agent settings",
+                    "The settings evolution and hardening settled on for each rule set and table size."),
+    "meta_checks": ("Meta agent strength checks",
+                    "Paired checks of each meta agent: against simple bots, a simple bot at a table of meta agents, "
+                    "and the best challenger trained against it, with 95% bootstrap intervals over 4,000 games."),
+    "meta_ablations": ("Deviations from the meta",
+                       "One player changes one setting of the meta agent and plays against meta agents, on the same "
+                       "4,000 games as an unchanged meta agent: wins relative to it, with 95% intervals."),
+    "property_trades": ("Every property's price curves",
+                        "Change in win chance and net worth for buyer, seller and everyone else when each of the 28 "
+                        "properties is sold to the player it completes a set for, at 2 to 6 players: 1,000 paired "
+                        "rollouts per price (2,000 for Vine Street). From scripts/10_property_trades.py."),
+    "property_zones": ("Every property's deal zone",
+                       "For each property and table size: the seller's break-even price and the buyer's maximum, by "
+                       "win chance and by net worth, with rough standard errors and notes where a curve never "
+                       "crosses zero."),
+    "meta_vs_simple": ("Meta agent vs simple bots",
+                       "The official-rules meta agent at a table of simple bots, alone and with one group of its "
+                       "settings copied from the simple bot: wins relative to a simple bot in the same seat, 3,000 "
+                       "paired games each, 95% bootstrap intervals. From scripts/09_meta_vs_simple.py."),
+    "hardening": ("Meta hardening rounds",
+                  "Each best-response round: the challenger's win credit over the meta agent's own at the same "
+                  "table, and which round's agent was kept."),
+}
+writes = [{"op": "set", "collection": "dash", "doc_id": "meta", "data": {"title": "Monopoly Meta"}}]
+if "--params" in sys.argv:
+    writes.append({"op": "set", "collection": "dash", "doc_id": "params",
+                   "data": {"players": 4, "rules": "Official rules", "opponents": "Simple bots",
+                            "deal": "Completes the buyer's set", "price": 650, "square": 24, "view": "3d",
+                            "property": 19, "popp": "Simple bots", "pprice": 600}})
+versions = json.loads((HERE / "versions.json").read_text()) if (HERE / "versions.json").exists() else {}
+only = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
+for ds, (title, desc) in D.items():
+    if ds not in blobs or (only is not None and ds not in only):
+        continue
+    w = {"op": "set", "collection": "datasets", "doc_id": ds,
+         "data": {"title": title, "description": desc,
+                  "source": {"kind": "file", "url": blobs[ds], "name": f"{ds}.csv"},
+                  "updated": {"at": now, "by": BY}, "fixed": True}}
+    if f"datasets/{ds}" in versions:
+        w["if_version"] = versions[f"datasets/{ds}"]
+    writes.append(w)
+page = (HERE / "index.html").read_text()
+(HERE / "index.json").write_text(json.dumps({"text": page}))
+w = {"op": "set", "collection": "files", "doc_id": "index.html", "file_path": str(HERE / "index.json")}
+if "files/index.html" in versions:
+    w["if_version"] = versions["files/index.html"]
+writes.append(w)
+for x in writes:
+    if x["collection"] == "dash" and f"dash/{x['doc_id']}" in versions:
+        x["if_version"] = versions[f"dash/{x['doc_id']}"]
+(HERE / "writes.json").write_text(json.dumps(writes, indent=1, ensure_ascii=False))
+print(len(writes), "writes;", len(page) // 1024, "KB page")

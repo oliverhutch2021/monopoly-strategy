@@ -1,0 +1,16 @@
+rules,n_players,median_rounds,p90_rounds,capped_share
+Official rules,2,63.0,93.0,0.0
+Free Parking jackpot,2,56.5,82.5,0.0002
+No auctions,2,63.0,95.0,0.0
+Official rules,3,49.6667,73.3333,0.0
+Free Parking jackpot,3,45.6667,68.6667,0.0
+No auctions,3,51.0,76.0,0.0
+Official rules,4,43.0,66.0,0.0
+Free Parking jackpot,4,40.5,63.25,0.0
+No auctions,4,43.75,67.25,0.0
+Official rules,5,38.4,60.2,0.0
+Free Parking jackpot,5,37.0,57.0,0.0008
+No auctions,5,38.8,60.2,0.0
+Official rules,6,35.1667,55.3333,0.0
+Free Parking jackpot,6,34.5,53.5167,0.0002
+No auctions,6,35.8333,55.8333,0.0

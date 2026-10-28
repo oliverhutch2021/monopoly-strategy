@@ -1,0 +1,284 @@
+{
+  "n_players": 6,
+  "meta": {
+    "reserve": 18.748795361073718,
+    "build_reserve": 64.34715949924784,
+    "bid_frac": 1.4475874062807879,
+    "set_bonus": 1.6948243690822884,
+    "block_bonus": 1.0,
+    "offer_mult": 3.194988722429805,
+    "ask_mult": 2.527166724611096,
+    "w_brown": 1.0,
+    "w_light_blue": 1.1008662292591136,
+    "w_pink": 0.9270431009649192,
+    "w_orange": 1.3435889795994,
+    "w_red": 1.0243920131130617,
+    "w_yellow": 0.8776178102468482,
+    "w_green": 1.3789609730558516,
+    "w_dark_blue": 1.3544081323541184,
+    "w_stations": 1.7280639529943278,
+    "w_utilities": 1.0746095414219723,
+    "build_cap": 5,
+    "max_level": 5,
+    "jail": "adaptive",
+    "take_chance": true,
+    "trades": true,
+    "accept_trades": false
+  },
+  "challenger": {
+    "reserve": 0.0,
+    "build_reserve": 0.0,
+    "bid_frac": 1.610680545307839,
+    "set_bonus": 1.0,
+    "block_bonus": 1.2600084221318322,
+    "offer_mult": 3.194988722429805,
+    "ask_mult": 2.3461056227508967,
+    "w_brown": 1.1636893126931365,
+    "w_light_blue": 0.9825936344346307,
+    "w_pink": 0.9270431009649192,
+    "w_orange": 1.245131794365741,
+    "w_red": 1.5760762966112432,
+    "w_yellow": 1.0664454740082885,
+    "w_green": 1.8119499691687782,
+    "w_dark_blue": 1.4027695614862563,
+    "w_stations": 1.8833052981224934,
+    "w_utilities": 0.5823132013683936,
+    "build_cap": 5,
+    "max_level": 5,
+    "jail": "adaptive",
+    "take_chance": false,
+    "trades": false,
+    "accept_trades": false
+  },
+  "history": [
+    {
+      "generation": 0,
+      "best": 1.892857142857142,
+      "median": 1.253857142857143,
+      "parents_mean": 1.055392857142857,
+      "n_players": 6
+    },
+    {
+      "generation": 1,
+      "best": 1.3971428571428564,
+      "median": 0.9413571428571434,
+      "parents_mean": 1.043946428571429,
+      "n_players": 6
+    },
+    {
+      "generation": 2,
+      "best": 1.2678571428571428,
+      "median": 1.020785714285715,
+      "parents_mean": 1.0203392857142863,
+      "n_players": 6
+    },
+    {
+      "generation": 3,
+      "best": 1.0285714285714356,
+      "median": 0.9957142857142922,
+      "parents_mean": 1.0023392857142923,
+      "n_players": 6
+    },
+    {
+      "generation": 4,
+      "best": 1.0151428571428638,
+      "median": 0.9700000000000061,
+      "parents_mean": 0.9789642857142921,
+      "n_players": 6
+    },
+    {
+      "generation": 5,
+      "best": 1.0360000000000067,
+      "median": 1.0010714285714348,
+      "parents_mean": 1.0049107142857208,
+      "n_players": 6
+    },
+    {
+      "generation": 6,
+      "best": 0.9562857142857191,
+      "median": 0.92221428571429,
+      "parents_mean": 0.9207678571428615,
+      "n_players": 6
+    },
+    {
+      "generation": 7,
+      "best": 0.9574285714285771,
+      "median": 0.9341428571428619,
+      "parents_mean": 0.9338214285714335,
+      "n_players": 6
+    },
+    {
+      "generation": 8,
+      "best": 1.0500000000000067,
+      "median": 1.0418571428571495,
+      "parents_mean": 1.0417500000000066,
+      "n_players": 6
+    },
+    {
+      "generation": 9,
+      "best": 1.012571428571435,
+      "median": 0.9848571428571484,
+      "parents_mean": 0.98778571428572,
+      "n_players": 6
+    },
+    {
+      "generation": 10,
+      "best": 0.9914285714285773,
+      "median": 0.9656428571428628,
+      "parents_mean": 0.9527321428571485,
+      "n_players": 6
+    },
+    {
+      "generation": 11,
+      "best": 1.0688571428571492,
+      "median": 1.00278571428572,
+      "parents_mean": 1.0029107142857199,
+      "n_players": 6
+    }
+  ],
+  "validation": [
+    {
+      "n_players": 6,
+      "name": "meta agent vs baseline bots",
+      "relative": 1.13105,
+      "rel_low": 1.0600821278464516,
+      "rel_high": 1.2055044028494675,
+      "games": 4000,
+      "capped_share": 0.0055
+    },
+    {
+      "n_players": 6,
+      "name": "baseline bot vs meta agents",
+      "relative": 0.7228250000000125,
+      "rel_low": 0.6646418253446359,
+      "rel_high": 0.785727639821019,
+      "games": 4000,
+      "capped_share": 0.40125
+    },
+    {
+      "n_players": 6,
+      "name": "best challenger vs meta agents",
+      "relative": 0.9986249999999881,
+      "rel_low": 0.9316578071735969,
+      "rel_high": 1.0701820258507664,
+      "games": 4000,
+      "capped_share": 0.84025
+    }
+  ],
+  "ablations": [
+    {
+      "n_players": 6,
+      "name": "no trading at all",
+      "relative": 1.0357999999999812,
+      "rel_low": 0.9681005995115921,
+      "rel_high": 1.1086672726240083,
+      "games": 4000,
+      "capped_share": 0.8375
+    },
+    {
+      "n_players": 6,
+      "name": "always leave jail",
+      "relative": 1.0281249999999806,
+      "rel_low": 0.9593512161491796,
+      "rel_high": 1.099433926599724,
+      "games": 4000,
+      "capped_share": 0.8365
+    },
+    {
+      "n_players": 6,
+      "name": "always stay in jail",
+      "relative": 0.9987499999999874,
+      "rel_low": 0.9316578071735969,
+      "rel_high": 1.0701820258507664,
+      "games": 4000,
+      "capped_share": 0.83775
+    },
+    {
+      "n_players": 6,
+      "name": "three-house cap",
+      "relative": 1.0357999999999812,
+      "rel_low": 0.9681005995115921,
+      "rel_high": 1.1086672726240083,
+      "games": 4000,
+      "capped_share": 0.8375
+    },
+    {
+      "n_players": 6,
+      "name": "never build hotels",
+      "relative": 1.029249999999981,
+      "rel_low": 0.9608093117499829,
+      "rel_high": 1.1009729525633705,
+      "games": 4000,
+      "capped_share": 0.83775
+    },
+    {
+      "n_players": 6,
+      "name": "flip 'take a Chance'",
+      "relative": 1.025149999999983,
+      "rel_low": 0.9564351876477273,
+      "rel_high": 1.0963557119722775,
+      "games": 4000,
+      "capped_share": 0.83775
+    },
+    {
+      "n_players": 6,
+      "name": "keep \u00a3200 more cash",
+      "relative": 1.028374999999981,
+      "rel_low": 0.9608093117499829,
+      "rel_high": 1.1009729525633705,
+      "games": 4000,
+      "capped_share": 0.83225
+    },
+    {
+      "n_players": 6,
+      "name": "keep no cash buffer",
+      "relative": 1.0354499999999813,
+      "rel_low": 0.9666422343015404,
+      "rel_high": 1.1071285162696107,
+      "games": 4000,
+      "capped_share": 0.8385
+    },
+    {
+      "n_players": 6,
+      "name": "bid 25% more",
+      "relative": 1.0387999999999806,
+      "rel_low": 0.9710174907721079,
+      "rel_high": 1.1117446244923916,
+      "games": 4000,
+      "capped_share": 0.83825
+    },
+    {
+      "n_players": 6,
+      "name": "bid 25% less",
+      "relative": 1.0204249999999822,
+      "rel_low": 0.9520615530637835,
+      "rel_high": 1.0917379818628727,
+      "games": 4000,
+      "capped_share": 0.8395
+    },
+    {
+      "n_players": 6,
+      "name": "simple baseline bot",
+      "relative": 0.778575000000015,
+      "rel_low": 0.7181433734014513,
+      "rel_high": 0.8431195896488348,
+      "games": 4000,
+      "capped_share": 0.40175
+    }
+  ],
+  "seconds": 2192.1726474761963,
+  "refinement": [
+    {
+      "n_players": 6,
+      "round": 0,
+      "challenger_vs_meta": 2.519650000000043
+    },
+    {
+      "n_players": 6,
+      "round": 1,
+      "challenger_vs_meta": 1.0096749999999803
+    }
+  ],
+  "refined": true,
+  "refine_seconds": 2842.8291652202606
+}

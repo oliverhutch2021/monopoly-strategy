@@ -1,0 +1,19 @@
+{
+ "dash/meta": 1,
+ "dash/params": 2,
+ "datasets/squares": 1,
+ "datasets/set_economics": 1,
+ "datasets/strategies": 1,
+ "datasets/seats": 1,
+ "datasets/game_length": 1,
+ "datasets/trade_curves": 1,
+ "datasets/deal_zones": 1,
+ "datasets/meta_agents": 2,
+ "datasets/meta_checks": 2,
+ "datasets/meta_ablations": 2,
+ "datasets/hardening": 2,
+ "files/index.html": 2,
+ "datasets/property_trades": 1,
+ "datasets/property_zones": 1,
+ "datasets/meta_vs_simple": 1
+}

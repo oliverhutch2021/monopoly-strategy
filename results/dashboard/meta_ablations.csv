@@ -1,0 +1,87 @@
+rules,n_players,change,relative,rel_low,rel_high,significant,capped_share
+Official rules,2,No trading at all,0.995,0.9576,1.033,False,0.2102
+Official rules,2,Always leave jail at once,0.9441,0.907,0.9817,True,0.2008
+Official rules,2,Stop at three houses,0.9938,0.9563,1.0317,False,0.2092
+Official rules,2,Never build hotels,0.9348,0.8978,0.9724,True,0.2268
+Official rules,2,Flip the take-a-Chance choice,1.0149,0.9773,1.053,False,0.2
+Official rules,2,Keep £200 more cash,0.8882,0.8517,0.9254,True,0.1372
+Official rules,2,Keep no cash buffer,0.982,0.9446,1.0199,False,0.2
+Official rules,2,Bid 25% more at auctions,0.9783,0.9409,1.0161,False,0.2098
+Official rules,2,Bid 25% less at auctions,1.0143,0.9767,1.0523,False,0.2088
+Official rules,2,Play as the simple bot,1.0137,0.9761,1.0517,False,0.0045
+Official rules,3,No trading at all,0.3256,0.2979,0.3556,True,0.0575
+Official rules,3,Always leave jail at once,0.9568,0.9142,1.0004,False,0.0002
+Official rules,3,Stop at three houses,0.9538,0.9112,0.9974,True,0.0008
+Official rules,3,Never build hotels,0.918,0.876,0.9612,True,0.0022
+Official rules,3,Flip the take-a-Chance choice,0.9776,0.9348,1.0215,False,0.0005
+Official rules,3,Keep £200 more cash,0.8689,0.8275,0.9114,True,0.0008
+Official rules,3,Keep no cash buffer,0.8636,0.8223,0.9061,True,0.0012
+Official rules,3,Bid 25% more at auctions,1.0201,0.9768,1.0644,False,0.0
+Official rules,3,Bid 25% less at auctions,0.9478,0.9054,0.9914,True,0.0005
+Official rules,3,Play as the simple bot,0.7019,0.6635,0.7419,True,0.0048
+Official rules,4,No trading at all,0.2207,0.1943,0.2505,True,0.0438
+Official rules,4,Always leave jail at once,0.8975,0.8474,0.9498,True,0.0025
+Official rules,4,Always stay in jail,0.9054,0.8551,0.9578,True,0.0022
+Official rules,4,Stop at three houses,0.9163,0.8657,0.9688,True,0.0022
+Official rules,4,Never build hotels,0.8158,0.7674,0.8663,True,0.0045
+Official rules,4,Flip the take-a-Chance choice,0.936,0.885,0.9889,True,0.0022
+Official rules,4,Keep £200 more cash,0.797,0.7491,0.8472,True,0.0038
+Official rules,4,Keep no cash buffer,1.0108,0.9584,1.0651,False,0.0022
+Official rules,4,Bid 25% more at auctions,0.9488,0.8975,1.0019,False,0.0012
+Official rules,4,Bid 25% less at auctions,0.8926,0.8425,0.9448,True,0.0015
+Official rules,4,Play as the simple bot,0.669,0.6244,0.7161,True,0.0062
+Official rules,5,No trading at all,0.1106,0.0902,0.1354,True,0.0588
+Official rules,5,Always leave jail at once,0.9295,0.8717,0.9902,True,0.0015
+Official rules,5,Always stay in jail,0.8797,0.8232,0.9392,True,0.0035
+Official rules,5,Stop at three houses,0.9575,0.899,1.0188,False,0.0022
+Official rules,5,Never build hotels,0.8348,0.7795,0.8931,True,0.0032
+Official rules,5,Flip the take-a-Chance choice,0.9769,0.918,1.0387,False,0.002
+Official rules,5,Keep £200 more cash,0.8056,0.7511,0.8632,True,0.0018
+Official rules,5,Keep no cash buffer,0.9429,0.8848,1.0039,False,0.002
+Official rules,5,Bid 25% more at auctions,1.0061,0.9464,1.0685,False,0.0018
+Official rules,5,Bid 25% less at auctions,0.9259,0.8682,0.9865,True,0.0028
+Official rules,5,Play as the simple bot,0.3645,0.3268,0.4062,True,0.0055
+Official rules,6,Unchanged meta agent,1.0,1.0,1.0,False,0.002
+Official rules,6,No trading at all,0.1116,0.0885,0.1352,True,0.0668
+Official rules,6,Always leave jail at once,0.9295,0.8905,0.972,True,0.001
+Official rules,6,Always stay in jail,0.9956,0.957,1.0347,False,0.0025
+Official rules,6,Stop at three houses,1.0103,0.9985,1.0242,False,0.0018
+Official rules,6,Never build hotels,0.8884,0.8569,0.917,True,0.0035
+Official rules,6,Flip the take-a-Chance choice,0.9897,0.9638,1.0168,False,0.0018
+Official rules,6,Keep £200 more cash,0.8223,0.7851,0.8658,True,0.002
+Official rules,6,Keep no cash buffer,1.0029,0.993,1.0132,False,0.0015
+Official rules,6,Bid 25% more at auctions,1.0499,1.0191,1.0825,True,0.0022
+Official rules,6,Bid 25% less at auctions,0.9941,0.9729,1.0164,False,0.0022
+Official rules,6,Play as the simple bot,0.9883,0.9449,1.0347,False,0.0028
+Championship rules,2,Unchanged meta agent,1.0,1.0,1.0,False,0.1658
+Championship rules,2,No trading at all,1.0,1.0,1.0,False,0.1658
+Championship rules,2,Always leave jail at once,0.9508,0.9254,0.9767,True,0.1515
+Championship rules,2,Never build hotels,0.9673,0.9573,0.9759,True,0.1788
+Championship rules,2,Flip the take-a-Chance choice,1.0052,0.994,1.0164,False,0.1675
+Championship rules,2,Keep £200 more cash,0.7948,0.7665,0.8231,True,0.0848
+Championship rules,2,Keep no cash buffer,0.9562,0.9363,0.9751,True,0.1588
+Championship rules,2,Bid 25% more at auctions,0.9835,0.9731,0.9943,True,0.1628
+Championship rules,2,Bid 25% less at auctions,1.0293,1.0124,1.0457,True,0.1592
+Championship rules,2,Play as the simple bot,0.8304,0.8,0.8618,True,0.0828
+Championship rules,3,Unchanged meta agent,1.0,1.0,1.0,False,0.008
+Championship rules,3,No trading at all,0.7799,0.7437,0.8149,True,0.0732
+Championship rules,3,Always leave jail at once,0.9146,0.876,0.9534,True,0.0055
+Championship rules,3,Stop at three houses,0.9868,0.9729,1.0008,False,0.0078
+Championship rules,3,Never build hotels,0.9261,0.905,0.9486,True,0.0088
+Championship rules,3,Flip the take-a-Chance choice,0.9967,0.9791,1.0132,False,0.0092
+Championship rules,3,Keep £200 more cash,0.8268,0.7919,0.8619,True,0.01
+Championship rules,3,Keep no cash buffer,0.695,0.658,0.7324,True,0.0098
+Championship rules,3,Bid 25% more at auctions,1.1956,1.1367,1.2551,True,0.0028
+Championship rules,3,Bid 25% less at auctions,0.8095,0.7698,0.8515,True,0.0032
+Championship rules,3,Play as the simple bot,0.8099,0.7609,0.8621,True,0.0012
+Championship rules,4,Unchanged meta agent,1.0,1.0,1.0,False,0.0028
+Championship rules,4,No trading at all,0.2802,0.2507,0.3108,True,0.0312
+Championship rules,4,Always leave jail at once,0.9248,0.8907,0.9599,True,0.0008
+Championship rules,4,Always stay in jail,0.9847,0.9516,1.016,False,0.003
+Championship rules,4,Never build hotels,0.9293,0.9014,0.9599,True,0.0048
+Championship rules,4,Flip the take-a-Chance choice,0.9968,0.976,1.0172,False,0.0032
+Championship rules,4,Keep £200 more cash,0.8607,0.813,0.907,True,0.0008
+Championship rules,4,Keep no cash buffer,0.9965,0.9789,1.0155,False,0.0025
+Championship rules,4,Bid 25% more at auctions,0.9717,0.938,1.0073,False,0.0025
+Championship rules,4,Bid 25% less at auctions,1.0079,0.9729,1.0445,False,0.0028
+Championship rules,4,Play as the simple bot,0.9226,0.87,0.9765,True,0.001

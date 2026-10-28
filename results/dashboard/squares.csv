@@ -1,0 +1,41 @@
+square,name,type,group,landings_per_100_turns,landings_per_100_turns_short_jail,landing_share_pct,price,rent_site,rent_set,rent_1_house,rent_2_houses,rent_3_houses,rent_4_houses,rent_hotel
+0,GO,go,,3.3792,3.6499,2.9719,,,,,,,,
+1,Old Kent Road,street,brown,2.8644,3.1059,2.5191,60.0,2.0,4.0,10.0,30.0,90.0,160.0,250.0
+2,Community Chest,community_chest,,2.3794,2.5686,2.0926,,,,,,,,
+3,Whitechapel Road,street,brown,2.423,2.6154,2.1309,60.0,4.0,8.0,20.0,60.0,180.0,320.0,450.0
+4,Income Tax,tax,,2.6125,2.8204,2.2976,,,,,,,,
+5,Kings Cross Station,station,stations,2.4891,2.6867,2.189,200.0,,,,,,,
+6,The Angel Islington,street,light_blue,2.5551,2.7582,2.2471,100.0,6.0,12.0,30.0,90.0,270.0,400.0,550.0
+7,Chance,chance,,2.5895,2.7958,2.2774,,,,,,,,
+8,Euston Road,street,light_blue,2.59,2.7971,2.2778,100.0,6.0,12.0,30.0,90.0,270.0,400.0,550.0
+9,Pentonville Road,street,light_blue,2.5377,2.7404,2.2318,120.0,8.0,16.0,40.0,100.0,300.0,450.0,600.0
+10,Jail / Just Visiting,jail,,2.4942,2.6935,2.1935,,,,,,,,
+11,Pall Mall,street,pink,2.9671,3.192,2.6094,140.0,10.0,20.0,50.0,150.0,450.0,625.0,750.0
+12,Electric Company,utility,utilities,2.7004,2.7171,2.3749,150.0,,,,,,,
+13,Whitehall,street,pink,2.5305,2.8124,2.2255,140.0,10.0,20.0,50.0,150.0,450.0,625.0,750.0
+14,Northumberland Avenue,street,pink,2.8342,2.9352,2.4926,160.0,12.0,24.0,60.0,180.0,500.0,700.0,900.0
+15,Marylebone Station,station,stations,3.28,3.6804,2.8846,200.0,,,,,,,
+16,Bow Street,street,orange,3.1205,3.3142,2.7444,180.0,14.0,28.0,70.0,200.0,550.0,750.0,950.0
+17,Community Chest,community_chest,,3.0534,3.5178,2.6853,,,,,,,,
+18,Marlborough Street,street,orange,3.2836,3.4821,2.8878,180.0,14.0,28.0,70.0,200.0,550.0,750.0,950.0
+19,Vine Street,street,orange,3.2451,3.6286,2.8539,200.0,16.0,32.0,80.0,220.0,600.0,800.0,1000.0
+20,Free Parking,free_parking,,3.2581,3.3849,2.8654,,,,,,,,
+21,Strand,street,red,3.0195,3.3359,2.6556,220.0,18.0,36.0,90.0,250.0,700.0,875.0,1050.0
+22,Chance,chance,,3.2298,3.2952,2.8405,,,,,,,,
+23,Fleet Street,street,red,2.9686,3.2197,2.6107,220.0,18.0,36.0,90.0,250.0,700.0,875.0,1050.0
+24,Trafalgar Square,street,red,3.4799,3.7655,3.0604,240.0,20.0,40.0,100.0,300.0,750.0,925.0,1100.0
+25,Fenchurch St Station,station,stations,2.9776,3.2332,2.6187,200.0,,,,,,,
+26,Leicester Square,street,yellow,2.9851,3.235,2.6253,260.0,22.0,44.0,110.0,330.0,800.0,975.0,1150.0
+27,Coventry Street,street,yellow,2.9646,3.2053,2.6072,260.0,22.0,44.0,110.0,330.0,800.0,975.0,1150.0
+28,Water Works,utility,utilities,2.9254,3.1565,2.5728,150.0,,,,,,,
+29,Piccadilly,street,yellow,2.8914,3.1165,2.5429,280.0,22.0,44.0,120.0,360.0,850.0,1025.0,1200.0
+30,Go To Jail,go_to_jail,,2.9248,3.1502,2.5722,,,,,,,,
+31,Regent Street,street,green,2.9417,3.1737,2.5871,300.0,26.0,52.0,130.0,390.0,900.0,1100.0,1275.0
+32,Oxford Street,street,green,2.8594,3.0846,2.5148,300.0,26.0,52.0,130.0,390.0,900.0,1100.0,1275.0
+33,Community Chest,community_chest,,2.9346,3.1708,2.5808,,,,,,,,
+34,Bond Street,street,green,2.7074,2.9236,2.3811,320.0,28.0,56.0,150.0,450.0,1000.0,1200.0,1400.0
+35,Liverpool Street Station,station,stations,2.6161,2.8273,2.3008,200.0,,,,,,,
+36,Chance,chance,,2.4929,2.6915,2.1924,,,,,,,,
+37,Park Lane,street,dark_blue,2.3595,2.5475,2.0751,350.0,35.0,70.0,175.0,500.0,1100.0,1300.0,1500.0
+38,Super Tax,tax,,2.3676,2.5551,2.0822,,,,,,,,
+39,Mayfair,street,dark_blue,2.873,3.089,2.5267,400.0,50.0,100.0,200.0,600.0,1400.0,1700.0,2000.0

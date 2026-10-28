@@ -1,0 +1,118 @@
+{
+  "n_players": 6,
+  "mode": "championship",
+  "meta": {
+    "reserve": 99.9708193200145,
+    "build_reserve": 36.68652746084801,
+    "bid_frac": 0.779782419320831,
+    "set_bonus": 1.2598194863308674,
+    "block_bonus": 1.8239306068687398,
+    "offer_mult": 2.6515765317802447,
+    "ask_mult": 2.1370956069324905,
+    "w_brown": 1.1352748333650422,
+    "w_light_blue": 1.0954855714631428,
+    "w_pink": 1.587544014472362,
+    "w_orange": 0.873178421783707,
+    "w_red": 1.7919615680695586,
+    "w_yellow": 2.0,
+    "w_green": 1.3500725173174455,
+    "w_dark_blue": 1.9896594047834828,
+    "w_stations": 0.858525841958358,
+    "w_utilities": 0.6384025569462257,
+    "build_cap": 3,
+    "max_level": 5,
+    "jail": "adaptive",
+    "take_chance": true,
+    "trades": true,
+    "accept_trades": false
+  },
+  "challenger": null,
+  "refined": false,
+  "history": [
+    {
+      "generation": 0,
+      "best": 1.6527551020408162,
+      "median": 1.1315816326530612,
+      "parents_mean": 1.0087882653061224,
+      "n_players": 6
+    },
+    {
+      "generation": 1,
+      "best": 1.7415306122448977,
+      "median": 0.5839285714285714,
+      "parents_mean": 0.8377423469387755,
+      "n_players": 6
+    },
+    {
+      "generation": 2,
+      "best": 1.210408163265306,
+      "median": 0.9763775510204081,
+      "parents_mean": 0.9893112244897959,
+      "n_players": 6
+    },
+    {
+      "generation": 3,
+      "best": 1.1592857142857143,
+      "median": 1.023979591836735,
+      "parents_mean": 1.008137755102041,
+      "n_players": 6
+    },
+    {
+      "generation": 4,
+      "best": 1.038673469387755,
+      "median": 0.8654081632653061,
+      "parents_mean": 0.9131632653061225,
+      "n_players": 6
+    },
+    {
+      "generation": 5,
+      "best": 1.1794897959183674,
+      "median": 1.07984693877551,
+      "parents_mean": 1.054706632653061,
+      "n_players": 6
+    },
+    {
+      "generation": 6,
+      "best": 1.100204081632653,
+      "median": 1.0726530612244898,
+      "parents_mean": 1.0754464285714285,
+      "n_players": 6
+    },
+    {
+      "generation": 7,
+      "best": 1.0959183673469388,
+      "median": 1.0152551020408165,
+      "parents_mean": 1.0391326530612246,
+      "n_players": 6
+    },
+    {
+      "generation": 8,
+      "best": 0.9854081632653061,
+      "median": 0.9275510204081633,
+      "parents_mean": 0.9305357142857142,
+      "n_players": 6
+    },
+    {
+      "generation": 9,
+      "best": 0.9450000000000001,
+      "median": 0.8755102040816327,
+      "parents_mean": 0.8823596938775511,
+      "n_players": 6
+    },
+    {
+      "generation": 10,
+      "best": 0.9887755102040816,
+      "median": 0.9171428571428571,
+      "parents_mean": 0.9176020408163266,
+      "n_players": 6
+    },
+    {
+      "generation": 11,
+      "best": 0.9639795918367348,
+      "median": 0.9036734693877551,
+      "parents_mean": 0.9110969387755101,
+      "n_players": 6
+    }
+  ],
+  "seconds": 1643.569697380066
+}

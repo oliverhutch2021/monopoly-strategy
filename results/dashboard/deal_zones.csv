@@ -1,0 +1,15 @@
+key,opponents,deal,n_players,seller_break_even,buyer_maximum,buyer_maximum_is_all_cash,deal_zone,seller_break_even_networth,buyer_maximum_networth,buyer_win_pct_without,buyer_win_pct_if_free
+Simple bots | Completes the buyer's set | 2 players,Simple bots,Completes the buyer's set,2,658.5366,658.5366,False,False,369.9506,502.6854,63.45,96.75
+Simple bots | Completes the buyer's set | 3 players,Simple bots,Completes the buyer's set,3,674.6988,894.8276,False,True,464.4325,628.5877,26.55,94.75
+Simple bots | Buyer doesn't need it | 3 players,Simple bots,Buyer doesn't need it,3,58.5366,54.5455,False,False,169.6793,165.4121,50.3,54.25
+Simple bots | Completes the buyer's set | 4 players,Simple bots,Completes the buyer's set,4,598.5294,1171.4286,False,True,528.3481,692.6825,5.15,90.3
+Simple bots | Buyer doesn't need it | 4 players,Simple bots,Buyer doesn't need it,4,71.4286,68.75,False,False,180.6516,178.3133,34.55,38.3
+Simple bots | Completes the buyer's set | 5 players,Simple bots,Completes the buyer's set,5,515.4762,1200.0,True,True,502.0175,690.8994,2.45,89.45
+Simple bots | Buyer doesn't need it | 5 players,Simple bots,Buyer doesn't need it,5,48.1481,49.1525,False,True,192.8015,178.8444,37.9,40.8
+Simple bots | Completes the buyer's set | 6 players,Simple bots,Completes the buyer's set,6,450.0,1200.0,True,True,499.281,743.084,2.15,91.05
+Simple bots | Buyer doesn't need it | 6 players,Simple bots,Buyer doesn't need it,6,25.0,43.4211,False,True,217.462,185.7747,52.45,55.75
+"Meta agents, official rules | Completes the buyer's set | 2 players","Meta agents, official rules",Completes the buyer's set,2,628.3333,806.4935,False,True,428.5694,586.7446,54.95,97.8
+"Meta agents, official rules | Completes the buyer's set | 3 players","Meta agents, official rules",Completes the buyer's set,3,554.1096,810.3306,False,True,469.6911,592.3165,29.2,88.2
+"Meta agents, official rules | Completes the buyer's set | 4 players","Meta agents, official rules",Completes the buyer's set,4,693.1818,1200.0,True,True,609.2794,742.1579,4.3,89.5
+"Meta agents, official rules | Completes the buyer's set | 5 players","Meta agents, official rules",Completes the buyer's set,5,663.0435,1200.0,True,True,678.0277,850.5037,1.75,89.55
+"Meta agents, official rules | Completes the buyer's set | 6 players","Meta agents, official rules",Completes the buyer's set,6,475.0,1200.0,True,True,602.5701,861.1278,2.05,91.05

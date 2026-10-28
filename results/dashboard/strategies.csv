@@ -1,0 +1,51 @@
+rules,n_players,relative,rel_low,rel_high,capped_share,strategy
+Official rules,2,0.9998,0.9802,1.0194,0.0001,"Aggressive (no cash buffer, bids 120%)"
+Official rules,2,0.8702,0.8508,0.8897,0.0,"Cautious (£400 buffer, bids 80%)"
+Official rules,2,0.9596,0.94,0.9792,0.0004,Three-house cap
+Official rules,2,0.9618,0.9422,0.9814,0.0024,Never builds hotels
+Official rules,2,0.9406,0.9211,0.9602,0.0,Always leaves jail
+Official rules,2,1.0194,0.9998,1.039,0.0001,Always stays in jail
+Official rules,2,0.9736,0.954,0.9932,0.0,Takes the Chance card
+Official rules,2,1.1172,1.0977,1.1366,0.0,Never proposes trades
+Official rules,2,1.0072,0.9876,1.0268,0.0,"Hard bargainer (asks 3×, offers 1.5×)"
+Official rules,2,0.9776,0.958,0.9972,0.0007,Random decisions
+Official rules,3,1.0635,1.0355,1.0918,0.0,"Aggressive (no cash buffer, bids 120%)"
+Official rules,3,0.7953,0.7696,0.8215,0.0,"Cautious (£400 buffer, bids 80%)"
+Official rules,3,0.9717,0.9444,0.9994,0.0,Three-house cap
+Official rules,3,0.9078,0.881,0.935,0.0007,Never builds hotels
+Official rules,3,0.9516,0.9245,0.9792,0.0001,Always leaves jail
+Official rules,3,1.0122,0.9846,1.0402,0.0,Always stays in jail
+Official rules,3,1.0155,0.9879,1.0435,0.0,Takes the Chance card
+Official rules,3,0.984,0.9566,1.0118,0.0001,Never proposes trades
+Official rules,3,0.8298,0.8038,0.8564,0.0008,"Hard bargainer (asks 3×, offers 1.5×)"
+Official rules,3,0.48,0.4588,0.5019,0.0008,Random decisions
+Official rules,4,1.156,1.1208,1.1919,0.0001,"Aggressive (no cash buffer, bids 120%)"
+Official rules,4,0.6764,0.6475,0.7063,0.0,"Cautious (£400 buffer, bids 80%)"
+Official rules,4,0.9932,0.9597,1.0275,0.0,Three-house cap
+Official rules,4,0.888,0.8558,0.921,0.0009,Never builds hotels
+Official rules,4,0.93,0.8973,0.9635,0.0,Always leaves jail
+Official rules,4,0.9788,0.9455,1.0129,0.0,Always stays in jail
+Official rules,4,1.0068,0.9732,1.0412,0.0001,Takes the Chance card
+Official rules,4,0.5916,0.5643,0.62,0.0002,Never proposes trades
+Official rules,4,0.5388,0.5126,0.5661,0.0128,"Hard bargainer (asks 3×, offers 1.5×)"
+Official rules,4,0.0692,0.0597,0.0802,0.0003,Random decisions
+Official rules,5,1.2755,1.2333,1.3187,0.0,"Aggressive (no cash buffer, bids 120%)"
+Official rules,5,0.6585,0.6261,0.6923,0.0,"Cautious (£400 buffer, bids 80%)"
+Official rules,5,1.025,0.986,1.0651,0.0,Three-house cap
+Official rules,5,0.89,0.8531,0.9281,0.0011,Never builds hotels
+Official rules,5,0.938,0.9003,0.9769,0.0,Always leaves jail
+Official rules,5,0.9775,0.9392,1.0169,0.0,Always stays in jail
+Official rules,5,0.994,0.9555,1.0337,0.0001,Takes the Chance card
+Official rules,5,0.317,0.2939,0.3417,0.0,Never proposes trades
+Official rules,5,0.4125,0.3863,0.4403,0.0264,"Hard bargainer (asks 3×, offers 1.5×)"
+Official rules,5,0.024,0.0181,0.0318,0.0001,Random decisions
+Official rules,6,1.377,1.3282,1.4271,0.0,"Aggressive (no cash buffer, bids 120%)"
+Official rules,6,0.6186,0.5837,0.6553,0.0,"Cautious (£400 buffer, bids 80%)"
+Official rules,6,1.026,0.9825,1.071,0.0,Three-house cap
+Official rules,6,0.882,0.8412,0.9245,0.0011,Never builds hotels
+Official rules,6,0.9612,0.9188,1.0051,0.0,Always leaves jail
+Official rules,6,0.957,0.9147,1.0008,0.0001,Always stays in jail
+Official rules,6,1.0068,0.9636,1.0515,0.0,Takes the Chance card
+Official rules,6,0.2502,0.2277,0.2748,0.0001,Never proposes trades
+Official rules,6,0.3024,0.2777,0.3292,0.0354,"Hard bargainer (asks 3×, offers 1.5×)"
+Official rules,6,0.0126,0.0082,0.0193,0.0005,Random decisions

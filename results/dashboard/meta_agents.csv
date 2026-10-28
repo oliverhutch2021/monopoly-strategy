@@ -1,0 +1,185 @@
+key,rules,n_players,setting,unit,value
+Official rules | 2 players | Cash kept after buying,Official rules,2,Cash kept after buying,£,0.0
+Official rules | 2 players | Cash kept after building,Official rules,2,Cash kept after building,£,63.1323
+Official rules | 2 players | Auction limit,Official rules,2,Auction limit,× face value,1.2045
+Official rules | 2 players | Bid premium to complete a set,Official rules,2,Bid premium to complete a set,×,2.1238
+Official rules | 2 players | Bid premium to block a set,Official rules,2,Bid premium to block a set,×,1.6126
+Official rules | 2 players | Cash offered for a set piece,Official rules,2,Cash offered for a set piece,× face value,1.9482
+Official rules | 2 players | Cash asked for a set piece,Official rules,2,Cash asked for a set piece,× face value,1.2854
+Official rules | 2 players | Builds evenly up to,Official rules,2,Builds evenly up to,,4 houses
+Official rules | 2 players | Highest building,Official rules,2,Highest building,,a hotel
+Official rules | 2 players | In jail,Official rules,2,In jail,,stays and rolls for doubles
+Official rules | 2 players | Takes a Chance instead of the £10 fine,Official rules,2,Takes a Chance instead of the £10 fine,,yes
+Official rules | 2 players | Proposes trades,Official rules,2,Proposes trades,,no
+Official rules | 2 players | Accepts trades,Official rules,2,Accepts trades,,yes
+"Official rules | 2 players | Buying weight, brown",Official rules,2,"Buying weight, brown",×,1.1631
+"Official rules | 2 players | Buying weight, light blue",Official rules,2,"Buying weight, light blue",×,1.6898
+"Official rules | 2 players | Buying weight, pink",Official rules,2,"Buying weight, pink",×,0.9655
+"Official rules | 2 players | Buying weight, orange",Official rules,2,"Buying weight, orange",×,0.5678
+"Official rules | 2 players | Buying weight, red",Official rules,2,"Buying weight, red",×,0.5777
+"Official rules | 2 players | Buying weight, yellow",Official rules,2,"Buying weight, yellow",×,0.9625
+"Official rules | 2 players | Buying weight, green",Official rules,2,"Buying weight, green",×,1.1312
+"Official rules | 2 players | Buying weight, dark blue",Official rules,2,"Buying weight, dark blue",×,0.9497
+"Official rules | 2 players | Buying weight, stations",Official rules,2,"Buying weight, stations",×,1.1686
+"Official rules | 2 players | Buying weight, utilities",Official rules,2,"Buying weight, utilities",×,1.0924
+Official rules | 3 players | Cash kept after buying,Official rules,3,Cash kept after buying,£,223.0262
+Official rules | 3 players | Cash kept after building,Official rules,3,Cash kept after building,£,33.6963
+Official rules | 3 players | Auction limit,Official rules,3,Auction limit,× face value,0.7348
+Official rules | 3 players | Bid premium to complete a set,Official rules,3,Bid premium to complete a set,×,1.0388
+Official rules | 3 players | Bid premium to block a set,Official rules,3,Bid premium to block a set,×,1.6959
+Official rules | 3 players | Cash offered for a set piece,Official rules,3,Cash offered for a set piece,× face value,1.0
+Official rules | 3 players | Cash asked for a set piece,Official rules,3,Cash asked for a set piece,× face value,1.0
+Official rules | 3 players | Builds evenly up to,Official rules,3,Builds evenly up to,,a hotel
+Official rules | 3 players | Highest building,Official rules,3,Highest building,,a hotel
+Official rules | 3 players | In jail,Official rules,3,In jail,,stays and rolls for doubles
+Official rules | 3 players | Takes a Chance instead of the £10 fine,Official rules,3,Takes a Chance instead of the £10 fine,,yes
+Official rules | 3 players | Proposes trades,Official rules,3,Proposes trades,,yes
+Official rules | 3 players | Accepts trades,Official rules,3,Accepts trades,,yes
+"Official rules | 3 players | Buying weight, brown",Official rules,3,"Buying weight, brown",×,0.2859
+"Official rules | 3 players | Buying weight, light blue",Official rules,3,"Buying weight, light blue",×,0.9897
+"Official rules | 3 players | Buying weight, pink",Official rules,3,"Buying weight, pink",×,0.7933
+"Official rules | 3 players | Buying weight, orange",Official rules,3,"Buying weight, orange",×,1.4388
+"Official rules | 3 players | Buying weight, red",Official rules,3,"Buying weight, red",×,1.2083
+"Official rules | 3 players | Buying weight, yellow",Official rules,3,"Buying weight, yellow",×,0.8632
+"Official rules | 3 players | Buying weight, green",Official rules,3,"Buying weight, green",×,0.2809
+"Official rules | 3 players | Buying weight, dark blue",Official rules,3,"Buying weight, dark blue",×,1.8985
+"Official rules | 3 players | Buying weight, stations",Official rules,3,"Buying weight, stations",×,2.0
+"Official rules | 3 players | Buying weight, utilities",Official rules,3,"Buying weight, utilities",×,0.288
+Official rules | 4 players | Cash kept after buying,Official rules,4,Cash kept after buying,£,109.14
+Official rules | 4 players | Cash kept after building,Official rules,4,Cash kept after building,£,136.9846
+Official rules | 4 players | Auction limit,Official rules,4,Auction limit,× face value,1.3199
+Official rules | 4 players | Bid premium to complete a set,Official rules,4,Bid premium to complete a set,×,2.0808
+Official rules | 4 players | Bid premium to block a set,Official rules,4,Bid premium to block a set,×,1.0178
+Official rules | 4 players | Cash offered for a set piece,Official rules,4,Cash offered for a set piece,× face value,2.5603
+Official rules | 4 players | Cash asked for a set piece,Official rules,4,Cash asked for a set piece,× face value,2.2749
+Official rules | 4 players | Builds evenly up to,Official rules,4,Builds evenly up to,,a hotel
+Official rules | 4 players | Highest building,Official rules,4,Highest building,,a hotel
+Official rules | 4 players | In jail,Official rules,4,In jail,,"leaves early, stays late"
+Official rules | 4 players | Takes a Chance instead of the £10 fine,Official rules,4,Takes a Chance instead of the £10 fine,,no
+Official rules | 4 players | Proposes trades,Official rules,4,Proposes trades,,yes
+Official rules | 4 players | Accepts trades,Official rules,4,Accepts trades,,yes
+"Official rules | 4 players | Buying weight, brown",Official rules,4,"Buying weight, brown",×,1.0027
+"Official rules | 4 players | Buying weight, light blue",Official rules,4,"Buying weight, light blue",×,1.497
+"Official rules | 4 players | Buying weight, pink",Official rules,4,"Buying weight, pink",×,0.7233
+"Official rules | 4 players | Buying weight, orange",Official rules,4,"Buying weight, orange",×,1.3195
+"Official rules | 4 players | Buying weight, red",Official rules,4,"Buying weight, red",×,0.2938
+"Official rules | 4 players | Buying weight, yellow",Official rules,4,"Buying weight, yellow",×,1.1617
+"Official rules | 4 players | Buying weight, green",Official rules,4,"Buying weight, green",×,0.8771
+"Official rules | 4 players | Buying weight, dark blue",Official rules,4,"Buying weight, dark blue",×,1.0646
+"Official rules | 4 players | Buying weight, stations",Official rules,4,"Buying weight, stations",×,1.4479
+"Official rules | 4 players | Buying weight, utilities",Official rules,4,"Buying weight, utilities",×,1.3269
+Official rules | 5 players | Cash kept after buying,Official rules,5,Cash kept after buying,£,38.1417
+Official rules | 5 players | Cash kept after building,Official rules,5,Cash kept after building,£,0.0
+Official rules | 5 players | Auction limit,Official rules,5,Auction limit,× face value,1.3857
+Official rules | 5 players | Bid premium to complete a set,Official rules,5,Bid premium to complete a set,×,1.4301
+Official rules | 5 players | Bid premium to block a set,Official rules,5,Bid premium to block a set,×,1.9604
+Official rules | 5 players | Cash offered for a set piece,Official rules,5,Cash offered for a set piece,× face value,3.1194
+Official rules | 5 players | Cash asked for a set piece,Official rules,5,Cash asked for a set piece,× face value,3.0327
+Official rules | 5 players | Builds evenly up to,Official rules,5,Builds evenly up to,,4 houses
+Official rules | 5 players | Highest building,Official rules,5,Highest building,,a hotel
+Official rules | 5 players | In jail,Official rules,5,In jail,,"leaves early, stays late"
+Official rules | 5 players | Takes a Chance instead of the £10 fine,Official rules,5,Takes a Chance instead of the £10 fine,,no
+Official rules | 5 players | Proposes trades,Official rules,5,Proposes trades,,yes
+Official rules | 5 players | Accepts trades,Official rules,5,Accepts trades,,yes
+"Official rules | 5 players | Buying weight, brown",Official rules,5,"Buying weight, brown",×,0.4109
+"Official rules | 5 players | Buying weight, light blue",Official rules,5,"Buying weight, light blue",×,0.6855
+"Official rules | 5 players | Buying weight, pink",Official rules,5,"Buying weight, pink",×,1.7693
+"Official rules | 5 players | Buying weight, orange",Official rules,5,"Buying weight, orange",×,0.4067
+"Official rules | 5 players | Buying weight, red",Official rules,5,"Buying weight, red",×,2.0
+"Official rules | 5 players | Buying weight, yellow",Official rules,5,"Buying weight, yellow",×,0.914
+"Official rules | 5 players | Buying weight, green",Official rules,5,"Buying weight, green",×,1.4874
+"Official rules | 5 players | Buying weight, dark blue",Official rules,5,"Buying weight, dark blue",×,1.55
+"Official rules | 5 players | Buying weight, stations",Official rules,5,"Buying weight, stations",×,1.1335
+"Official rules | 5 players | Buying weight, utilities",Official rules,5,"Buying weight, utilities",×,0.6794
+Official rules | 6 players | Cash kept after buying,Official rules,6,Cash kept after buying,£,18.7488
+Official rules | 6 players | Cash kept after building,Official rules,6,Cash kept after building,£,0.0
+Official rules | 6 players | Auction limit,Official rules,6,Auction limit,× face value,1.7319
+Official rules | 6 players | Bid premium to complete a set,Official rules,6,Bid premium to complete a set,×,2.2337
+Official rules | 6 players | Bid premium to block a set,Official rules,6,Bid premium to block a set,×,1.0
+Official rules | 6 players | Cash offered for a set piece,Official rules,6,Cash offered for a set piece,× face value,2.474
+Official rules | 6 players | Cash asked for a set piece,Official rules,6,Cash asked for a set piece,× face value,1.8583
+Official rules | 6 players | Builds evenly up to,Official rules,6,Builds evenly up to,,4 houses
+Official rules | 6 players | Highest building,Official rules,6,Highest building,,a hotel
+Official rules | 6 players | In jail,Official rules,6,In jail,,"leaves early, stays late"
+Official rules | 6 players | Takes a Chance instead of the £10 fine,Official rules,6,Takes a Chance instead of the £10 fine,,yes
+Official rules | 6 players | Proposes trades,Official rules,6,Proposes trades,,yes
+Official rules | 6 players | Accepts trades,Official rules,6,Accepts trades,,yes
+"Official rules | 6 players | Buying weight, brown",Official rules,6,"Buying weight, brown",×,0.8235
+"Official rules | 6 players | Buying weight, light blue",Official rules,6,"Buying weight, light blue",×,0.732
+"Official rules | 6 players | Buying weight, pink",Official rules,6,"Buying weight, pink",×,0.7105
+"Official rules | 6 players | Buying weight, orange",Official rules,6,"Buying weight, orange",×,1.828
+"Official rules | 6 players | Buying weight, red",Official rules,6,"Buying weight, red",×,0.7631
+"Official rules | 6 players | Buying weight, yellow",Official rules,6,"Buying weight, yellow",×,0.8776
+"Official rules | 6 players | Buying weight, green",Official rules,6,"Buying weight, green",×,1.0066
+"Official rules | 6 players | Buying weight, dark blue",Official rules,6,"Buying weight, dark blue",×,1.4454
+"Official rules | 6 players | Buying weight, stations",Official rules,6,"Buying weight, stations",×,1.3324
+"Official rules | 6 players | Buying weight, utilities",Official rules,6,"Buying weight, utilities",×,0.9569
+Championship rules | 2 players | Cash kept after buying,Championship rules,2,Cash kept after buying,£,0.0
+Championship rules | 2 players | Cash kept after building,Championship rules,2,Cash kept after building,£,66.2878
+Championship rules | 2 players | Auction limit,Championship rules,2,Auction limit,× face value,1.2888
+Championship rules | 2 players | Bid premium to complete a set,Championship rules,2,Bid premium to complete a set,×,3.5376
+Championship rules | 2 players | Bid premium to block a set,Championship rules,2,Bid premium to block a set,×,1.4231
+Championship rules | 2 players | Cash offered for a set piece,Championship rules,2,Cash offered for a set piece,× face value,2.8884
+Championship rules | 2 players | Cash asked for a set piece,Championship rules,2,Cash asked for a set piece,× face value,1.6882
+Championship rules | 2 players | Builds evenly up to,Championship rules,2,Builds evenly up to,,3 houses
+Championship rules | 2 players | Highest building,Championship rules,2,Highest building,,a hotel
+Championship rules | 2 players | In jail,Championship rules,2,In jail,,stays and rolls for doubles
+Championship rules | 2 players | Takes a Chance instead of the £10 fine,Championship rules,2,Takes a Chance instead of the £10 fine,,no
+Championship rules | 2 players | Proposes trades,Championship rules,2,Proposes trades,,no
+Championship rules | 2 players | Accepts trades,Championship rules,2,Accepts trades,,yes
+"Championship rules | 2 players | Buying weight, brown",Championship rules,2,"Buying weight, brown",×,1.0301
+"Championship rules | 2 players | Buying weight, light blue",Championship rules,2,"Buying weight, light blue",×,0.556
+"Championship rules | 2 players | Buying weight, pink",Championship rules,2,"Buying weight, pink",×,1.3892
+"Championship rules | 2 players | Buying weight, orange",Championship rules,2,"Buying weight, orange",×,1.5847
+"Championship rules | 2 players | Buying weight, red",Championship rules,2,"Buying weight, red",×,0.4462
+"Championship rules | 2 players | Buying weight, yellow",Championship rules,2,"Buying weight, yellow",×,0.528
+"Championship rules | 2 players | Buying weight, green",Championship rules,2,"Buying weight, green",×,1.1232
+"Championship rules | 2 players | Buying weight, dark blue",Championship rules,2,"Buying weight, dark blue",×,1.1825
+"Championship rules | 2 players | Buying weight, stations",Championship rules,2,"Buying weight, stations",×,1.1878
+"Championship rules | 2 players | Buying weight, utilities",Championship rules,2,"Buying weight, utilities",×,1.0
+Championship rules | 3 players | Cash kept after buying,Championship rules,3,Cash kept after buying,£,363.0319
+Championship rules | 3 players | Cash kept after building,Championship rules,3,Cash kept after building,£,74.3824
+Championship rules | 3 players | Auction limit,Championship rules,3,Auction limit,× face value,1.0
+Championship rules | 3 players | Bid premium to complete a set,Championship rules,3,Bid premium to complete a set,×,2.3875
+Championship rules | 3 players | Bid premium to block a set,Championship rules,3,Bid premium to block a set,×,1.223
+Championship rules | 3 players | Cash offered for a set piece,Championship rules,3,Cash offered for a set piece,× face value,1.2153
+Championship rules | 3 players | Cash asked for a set piece,Championship rules,3,Cash asked for a set piece,× face value,1.9602
+Championship rules | 3 players | Builds evenly up to,Championship rules,3,Builds evenly up to,,a hotel
+Championship rules | 3 players | Highest building,Championship rules,3,Highest building,,a hotel
+Championship rules | 3 players | In jail,Championship rules,3,In jail,,stays and rolls for doubles
+Championship rules | 3 players | Takes a Chance instead of the £10 fine,Championship rules,3,Takes a Chance instead of the £10 fine,,no
+Championship rules | 3 players | Proposes trades,Championship rules,3,Proposes trades,,yes
+Championship rules | 3 players | Accepts trades,Championship rules,3,Accepts trades,,yes
+"Championship rules | 3 players | Buying weight, brown",Championship rules,3,"Buying weight, brown",×,0.7651
+"Championship rules | 3 players | Buying weight, light blue",Championship rules,3,"Buying weight, light blue",×,0.7063
+"Championship rules | 3 players | Buying weight, pink",Championship rules,3,"Buying weight, pink",×,1.1986
+"Championship rules | 3 players | Buying weight, orange",Championship rules,3,"Buying weight, orange",×,0.8417
+"Championship rules | 3 players | Buying weight, red",Championship rules,3,"Buying weight, red",×,0.6802
+"Championship rules | 3 players | Buying weight, yellow",Championship rules,3,"Buying weight, yellow",×,0.0722
+"Championship rules | 3 players | Buying weight, green",Championship rules,3,"Buying weight, green",×,0.2246
+"Championship rules | 3 players | Buying weight, dark blue",Championship rules,3,"Buying weight, dark blue",×,1.2573
+"Championship rules | 3 players | Buying weight, stations",Championship rules,3,"Buying weight, stations",×,1.1021
+"Championship rules | 3 players | Buying weight, utilities",Championship rules,3,"Buying weight, utilities",×,0.5589
+Championship rules | 4 players | Cash kept after buying,Championship rules,4,Cash kept after buying,£,11.7653
+Championship rules | 4 players | Cash kept after building,Championship rules,4,Cash kept after building,£,0.0
+Championship rules | 4 players | Auction limit,Championship rules,4,Auction limit,× face value,1.2
+Championship rules | 4 players | Bid premium to complete a set,Championship rules,4,Bid premium to complete a set,×,2.0
+Championship rules | 4 players | Bid premium to block a set,Championship rules,4,Bid premium to block a set,×,1.3
+Championship rules | 4 players | Cash offered for a set piece,Championship rules,4,Cash offered for a set piece,× face value,2.0
+Championship rules | 4 players | Cash asked for a set piece,Championship rules,4,Cash asked for a set piece,× face value,2.0
+Championship rules | 4 players | Builds evenly up to,Championship rules,4,Builds evenly up to,,3 houses
+Championship rules | 4 players | Highest building,Championship rules,4,Highest building,,a hotel
+Championship rules | 4 players | In jail,Championship rules,4,In jail,,"leaves early, stays late"
+Championship rules | 4 players | Takes a Chance instead of the £10 fine,Championship rules,4,Takes a Chance instead of the £10 fine,,no
+Championship rules | 4 players | Proposes trades,Championship rules,4,Proposes trades,,yes
+Championship rules | 4 players | Accepts trades,Championship rules,4,Accepts trades,,yes
+"Championship rules | 4 players | Buying weight, brown",Championship rules,4,"Buying weight, brown",×,1.0
+"Championship rules | 4 players | Buying weight, light blue",Championship rules,4,"Buying weight, light blue",×,1.1994
+"Championship rules | 4 players | Buying weight, pink",Championship rules,4,"Buying weight, pink",×,1.061
+"Championship rules | 4 players | Buying weight, orange",Championship rules,4,"Buying weight, orange",×,1.1228
+"Championship rules | 4 players | Buying weight, red",Championship rules,4,"Buying weight, red",×,1.0
+"Championship rules | 4 players | Buying weight, yellow",Championship rules,4,"Buying weight, yellow",×,0.7652
+"Championship rules | 4 players | Buying weight, green",Championship rules,4,"Buying weight, green",×,1.0
+"Championship rules | 4 players | Buying weight, dark blue",Championship rules,4,"Buying weight, dark blue",×,1.0
+"Championship rules | 4 players | Buying weight, stations",Championship rules,4,"Buying weight, stations",×,1.0
+"Championship rules | 4 players | Buying weight, utilities",Championship rules,4,"Buying weight, utilities",×,1.0

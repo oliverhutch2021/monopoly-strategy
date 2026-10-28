@@ -1,0 +1,21 @@
+key,rules,n_players,round,challenger_vs_meta,meta_self_credit,kept
+Official rules | 2 players | round 0,Official rules,2,0,1.0432,0.811,kept
+Official rules | 3 players | round 0,Official rules,3,0,1.1307,0.9982,
+Official rules | 3 players | round 1,Official rules,3,1,1.0,0.9705,kept
+Official rules | 4 players | round 0,Official rules,4,0,1.0115,0.956,kept
+Official rules | 5 players | round 0,Official rules,5,0,3.1341,0.205,
+Official rules | 5 players | round 1,Official rules,5,1,2.5641,0.2438,
+Official rules | 5 players | round 2,Official rules,5,2,1.4211,0.9825,
+Official rules | 5 players | round 3,Official rules,5,3,1.0365,1.0288,kept
+Official rules | 6 players | round 0,Official rules,6,0,2.0962,0.156,
+Official rules | 6 players | round 1,Official rules,6,1,1.8596,0.171,
+Official rules | 6 players | round 2,Official rules,6,2,1.1797,1.0185,kept
+Official rules | 6 players | round 3,Official rules,6,3,2.8246,0.171,
+Official rules | 6 players | round 4,Official rules,6,4,2.4228,0.1845,
+Championship rules | 2 players | round 0,Championship rules,2,0,1.009,1.0568,kept
+Championship rules | 3 players | round 0,Championship rules,3,0,1.4164,1.0045,
+Championship rules | 3 players | round 1,Championship rules,3,1,1.4628,1.0154,
+Championship rules | 3 players | round 2,Championship rules,3,2,1.2514,1.0227,
+Championship rules | 3 players | round 3,Championship rules,3,3,1.2404,1.0557,kept
+Championship rules | 3 players | round 4,Championship rules,3,4,1.3303,1.006,
+Championship rules | 4 players | round 0,Championship rules,4,0,1.0417,1.0467,kept
