@@ -10,7 +10,7 @@ from monopoly_meta import Game, watch
 from monopoly_meta.engine import championship_rules
 from monopoly_meta.meta import BALANCED, evaluate, to_spec, tournament_rules
 from monopoly_meta.policies import make_bot
-from monopoly_meta.replay import RecordingGame, win_chances
+from monopoly_meta.replay import RecordingGame, buy_value, win_chances
 from monopoly_meta.rollout import rollout
 from monopoly_meta.tournament import run_games
 
@@ -101,3 +101,32 @@ def test_win_chances_add_up():
     assert res["n"] == 16
     assert sum(res["p"]) + res["none"] == pytest.approx(1.0)
     assert res == win_chances(["balanced"] * 3, rules, state, 16, seed=1)
+
+
+def test_buying_decisions_are_kept_where_they_happen():
+    rules = tournament_rules(4)
+    rec = RecordingGame([make_bot(k) for k in LINEUPS[0]], seed=5, rules=rules, keep_states=True)
+    log = rec.record()
+    offers = [e for t in log["turns"] for e in t["events"] if e["e"] == "offer"]
+    assert offers and [e["k"] for e in offers if e["afford"]] == list(range(len(rec.decisions)))
+    for d in rec.decisions:
+        st = d["state"]
+        assert st.pos[d["p"]] == d["sq"] and st.owner[d["sq"]] == -1 and st.cash[d["p"]] >= rec.ed.price[d["sq"]]
+
+
+def test_buy_value_reports_a_paired_comparison():
+    rules = tournament_rules(4)
+    lineup = LINEUPS[0]
+    rec = RecordingGame([make_bot(k) for k in lineup], seed=5, rules=rules, keep_states=True)
+    rec.record()
+    d = rec.decisions[0]
+    v = buy_value(lineup, rules, d["state"], d["p"], d["sq"], n=12, seed=3)
+    assert v["n"] == 12 and v["playouts"] == 24 and v["price"] == rec.ed.price[d["sq"]]
+    assert 0 <= v["p_own"] <= 1 and 0 <= v["p_other"] <= 1
+    assert v["gain"] == pytest.approx(v["p_own"] - v["p_other"])
+    assert np.isfinite(v["value"]) and v["value_se"] >= 0
+    if v["other_owner"]:
+        assert v["other_owner"]["winner"] != d["p"]
+    assert v == {**buy_value(lineup, rules, d["state"], d["p"], d["sq"], n=12, seed=3), "cpu_seconds": v["cpu_seconds"]}
+    short = buy_value(lineup, rules, d["state"], d["p"], d["sq"], n=500, seed=3, budget_s=0.0, n_min=4)
+    assert short["n"] == 4

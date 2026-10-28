@@ -21,6 +21,7 @@ import socket
 import subprocess
 import threading
 import time
+from collections import deque
 from dataclasses import fields
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -30,7 +31,7 @@ from monopoly_meta import load_edition
 from monopoly_meta.engine import Rules, championship_rules
 from monopoly_meta.meta import to_spec, tournament_rules
 from monopoly_meta.policies import make_bot
-from monopoly_meta.replay import RecordingGame, win_chances
+from monopoly_meta.replay import RecordingGame, buy_value, win_chances
 
 ROOT = Path(__file__).resolve().parents[1]
 WATCH = ROOT / ".sync" / "watch"
@@ -74,18 +75,27 @@ def rules_label(r: Rules) -> str:
     return name + (f" ({', '.join(extras)})" if extras else "")
 
 
-GAMES: dict[str, dict] = {}  # recent games kept for win-chance estimates: id -> lineup, rules, states
-ODDS_LOCK = threading.Lock()  # one estimate at a time, so the viewer never uses more than one thread
+GAMES: dict[str, dict] = {}  # recent games kept for analysis: id -> lineup, rules, states, decisions
+COMPUTE = threading.Lock()  # one estimate at a time, so the viewer never uses more than one thread
+ODDS_BUDGET = 0.4   # CPU seconds per win-chance estimate (fewer playouts in long games)
+VALUE_BUDGET = 1.0  # CPU seconds per property value
+CURRENT = {"gid": None}
+QUEUE: deque = deque()  # (game id, decision index) waiting for a property value
+WAKE = threading.Condition()
 
 
-def play(lineup: list, seed: int, rules: Rules) -> tuple[str, dict]:
+def play(lineup: list, seed: int, rules: Rules) -> tuple[str, dict, int]:
     g = RecordingGame([make_bot(spec) for spec in lineup], seed=seed, rules=rules, keep_states=True)
     log = g.record()
     gid = f"{seed}-{time.time():.3f}"
-    GAMES[gid] = {"lineup": lineup, "rules": rules, "states": g.states, "odds": {}}
+    GAMES[gid] = {"lineup": lineup, "rules": rules, "states": g.states, "decisions": g.decisions,
+                  "odds": {}, "values": {}}
     while len(GAMES) > 4:
         GAMES.pop(next(iter(GAMES)))
-    return gid, log
+    with WAKE:
+        CURRENT["gid"] = gid
+        QUEUE.clear()  # older games' work is no longer wanted
+    return gid, log, len(g.decisions)
 
 
 def odds(gid: str, turn: int, n: int) -> dict:
@@ -94,15 +104,47 @@ def odds(gid: str, turn: int, n: int) -> dict:
     if entry is None:
         return {"error": "unknown game"}
     turn = max(0, min(turn, len(entry["states"]) - 1))
-    key = (turn, n)
-    if key not in entry["odds"]:
-        with ODDS_LOCK:
-            if key not in entry["odds"]:
+    if turn not in entry["odds"]:
+        with COMPUTE:
+            if turn not in entry["odds"]:
                 t0 = time.process_time()
-                res = win_chances(entry["lineup"], entry["rules"], entry["states"][turn], n)
+                res = win_chances(entry["lineup"], entry["rules"], entry["states"][turn], n, budget_s=ODDS_BUDGET)
                 res["cpu_seconds"] = round(time.process_time() - t0, 3)
-                entry["odds"][key] = res
-    return {"turn": turn, **entry["odds"][key]}
+                entry["odds"][turn] = res
+    return {"turn": turn, **entry["odds"][turn]}
+
+
+def value(gid: str, k: int, ahead: int = 3) -> dict:
+    """The value of the property at buying decision k to the player deciding (computed in the background;
+    asking also queues the next few decisions, so they are usually ready by the time the replay gets there)."""
+    entry = GAMES.get(gid)
+    if entry is None or not 0 <= k < len(entry["decisions"]):
+        return {"error": "unknown decision"}
+    if k in entry["values"]:
+        return {"ready": True, "k": k, **entry["values"][k]}
+    with WAKE:
+        for j in range(k, min(k + 1 + ahead, len(entry["decisions"]))):
+            if j not in entry["values"] and (gid, j) not in QUEUE:
+                QUEUE.append((gid, j))
+        WAKE.notify()
+    return {"ready": False, "k": k}
+
+
+def value_worker() -> None:
+    while True:
+        with WAKE:
+            while not QUEUE:
+                WAKE.wait()
+            gid, k = QUEUE.popleft()
+            if gid != CURRENT["gid"]:
+                continue
+        entry = GAMES.get(gid)
+        if entry is None or k in entry["values"]:
+            continue
+        d = entry["decisions"][k]
+        with COMPUTE:
+            entry["values"][k] = buy_value(entry["lineup"], entry["rules"], d["state"], d["p"], d["sq"],
+                                           budget_s=VALUE_BUDGET)
 
 
 def latest_sample() -> dict | None:
@@ -137,11 +179,11 @@ def live_game(rec: dict) -> dict:
     rules = Rules(**{k: v for k, v in rec["rules"].items() if k in known})
     lineup, seat = rec["lineup"], rec.get("seat")
     ctx = rec.get("context") or {}
-    gid, log = play(lineup, rec["seed"], rules)
-    return {"kind": "live", "id": gid, "step": rec.get("step", ""), "sampled_at": rec.get("time"),
-            "seed": rec["seed"], "about": ctx.get("about", ""), "rules": rules_label(rules),
-            "scoring": rules.stalemate, "n_players": len(lineup), "max_rounds": rules.max_turns // len(lineup),
-            "players": player_labels(lineup, seat, ctx), "log": log}
+    gid, log, decisions = play(lineup, rec["seed"], rules)
+    return {"kind": "live", "id": gid, "decisions": decisions, "step": rec.get("step", ""),
+            "sampled_at": rec.get("time"), "seed": rec["seed"], "about": ctx.get("about", ""),
+            "rules": rules_label(rules), "scoring": rules.stalemate, "n_players": len(lineup),
+            "max_rounds": rules.max_turns // len(lineup), "players": player_labels(lineup, seat, ctx), "log": log}
 
 
 def demo_game() -> dict:
@@ -159,8 +201,8 @@ def demo_game() -> dict:
     except (OSError, ValueError, KeyError):
         lineup, label = ["balanced"] * n, "Simple bot"
     rules = championship_rules(n) if mode == "championship" else tournament_rules(n)
-    gid, log = play(lineup, seed, rules)
-    return {"kind": "demo", "id": gid, "step": "", "sampled_at": time.time(), "seed": seed,
+    gid, log, decisions = play(lineup, seed, rules)
+    return {"kind": "demo", "id": gid, "decisions": decisions, "step": "", "sampled_at": time.time(), "seed": seed,
             "about": f"Demo: {n} {label.lower()}s play each other (no job running)", "rules": rules_label(rules),
             "scoring": rules.stalemate, "n_players": n, "max_rounds": rules.max_turns // n,
             "players": [{"label": label, "role": "opponent"}] * n, "log": log}
@@ -294,6 +336,9 @@ class Handler(BaseHTTPRequestHandler):
                 q = parse_qs(url.query)
                 n = max(8, min(400, int(q.get("n", ["64"])[0])))
                 self.send(odds(q.get("id", [""])[0], int(q.get("turn", ["0"])[0]), n))
+            elif url.path == "/api/value":
+                q = parse_qs(url.query)
+                self.send(value(q.get("id", [""])[0], int(q.get("k", ["0"])[0])))
             else:
                 self.send({"error": "not found"}, code=404)
         except (BrokenPipeError, ConnectionResetError):
@@ -332,6 +377,7 @@ def main() -> None:
             continue
     if server is None:
         raise SystemExit(f"No free port from {a.port} to {a.port + 19}")
+    threading.Thread(target=value_worker, daemon=True).start()
     url = f"http://localhost:{server.server_address[1]}"
     print(f"Watching on {url}  (Ctrl+C to stop). If no browser window opens, paste that address into one.",
           flush=True)

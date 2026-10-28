@@ -35,7 +35,7 @@ header .where { color: #b9c8bd; font-size: 13px; }
 #board { width: 100%; max-width: calc(100vh - 112px); height: auto; aspect-ratio: 1; display: block;
   filter: drop-shadow(0 14px 30px rgba(0,0,0,.45)); user-select: none; }
 @media (max-width: 1500px) {
-  .layout { grid-template-columns: minmax(0, 1fr) 370px; grid-template-areas: "centre right" "left right"; }
+  .layout { grid-template-columns: minmax(0, 1fr) 370px; grid-template-rows: auto 1fr; grid-template-areas: "centre right" "left right"; }
 }
 @media (max-width: 980px) {
   .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "centre" "right" "left"; }
@@ -72,6 +72,7 @@ button.go { background: var(--brick); color: #fff; }
 .tok { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 800;
   font-size: 13px; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.45); grid-row: span 2; align-self: center; }
 .pl .name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl .lbl { font-weight: 500; color: var(--muted); }
 .pl .money { font-family: var(--display); font-weight: 700; font-size: 19px; font-variant-numeric: tabular-nums; text-align: right; }
 .pl .detail { grid-column: 2 / 4; font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 3px 10px; align-items: center; }
 .pips { display: inline-flex; gap: 2px; flex-wrap: wrap; }
@@ -87,7 +88,7 @@ button.go { background: var(--brick); color: #fff; }
 .mini { border-radius: 9px; border: 2px solid; background: #fff; min-height: 86px; overflow: hidden; }
 .mini .hd { font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: .08em; color: #fff; padding: 3px 8px; }
 .mini .tx { font-size: 12px; padding: 6px 8px; line-height: 1.3; }
-.mini .who { font-size: 11px; color: var(--muted); padding: 0 8px 6px; }
+.mini .by { font-size: 11px; color: var(--muted); padding: 0 8px 6px; }
 .about { font-size: 13px; line-height: 1.35; }
 #events { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 330px; overflow: hidden; }
 #events li { font-size: 12.5px; line-height: 1.3; display: flex; gap: 6px; align-items: baseline; animation: slidein .25s ease-out; }
@@ -98,6 +99,26 @@ button.go { background: var(--brick); color: #fff; }
 #joblog { font: 11.5px/1.45 ui-monospace, 'Cascadia Mono', Consolas, monospace; white-space: pre-wrap; color: #3f3a31;
   margin: 0; max-height: 120px; overflow: hidden; }
 footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1.5; }
+.tok { background: #fff; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--line); grid-row: span 2; align-self: center; }
+.who { white-space: nowrap; }
+.who svg { vertical-align: -3px; margin-right: 2px; }
+.deed { border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
+.deed .band { padding: 6px 10px 7px; color: #fff; font-family: var(--display); }
+.deed .band small { display: block; font-size: 10px; letter-spacing: .14em; opacity: .85; }
+.deed .band b { font-size: 17px; letter-spacing: .03em; }
+.deed .band.light { color: var(--ink); }
+.deed .body { padding: 8px 10px 9px; display: grid; gap: 5px; font-size: 12.5px; }
+.deed .row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.deed .big { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.05; }
+.deed .muted { color: var(--muted); font-size: 11.5px; }
+.verdict { display: inline-block; font-family: var(--display); font-weight: 700; letter-spacing: .08em; font-size: 12px;
+  padding: 2px 9px; border-radius: 999px; color: #fff; }
+.decisions { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.decisions td { padding: 3px 4px; border-top: 1px solid var(--line); white-space: nowrap; }
+.decisions td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.decisions .muted { color: var(--muted); font-size: 11px; }
+.decisions .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: 0; }
 .sq-name { font-family: var(--display); font-weight: 500; font-size: 10.5px; letter-spacing: .02em; fill: var(--ink); }
 .sq-price { font-family: var(--display); font-weight: 500; font-size: 11px; fill: var(--ink); }
 .big { font-family: var(--display); font-weight: 700; }
@@ -150,6 +171,11 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
       <h2>Players <small id="oddsNote"></small></h2>
       <div class="players" id="players"></div>
     </section>
+    <section class="card" id="valueCard">
+      <h2>Property decisions <small>value to the player who landed</small></h2>
+      <div id="decision"><div class="sub">When someone lands on an unowned property, this shows what it is worth to them right now.</div></div>
+      <table class="decisions" id="decisions"></table>
+    </section>
     <section class="card" id="chartCard">
       <h2>Projected winner <small>chance of winning, by turn</small></h2>
       <svg id="chart" viewBox="0 0 340 150"></svg>
@@ -159,9 +185,9 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
       <h2>Last cards drawn</h2>
       <div class="cards2">
         <div class="mini" id="lastChance" style="border-color:var(--chance)"><div class="hd" style="background:var(--chance)">CHANCE</div>
-          <div class="tx">—</div><div class="who"></div></div>
+          <div class="tx">—</div><div class="by"></div></div>
         <div class="mini" id="lastChest" style="border-color:var(--chest)"><div class="hd" style="background:var(--chest)">COMMUNITY CHEST</div>
-          <div class="tx">—</div><div class="who"></div></div>
+          <div class="tx">—</div><div class="by"></div></div>
       </div>
     </section>
   </div>
@@ -175,6 +201,67 @@ const NS = 'http://www.w3.org/2000/svg';
 const C = 134, N = 40, W = (1000 - 2 * C) / 9, BAND = 27;
 const PCOL = ['#e23d3d', '#2f6fde', '#1f9d5a', '#f0a500', '#8e44ad', '#ff7a1a'];
 const ODDS_PLAYOUTS = 64;
+// The players' pieces: the project's own designs (none of them is one of the classic game's tokens).
+// Drawn in a box about 36 units tall around (0, 0); roles say how each part is coloured.
+const PIECES = [
+  { name: 'Crown', parts: [
+    ['path', { d: 'M-13 6 L-15.5 -9 L-6.5 -1.5 L0 -13.5 L6.5 -1.5 L15.5 -9 L13 6 Z' }, 'body'],
+    ['path', { d: 'M-13.5 6 H13.5 V10 Q13.5 12.5 11 12.5 H-11 Q-13.5 12.5 -13.5 10 Z' }, 'body'],
+    ['circle', { cx: -15.5, cy: -9, r: 2.6 }, 'gold'], ['circle', { cx: 0, cy: -13.5, r: 2.8 }, 'gold'],
+    ['circle', { cx: 15.5, cy: -9, r: 2.6 }, 'gold'],
+    ['circle', { cx: -7, cy: 9.2, r: 1.5 }, 'light'], ['circle', { cx: 0, cy: 9.2, r: 1.5 }, 'light'],
+    ['circle', { cx: 7, cy: 9.2, r: 1.5 }, 'light']] },
+  { name: 'Rocket', parts: [
+    ['path', { d: 'M-4.2 9 Q0 19.5 4.2 9 Z' }, 'flame'],
+    ['path', { d: 'M-6.5 1 L-13 11 L-6.5 9.5 Z M6.5 1 L13 11 L6.5 9.5 Z' }, 'body'],
+    ['path', { d: 'M0 -17.5 C8 -10.5 9 1 6.5 9.5 H-6.5 C-9 1 -8 -10.5 0 -17.5 Z' }, 'body'],
+    ['circle', { cx: 0, cy: -4, r: 3.8 }, 'glass']] },
+  { name: 'Anchor', parts: [
+    ['circle', { cx: 0, cy: -12.5, r: 3.8 }, 'stroke2'],
+    ['path', { d: 'M0 -8.7 V13.5 M-7.5 -4.5 H7.5 M-13 3 Q-11.5 13.5 0 13.5 Q11.5 13.5 13 3' }, 'stroke2'],
+    ['path', { d: 'M-15.5 6.5 L-13 1.5 L-9.5 5.5 M15.5 6.5 L13 1.5 L9.5 5.5' }, 'stroke2']] },
+  { name: 'Balloon', parts: [
+    ['path', { d: 'M-3.6 8.5 L-3.2 12 M3.6 8.5 L3.2 12' }, 'line'],
+    ['path', { d: 'M0 -17.5 C11 -17.5 14.5 -7 9.2 1.5 L3.8 8.5 H-3.8 L-9.2 1.5 C-14.5 -7 -11 -17.5 0 -17.5 Z' }, 'body'],
+    ['path', { d: 'M0 -17.5 C-5.5 -10 -5.5 0 -1.9 8.5 M0 -17.5 C5.5 -10 5.5 0 1.9 8.5' }, 'lightline'],
+    ['rect', { x: -4.8, y: 11.5, width: 9.6, height: 6, rx: 1.3 }, 'brown']] },
+  { name: 'Umbrella', parts: [
+    ['path', { d: 'M0 1 V13 Q0 17 -3.9 17 Q-7.4 17 -7.4 13.6' }, 'stroke2'],
+    ['path', { d: 'M0 -16 V-19' }, 'stroke2'],
+    ['path', { d: 'M-15.5 1.5 C-15.5 -10.5 -8.5 -16 0 -16 C8.5 -16 15.5 -10.5 15.5 1.5 Q11.6 -2.2 7.75 1.5 Q3.9 -2.2 0 1.5 Q-3.9 -2.2 -7.75 1.5 Q-11.6 -2.2 -15.5 1.5 Z' }, 'body'],
+    ['path', { d: 'M0 -16 Q-3.2 -7.5 -3.9 -0.7 M0 -16 Q3.2 -7.5 3.9 -0.7' }, 'lightline']] },
+  { name: 'Key', parts: [
+    ['path', { d: 'M0 -18 A7.2 7.2 0 1 1 0 -3.6 A7.2 7.2 0 1 1 0 -18 Z M0 -13.7 A2.9 2.9 0 1 0 0 -7.9 A2.9 2.9 0 1 0 0 -13.7 Z', 'fill-rule': 'evenodd' }, 'body'],
+    ['path', { d: 'M-2.4 -4.2 H2.4 V17 H-2.4 Z M2.4 7.2 H8 V10.4 H2.4 Z M2.4 12.8 H6.5 V16 H2.4 Z' }, 'body']] },
+];
+const PNAME = PIECES.map(x => x.name);
+const INK = '#1f1b15';
+function drawPiece(parent, p, colour = PCOL[p], outline = INK) {
+  const look = {
+    body: { fill: colour, stroke: outline, 'stroke-width': 1.5, 'stroke-linejoin': 'round' },
+    gold: { fill: '#f2c94c', stroke: outline, 'stroke-width': 1.2 },
+    light: { fill: '#fff' },
+    glass: { fill: '#dff3ff', stroke: outline, 'stroke-width': 1.5 },
+    flame: { fill: '#ff9f1c', stroke: outline, 'stroke-width': 1 },
+    brown: { fill: '#8a5a3b', stroke: outline, 'stroke-width': 1.2 },
+    line: { fill: 'none', stroke: outline, 'stroke-width': 1.3 },
+    lightline: { fill: 'none', stroke: 'rgba(255,255,255,.75)', 'stroke-width': 1.4, 'stroke-linecap': 'round' },
+  };
+  for (const [tag, attrs, role] of PIECES[p % PIECES.length].parts) {
+    if (role === 'stroke2') {  // an outlined line: a dark stroke under a coloured one
+      const round = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+      el(tag, { ...attrs, ...round, stroke: outline, 'stroke-width': 6.2 }, parent);
+      el(tag, { ...attrs, ...round, stroke: colour, 'stroke-width': 3.4 }, parent);
+    } else el(tag, { ...attrs, ...look[role] }, parent);
+  }
+  return parent;
+}
+function pieceSVG(p, size = 22) {
+  const s = document.createElementNS(NS, 'svg');
+  s.setAttribute('viewBox', '-19 -20 38 40'); s.setAttribute('width', size); s.setAttribute('height', size);
+  drawPiece(s, p);
+  return s.outerHTML;
+}
 const $ = id => document.getElementById(id);
 const el = (tag, attrs = {}, parent) => {
   const e = document.createElementNS(NS, tag);
@@ -189,7 +276,8 @@ let B = null, ownIdx = {};
 const SQ = [];
 let tokens = [], state = null, game = null;
 const URLP = new URLSearchParams(location.search);  // ?speed=5&odds=off
-let speed = +URLP.get('speed') || 1, skipping = false, nextNow = false, paused = false, oddsOn = URLP.get('odds') !== 'off';
+let speed = +URLP.get('speed') || 1, skipping = false, nextNow = false, paused = false;
+let analysisOn = URLP.get('analysis') !== 'off' && URLP.get('odds') !== 'off';  // win chances and property values
 let since = 0, shownTurn = 0, odds = [];
 const sleep = async ms => {
   const end = performance.now() + ms;
@@ -259,15 +347,48 @@ function glyph(g, kind, x, y, scale = 1) {
     el('rect', { x: 9, y: -15, width: 9, height: 7, rx: 1, fill: '#d6e9d4' }, s);
     el('rect', { x: -19, y: -18, width: 6, height: 10, fill: '#2b2a27' }, s);
     for (const cx of [-14, 0, 14]) el('circle', { cx, cy: 11, r: 5.2, fill: '#2b2a27', stroke: '#d6e9d4', 'stroke-width': 1.5 }, s);
-  } else if (kind === 'bulb') {
-    el('circle', { cx: 0, cy: -7, r: 13, fill: '#f6d55c', stroke: ink, 'stroke-width': 2 }, s);
-    el('path', { d: 'M-5 -7 L-2 0 L2 -7 L5 0', fill: 'none', stroke: ink, 'stroke-width': 1.6 }, s);
-    el('rect', { x: -7, y: 5, width: 14, height: 10, rx: 2, fill: '#8d8a83', stroke: ink, 'stroke-width': 1.5 }, s);
-  } else if (kind === 'tap') {
-    el('path', { d: 'M-20 -6 H6 Q14 -6 14 2 V8 H6 V2 H-20 Z', fill: '#7d8b93', stroke: ink, 'stroke-width': 1.6 }, s);
-    el('rect', { x: -10, y: -16, width: 6, height: 10, fill: '#7d8b93', stroke: ink, 'stroke-width': 1.4 }, s);
-    el('rect', { x: -15, y: -19, width: 16, height: 4, rx: 2, fill: ink }, s);
-    el('path', { d: 'M10 13 Q13 18 10 21 Q7 18 10 13 Z', fill: '#3d8fd1' }, s);
+  } else if (kind === 'bulb') {  // Electric Company: a glowing bulb
+    for (let k = 0; k < 9; k++) {
+      const a = Math.PI * (0.95 + k * 0.1375);
+      el('line', { x1: 21 * Math.cos(a), y1: -6 + 21 * Math.sin(a), x2: 27 * Math.cos(a), y2: -6 + 27 * Math.sin(a),
+        stroke: '#f2b705', 'stroke-width': 2.4, 'stroke-linecap': 'round' }, s);
+    }
+    el('circle', { cx: 0, cy: -6, r: 18, fill: '#fff3b0', opacity: .55 }, s);
+    el('path', { d: 'M0 -21 C10.5 -21 15 -13 15 -6.5 C15 0.5 9.5 4 8 9.5 H-8 C-9.5 4 -15 0.5 -15 -6.5 C-15 -13 -10.5 -21 0 -21 Z',
+      fill: '#ffe680', stroke: ink, 'stroke-width': 1.7 }, s);
+    el('path', { d: 'M-8.5 -14 Q-11.5 -8 -9 -2.5', fill: 'none', stroke: '#fff', 'stroke-width': 2.4, 'stroke-linecap': 'round' }, s);
+    el('path', { d: 'M-4.5 9.5 L-3 -2 L-1 2.5 L1 -2.5 L3 2 L4.5 9.5', fill: 'none', stroke: '#e07b24', 'stroke-width': 1.7, 'stroke-linejoin': 'round' }, s);
+    el('rect', { x: -8.5, y: 9.5, width: 17, height: 10, rx: 2.2, fill: '#a3a9ad', stroke: ink, 'stroke-width': 1.5 }, s);
+    for (const yy of [12.8, 16.2]) el('line', { x1: -8.5, y1: yy, x2: 8.5, y2: yy, stroke: ink, 'stroke-width': 1.1 }, s);
+    el('path', { d: 'M-4 19.5 H4 L2.4 23 H-2.4 Z', fill: ink }, s);
+  } else if (kind === 'tap') {  // Water Works: a brass tap, running
+    el('rect', { x: -27, y: -12, width: 5, height: 18, rx: 1.5, fill: '#8d979d', stroke: ink, 'stroke-width': 1.4 }, s);
+    el('path', { d: 'M-22 -8.5 H6 Q15 -8.5 15 1 V8 H7.5 V2 Q7.5 0 5.5 0 H-22 Z', fill: '#d9b35b', stroke: ink, 'stroke-width': 1.6,
+      'stroke-linejoin': 'round' }, s);
+    el('path', { d: 'M-18 -6.5 H4', stroke: '#f5e2a8', 'stroke-width': 1.8, 'stroke-linecap': 'round' }, s);
+    el('rect', { x: -9.5, y: -16, width: 6, height: 8, fill: '#d9b35b', stroke: ink, 'stroke-width': 1.3 }, s);
+    el('rect', { x: -17, y: -20.5, width: 21, height: 5, rx: 2.5, fill: '#2f7fbf', stroke: ink, 'stroke-width': 1.3 }, s);
+    el('circle', { cx: -6.5, cy: -18, r: 2.2, fill: '#fff', stroke: ink, 'stroke-width': 1 }, s);
+    el('path', { d: 'M11.2 11 Q14.5 16 11.2 18.6 Q7.9 16 11.2 11 Z', fill: '#3d8fd1', stroke: ink, 'stroke-width': .8 }, s);
+    el('path', { d: 'M11.2 21.5 Q13.3 24.7 11.2 26.4 Q9.1 24.7 11.2 21.5 Z', fill: '#3d8fd1', opacity: .8 }, s);
+    el('ellipse', { cx: 11.2, cy: 30.5, rx: 10, ry: 2.6, fill: '#3d8fd1', opacity: .35 }, s);
+  } else if (kind === 'income-tax') {  // a tax form with a red stamp
+    el('path', { d: 'M-15 -21 H8 L16 -13 V20 H-15 Z', fill: '#fffdf7', stroke: ink, 'stroke-width': 1.6, 'stroke-linejoin': 'round' }, s);
+    el('path', { d: 'M8 -21 V-13 H16', fill: '#e9e2cc', stroke: ink, 'stroke-width': 1.3, 'stroke-linejoin': 'round' }, s);
+    el('text', { x: -9.5, y: -12.5, class: 'big', 'font-size': 6.5, fill: '#6d665a', 'letter-spacing': '.08em' }, s).textContent = 'TAX';
+    for (const yy of [-6, -1, 4]) el('line', { x1: -10, y1: yy, x2: 10, y2: yy, stroke: '#b9b09c', 'stroke-width': 1.6, 'stroke-linecap': 'round' }, s);
+    el('circle', { cx: 6, cy: 11.5, r: 9.5, fill: 'rgba(196,69,47,.12)', stroke: '#c4452f', 'stroke-width': 2.2 }, s);
+    el('text', { x: 6, y: 16.2, 'text-anchor': 'middle', class: 'big', 'font-size': 13.5, fill: '#c4452f' }, s).textContent = '£';
+  } else if (kind === 'super-tax') {  // a stack of gold coins and a big pound coin
+    for (let k = 0; k < 4; k++) {
+      const yy = 15 - k * 5.2;
+      el('path', { d: `M-19 ${yy} v4 a10 3.4 0 0 0 20 0 v-4`, fill: '#d9a92a', stroke: ink, 'stroke-width': 1.2 }, s);
+      el('ellipse', { cx: -9, cy: yy, rx: 10, ry: 3.4, fill: '#f2c94c', stroke: ink, 'stroke-width': 1.2 }, s);
+    }
+    el('circle', { cx: 8, cy: 1, r: 12.5, fill: '#f2c94c', stroke: ink, 'stroke-width': 1.7 }, s);
+    el('circle', { cx: 8, cy: 1, r: 9.2, fill: 'none', stroke: '#c9962a', 'stroke-width': 1.5 }, s);
+    el('text', { x: 8, y: 6.4, 'text-anchor': 'middle', class: 'big', 'font-size': 15 }, s).textContent = '£';
+    el('path', { d: 'M1.5 -8 Q3 -10.5 6 -11', fill: 'none', stroke: '#fff', 'stroke-width': 1.8, 'stroke-linecap': 'round' }, s);
   } else if (kind === 'chance') {
     el('text', { x: 0, y: 19, 'text-anchor': 'middle', class: 'big', 'font-size': 58, fill: 'var(--chance)', stroke: ink, 'stroke-width': 1.2 }, s).textContent = '?';
   } else if (kind === 'chest') {
@@ -303,20 +424,36 @@ function drawSquare(svg, sq) {
     glyph(g, 'chest', W / 2, 76);
   } else if (t === 'tax') {
     textLines(g, wrapWords(sq.name, 11), W / 2, 20, 'sq-name', 12, {}, fit);
-    glyph(g, 'tax', W / 2, 68);
+    glyph(g, /super/i.test(sq.name) ? 'super-tax' : 'income-tax', W / 2, 66);
     textLines(g, ['PAY ' + money(sq.tax)], W / 2, C - 11, 'sq-price');
   }
   if (sq.price) textLines(g, [money(sq.price)], W / 2, C - 10, 'sq-price');
+  // owner's tab outside the board edge: the owner's piece, white on their colour
   node.owner = el('g', { opacity: 0 }, g);
-  el('rect', { x: W / 2 - 15, y: C + 6, width: 30, height: 22, rx: 6, stroke: '#fff', 'stroke-width': 2 }, node.owner);
-  node.ownerText = el('text', { x: W / 2, y: C + 22, 'text-anchor': 'middle', 'font-weight': 800, 'font-size': 13, fill: '#fff',
-    'font-family': 'system-ui, sans-serif' }, node.owner);
+  el('rect', { x: W / 2 - 15, y: C + 5, width: 30, height: 27, rx: 7, stroke: '#fff', 'stroke-width': 2 }, node.owner);
+  node.ownerPiece = el('g', { transform: `translate(${W / 2},${C + 18.5}) rotate(${[0, 90, 180, -90][r.side] * -1}) scale(.58)` }, node.owner);
   node.veil = el('g', { opacity: 0, 'pointer-events': 'none' }, g);
   el('rect', { x: 0, y: 0, width: W, height: C, fill: '#1f1b15', 'fill-opacity': .28 }, node.veil);
   el('rect', { x: 4, y: C - 40, width: W - 8, height: 16, rx: 3, fill: '#1f1b15' }, node.veil);
   el('text', { x: W / 2, y: C - 28.5, 'text-anchor': 'middle', class: 'big', 'font-size': 10, fill: '#fff', 'letter-spacing': '.1em' },
     node.veil).textContent = 'MORTGAGED';
   node.flash = el('rect', { x: 0, y: 0, width: W, height: C, fill: '#fff6c2', 'fill-opacity': 0, 'pointer-events': 'none' }, g);
+}
+function drawJailBars(svg) {
+  const r = rectOf(10);
+  const g = el('g', { transform: `translate(${r.x},${r.y})`, 'pointer-events': 'none' }, svg);
+  const x0 = C * 0.3 + 6, x1 = C - 6, top = 3, bottom = C * 0.7 - 25, bars = 9;
+  for (let k = 0; k < bars; k++) {
+    const x = x0 + (x1 - x0) * k / (bars - 1);
+    el('line', { x1: x, y1: top, x2: x, y2: bottom, stroke: '#2b241d', 'stroke-width': 2.8, 'stroke-linecap': 'round' }, g);
+    el('line', { x1: x - 0.7, y1: top + 2, x2: x - 0.7, y2: bottom - 2, stroke: '#9c8f7d', 'stroke-width': 0.8 }, g);
+  }
+  for (const y of [top + 3, (top + bottom) / 2, bottom - 2]) {
+    el('line', { x1: x0 - 4, y1: y, x2: x1 + 4, y2: y, stroke: '#2b241d', 'stroke-width': 3.6, 'stroke-linecap': 'round' }, g);
+  }
+  el('rect', { x: C * 0.3 + 10, y: C * 0.7 - 21, width: C * 0.7 - 20, height: 17, rx: 3, fill: '#2b241d' }, g);
+  el('text', { x: C * 0.65, y: C * 0.7 - 8.5, 'text-anchor': 'middle', class: 'big', 'font-size': 12, fill: '#fff',
+    'letter-spacing': '.12em' }, g).textContent = 'IN JAIL';
 }
 function drawCorner(svg, sq, r, node) {
   const g = el('g', { transform: `translate(${r.x},${r.y})` }, svg);
@@ -332,10 +469,9 @@ function drawCorner(svg, sq, r, node) {
     el('path', { d: 'M120 122 H30 l12 -11 M30 122 l12 11', fill: 'none', stroke: 'var(--brick)', 'stroke-width': 6,
       'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
   } else if (sq.i === 10) {  // jail, bottom-left: the cell towards the board's centre, "just visiting" round the outside
+    // the cell; its bars are drawn over the pieces (drawJailBars), so prisoners sit behind them
     el('rect', { x: C * 0.3, y: 0, width: C * 0.7, height: C * 0.7, fill: '#f0a04b', stroke: 'var(--board-line)', 'stroke-width': 1.4 }, g);
-    for (let k = 0; k < 5; k++) el('line', { x1: C * 0.37 + k * 17.5, y1: 12, x2: C * 0.37 + k * 17.5, y2: C * 0.7 - 22,
-      stroke: '#3a3128', 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
-    txt(g, 'IN JAIL', C * 0.7 - 6, 13.5, 'var(--ink)', C * 0.65);
+    el('rect', { x: C * 0.3 + 4, y: 4, width: C * 0.7 - 8, height: C * 0.7 - 30, fill: '#c97a2c', opacity: .35 }, g);
     el('text', { x: C * 0.15, y: C * 0.36, 'text-anchor': 'middle', class: 'big', 'font-size': 12.5, transform: `rotate(90 ${C * 0.15} ${C * 0.36})` }, g).textContent = 'JUST';
     txt(g, 'VISITING', C * 0.95, 11.5, 'var(--ink)', C * 0.7);
   } else if (sq.i === 20) {  // free parking, top-left
@@ -403,7 +539,7 @@ function banner(text, sub = '', colour = 'var(--ink)') {
 async function showCard(deck, text, p) {
   const box = $(deck === 'chance' ? 'lastChance' : 'lastChest');
   box.querySelector('.tx').textContent = text;
-  box.querySelector('.who').innerHTML = `drawn by ${who(p)} · turn ${shownTurn + 1}`;
+  box.querySelector('.by').innerHTML = `drawn by ${who(p)} · turn ${shownTurn + 1}`;
   if (skipping || speed >= 8) return;
   const g = hud.card; g.replaceChildren();
   const colour = deck === 'chance' ? 'var(--chance)' : 'var(--chest)';
@@ -422,10 +558,13 @@ function makeTokens(n) {
   const layer = $('tokens'); layer.replaceChildren(); tokens = [];
   for (let p = 0; p < n; p++) {
     const t = el('g', {}, layer);
-    el('circle', { cx: 0, cy: 3, r: 16, fill: '#000', 'fill-opacity': .28 }, t);
-    el('circle', { cx: 0, cy: 0, r: 16, fill: PCOL[p], stroke: '#fff', 'stroke-width': 3.5 }, t);
-    el('text', { x: 0, y: 5.5, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: '#fff', 'font-family': 'system-ui, sans-serif' }, t)
-      .textContent = p + 1;
+    el('ellipse', { cx: 0, cy: 16, rx: 13, ry: 3.6, fill: '#000', 'fill-opacity': .3 }, t);
+    // a white halo keeps each piece readable on any square colour
+    const halo = el('g', { opacity: .9 }, t);
+    drawPiece(halo, p, '#fff', '#fff');
+    halo.querySelectorAll('*').forEach(e => { e.setAttribute('stroke', '#fff'); e.setAttribute('stroke-width', 5); });
+    drawPiece(el('g', {}, t), p);
+    el('title', {}, t).textContent = `${PNAME[p]}: ${game ? game.players[p].label : ''}`;
     t.pos = [500, 500];
     tokens.push(t);
   }
@@ -478,7 +617,7 @@ function applyState(s) {
   B.ownable.forEach((sq, k) => {
     const n = SQ[sq], o = s.owner[k];
     n.owner.setAttribute('opacity', o >= 0 ? 1 : 0);
-    if (o >= 0) { n.owner.firstChild.setAttribute('fill', PCOL[o]); n.ownerText.textContent = o + 1; }
+    if (o >= 0) showOwner(n, o);
     n.veil.setAttribute('opacity', s.mortgaged[k] ? 1 : 0);
     if (n.houses) drawHouses(n, s.level[k]);
   });
@@ -498,13 +637,20 @@ function drawHouses(n, level) {
     el('path', { d: `M${x} 22 V12 L${x + 7} 5 L${x + 14} 12 V22 Z`, fill: '#2d9d4a', stroke: '#1f1b15', 'stroke-width': 1.2 }, n.houses);
   }
 }
+function showOwner(n, p) {
+  if (n.ownerId === p) return;
+  n.ownerId = p;
+  n.owner.firstChild.setAttribute('fill', PCOL[p]);
+  n.ownerPiece.replaceChildren();
+  drawPiece(n.ownerPiece, p, '#fff');
+}
 function setOwner(sq, p) {
   const k = ownIdx[sq];
   if (k === undefined) return;
   state.owner[k] = p;
   const n = SQ[sq];
   n.owner.setAttribute('opacity', p >= 0 ? 1 : 0);
-  if (p >= 0) { n.owner.firstChild.setAttribute('fill', PCOL[p]); n.ownerText.textContent = p + 1; }
+  if (p >= 0) showOwner(n, p);
 }
 function smoothedOdds() {
   // exponential smoothing over the turns estimated so far (each estimate is ±8 points or so)
@@ -515,7 +661,7 @@ function smoothedOdds() {
 }
 function renderPlayers() {
   if (!game || !state) return;
-  const box = $('players'), s = state, sm = oddsOn ? smoothedOdds() : null;
+  const box = $('players'), s = state, sm = analysisOn ? smoothedOdds() : null;
   const final = s.winner != null;
   box.replaceChildren();
   game.players.forEach((pl, p) => {
@@ -532,15 +678,15 @@ function renderPlayers() {
     if (s.goojf && s.goojf[p]) extras.push(`🎟 ${s.goojf[p]} jail card${s.goojf[p] > 1 ? 's' : ''}`);
     if (s.jail[p] && !out) extras.push('in jail');
     const pct = sm ? (final ? (win ? 1 : 0) : sm.p[p]) : null;
-    row.innerHTML = `<div class="tok" style="background:${PCOL[p]}">${p + 1}</div>
-      <div class="name">${esc(pl.label)}${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
+    row.innerHTML = `<div class="tok" style="box-shadow: inset 0 0 0 2px ${PCOL[p]}">${pieceSVG(p, 25)}</div>
+      <div class="name"><span style="color:${PCOL[p]}">${PNAME[p]}</span> <span class="lbl">${esc(pl.label)}</span>${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
       <div class="money">${money(s.cash[p])}</div>
       <div class="detail"><span class="pips">${pips || '<span>no property</span>'}</span>${extras.map(x => `<span>${x}</span>`).join('')}</div>
       ${pct != null ? `<div class="odds"><div class="bar"><i style="width:${(100 * pct).toFixed(1)}%;background:${PCOL[p]}"></i></div>
         <b>${Math.round(100 * pct)}%</b></div>` : ''}`;
     box.appendChild(row);
   });
-  $('oddsNote').textContent = oddsOn ? (sm && game.scoring === 'loss' && sm.none > 0.02 ? `no winner (time limit): ${Math.round(100 * sm.none)}%` : 'win chances') : '';
+  $('oddsNote').textContent = analysisOn ? (sm && game.scoring === 'loss' && sm.none > 0.02 ? `no winner (time limit): ${Math.round(100 * sm.none)}%` : 'win chances') : '';
 }
 function renderBank() {
   if (!state) return;
@@ -558,8 +704,8 @@ function renderChart() {
   el('text', { x: L, y: h - 5, 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = 'turn 0';
   el('text', { x: w - R, y: h - 5, 'text-anchor': 'end', 'font-size': 9.5, fill: '#8a8272' }, svg).textContent = `turn ${total}`;
   el('line', { x1: x(shownTurn), x2: x(shownTurn), y1: T, y2: h - Bm, stroke: '#b9b09c', 'stroke-dasharray': '3 3' }, svg);
-  if (!game || !odds.length || !oddsOn) {
-    $('chartNote').textContent = oddsOn ? 'Estimating…' : 'Win chances are off (they use a little CPU).';
+  if (!game || !odds.length || !analysisOn) {
+    $('chartNote').textContent = analysisOn ? 'Estimating…' : 'Win chances are off (they use a little CPU).';
     return;
   }
   // smoothed series
@@ -604,8 +750,143 @@ function logGrouped(kind, p, turnNo, sq, text) {
   if (!r.squares.includes(sq)) r.squares.push(sq);
   logEvent(text(r.n, r.squares.map(nm).join(', ')), p, turnNo, key);
 }
-const who = p => `<b style="color:${PCOL[p]}">P${p + 1}</b>`;
+const who = p => `<b class="who" style="color:${PCOL[p]}">${pieceSVG(p, 15)}${PNAME[p]}</b>`;
 const nm = sq => esc(B.squares[sq].name);
+
+// ------------------------------------------------------------------ property decisions
+// When a player lands on an unowned property they can afford, the viewer asks the server what it is worth
+// to them right now (replay.buy_value: paired playouts of the rest of the game, owning it or not).
+let offer = null, values = {}, decisions = [];
+const pct = v => `${Math.round(100 * v)}%`;
+function verdict(v) {
+  const margin = Math.max(1.96 * (v.value_se || 0), 0.05 * v.price), diff = v.value - v.price;
+  if (diff > margin && v.gain > -0.02) return { text: 'GOOD BUY', colour: '#2c8a57', buy: true };
+  if (diff < -margin && v.gain < 0.02) return { text: 'OVERPRICED', colour: '#c4452f', buy: false };
+  return { text: 'CLOSE CALL', colour: '#8a8272', buy: null };
+}
+async function getValue(k, waitMs) {
+  // asks the server (which also queues the next few decisions); polls until ready or out of time
+  const end = performance.now() + waitMs;
+  while (true) {
+    if (values[k]) return values[k];
+    try {
+      const r = await (await fetch(`/api/value?id=${encodeURIComponent(game.id)}&k=${k}`)).json();
+      if (r.ready) { values[k] = r; return r; }
+    } catch (e) { return null; }
+    if (performance.now() > end || skipping) return null;
+    await new Promise(res => setTimeout(res, 250));
+  }
+}
+function followValue(o) {
+  // a value that wasn't ready in time still fills in the panel and the play-by-play when it arrives
+  const gid = game.id;
+  (async () => {
+    for (let i = 0; i < 120 && !o.value && game && game.id === gid; i++) {
+      const v = await getValue(o.k, 0);
+      if (v) { o.value = v; renderDecision(o); renderDecisions(); logDecision(o); return; }
+      await new Promise(res => setTimeout(res, 500));
+    }
+  })();
+}
+function bandOf(sq) {
+  const colour = sq.type === 'street' ? sq.colour : sq.type === 'station' ? '#3b3833' : '#6f7d85';
+  return { colour, light: ['yellow', 'light_blue'].includes(sq.group) };
+}
+function showDeed(o) {
+  const g = hud.deed, v = o.value, sq = B.squares[o.sq], band = bandOf(sq), X = 302, Y = 336, Wd = 396, H = 330;
+  g.replaceChildren();
+  const t = (txt, x, y, size, fill = INK, cls = 'big', anchor = 'middle', extra = {}) =>
+    el('text', { x, y, 'text-anchor': anchor, class: cls, 'font-size': size, fill, ...extra }, g).textContent = txt;
+  el('rect', { x: X - 7, y: Y - 5, width: Wd + 14, height: H + 14, rx: 20, fill: 'rgba(0,0,0,.22)' }, g);
+  el('rect', { x: X, y: Y, width: Wd, height: H, rx: 15, fill: '#fffdf7', stroke: INK, 'stroke-width': 2.5 }, g);
+  el('path', { d: `M${X} ${Y + 64} V${Y + 15} a15 15 0 0 1 15 -15 H${X + Wd - 15} a15 15 0 0 1 15 15 V${Y + 64} Z`, fill: band.colour,
+    stroke: INK, 'stroke-width': 2.5 }, g);
+  const tc = band.light ? INK : '#fff';
+  t('TITLE DEED', X + Wd / 2, Y + 22, 11, tc, 'hud-small', 'middle', { 'letter-spacing': '.2em' });
+  t(sq.name.toUpperCase(), X + Wd / 2, Y + 52, 25, tc);
+  t(`PRICE ${money(o.price)}`, X + 20, Y + 92, 16, INK, 'big', 'start');
+  t(`${PNAME[o.p]} · ${money(o.cash)} cash`, X + Wd - 20, Y + 92, 14, PCOL[o.p], 'big', 'end');
+  const nameW = g.lastChild.getComputedTextLength ? g.lastChild.getComputedTextLength() : 120;
+  drawPiece(el('g', { transform: `translate(${X + Wd - 20 - nameW - 14},${Y + 86}) scale(.62)` }, g), o.p);
+  el('line', { x1: X + 16, y1: Y + 108, x2: X + Wd - 16, y2: Y + 108, stroke: '#e3dccb', 'stroke-width': 1.5 }, g);
+  if (!v) {
+    t(`WORKING OUT WHAT IT'S WORTH TO ${PNAME[o.p].toUpperCase()}…`, X + Wd / 2, Y + 168, 14, '#6d665a', 'hud-small');
+    t('(playing the rest of the game out, owning it and not owning it)', X + Wd / 2, Y + 192, 12.5, '#8a8272', 'hud-small');
+  } else {
+    const vd = verdict(v);
+    t(`VALUE TO ${PNAME[o.p].toUpperCase()} RIGHT NOW`, X + Wd / 2, Y + 134, 12.5, '#6d665a', 'hud-small', 'middle', { 'letter-spacing': '.12em' });
+    t(`≈ ${money(v.value)}`, X + Wd / 2, Y + 180, 44, vd.colour);
+    t(`± ${money(1.96 * (v.value_se || 0))} · money over the next ${v.horizon_rounds} rounds`, X + Wd / 2, Y + 203, 12.5, '#6d665a', 'hud-small');
+    t(`Chance of winning: ${pct(v.p_own)} if they own it · ${pct(v.p_other)} if not`, X + Wd / 2, Y + 233, 15, INK, 'hud-small');
+    el('rect', { x: X + Wd / 2 - 84, y: Y + 248, width: 168, height: 30, rx: 15, fill: vd.colour }, g);
+    t(vd.text, X + Wd / 2, Y + 269, 16, '#fff', 'big', 'middle', { 'letter-spacing': '.1em' });
+    const ip = v.if_passed;
+    t(ip ? `If they pass: ${PNAME[ip.winner]} wins the auction for ${money(ip.price)}` : 'If they pass: it stays with the bank',
+      X + Wd / 2, Y + 300, 12.5, '#6d665a', 'hud-small');
+    t(`${v.n} paired playouts · ${v.cpu_seconds}s of one thread`, X + Wd / 2, Y + 318, 10.5, '#a39b8b', 'hud-small');
+  }
+  g.setAttribute('opacity', 1);
+}
+async function decide(o, bought, auctionEv = null) {
+  o.decided = true; o.bought = bought; o.auction = auctionEv;
+  decisions.unshift(o);
+  if (o.k != null && !o.value && analysisOn) followValue(o);
+  renderDecision(o); renderDecisions(); logDecision(o);
+  if (hud.deed.getAttribute('opacity') === '1' && !skipping) {
+    const g = hud.deed, X = 500, Y = 488;
+    const stamp = el('g', { transform: `rotate(-14 ${X} ${Y})`, opacity: .92 }, g);
+    const colour = bought ? '#2c8a57' : '#c4452f';
+    el('rect', { x: X - 108, y: Y - 34, width: 216, height: 68, rx: 10, fill: 'rgba(255,253,247,.85)', stroke: colour, 'stroke-width': 5 }, stamp);
+    el('text', { x: X, y: Y + 16, 'text-anchor': 'middle', class: 'big', 'font-size': 44, fill: colour, 'letter-spacing': '.08em' }, stamp)
+      .textContent = bought ? 'BOUGHT' : 'PASSED';
+    await sleep(dur(900));
+  }
+  hud.deed.setAttribute('opacity', 0);
+}
+function logDecision(o) {
+  const v = o.value, vd = v ? verdict(v) : null;
+  const worth = v ? ` · worth ≈ ${money(v.value)} to them (<span style="color:${vd.colour}">${vd.text.toLowerCase()}</span>)` : '';
+  const text = o.bought ? `${who(o.p)} buys ${nm(o.sq)} for ${money(o.price)}${worth}`
+    : `${who(o.p)} passes on ${nm(o.sq)} (${money(o.price)})${worth}`;
+  logEvent(text, o.p, o.turn, `decision-${o.k}`);
+}
+function botCall(o) {
+  const vd = o.value ? verdict(o.value) : null;
+  if (!vd || vd.buy === null) return { mark: '', note: '' };
+  const right = vd.buy === o.bought;
+  return { mark: right ? '✓' : '✗', note: right ? 'agrees with the estimate' : 'goes against the estimate' };
+}
+function renderDecision(o) {
+  const box = $('decision');
+  if (!o) return;
+  const sq = B.squares[o.sq], band = bandOf(sq), v = o.value, vd = v ? verdict(v) : null, call = botCall(o);
+  const choice = o.decided ? (o.bought ? 'bought it' : 'passed') : 'deciding…';
+  box.innerHTML = `<div class="deed"><div class="band${band.light ? ' light' : ''}" style="background:${band.colour}">
+      <small>TITLE DEED · TURN ${o.turn}</small><b>${esc(sq.name.toUpperCase())}</b></div>
+    <div class="body">
+      <div class="row"><span>Price <b>${money(o.price)}</b></span><span>${who(o.p)} ${choice} ${call.mark}</span></div>
+      ${v ? `<div class="row"><span class="muted">Value to them right now</span><span class="big" style="color:${vd.colour}">≈ ${money(v.value)}</span></div>
+      <div class="muted">± ${money(1.96 * (v.value_se || 0))}: money over the next ${v.horizon_rounds} rounds, against someone else owning it</div>
+      <div class="row"><span>Chance of winning if they own it</span><b>${pct(v.p_own)}</b></div>
+      <div class="row"><span>… if someone else does</span><b>${pct(v.p_other)}</b></div>
+      <div class="row"><span class="verdict" style="background:${vd.colour}">${vd.text}</span>
+        <span class="muted">${call.note ? 'the bot ' + call.note : ''}</span></div>
+      <div class="muted">${v.if_passed ? `If they pass: ${PNAME[v.if_passed.winner]} wins the auction for ${money(v.if_passed.price)}` : 'If they pass: it stays with the bank'}
+        · ${v.n} paired playouts</div>`
+      : `<div class="muted">${analysisOn ? 'Working out what it is worth to them…' : 'Analysis is off.'}</div>`}
+    </div></div>`;
+}
+function renderDecisions() {
+  const rows = decisions.slice(0, 8).map(o => {
+    const sq = B.squares[o.sq], band = bandOf(sq), v = o.value, vd = v ? verdict(v) : null, call = botCall(o);
+    return `<tr><td><span class="sw" style="background:${band.colour}"></span>${esc(sq.name)}</td><td>${pieceSVG(o.p, 15)}</td>
+      <td class="num">${money(o.price)}</td>
+      <td class="num" style="color:${vd ? vd.colour : 'inherit'}">${v ? '≈ ' + money(v.value) : '…'}</td>
+      <td>${o.bought ? 'bought' : 'passed'} ${call.mark}</td></tr>`;
+  });
+  $('decisions').innerHTML = rows.length ? `<tr><td class="muted">Property</td><td></td><td class="num muted">Price</td>
+    <td class="num muted">Value</td><td class="muted">Bot</td></tr>` + rows.join('') : '';
+}
 
 // ------------------------------------------------------------------ replay
 const dur = ms => (skipping ? 0 : ms / speed);
@@ -616,9 +897,9 @@ async function playEvent(ev, turnNo) {
     case 'roll':
       lastRoll = ev.d; lastSpeed = null;
       await tumble(ev.d[0], ev.d[1]);
-      if (state.jail[p]) banner(ev.d[0] === ev.d[1] ? 'DOUBLES: OUT OF JAIL' : 'STILL IN JAIL', `P${p + 1} rolls ${ev.d[0]} + ${ev.d[1]}`, PCOL[p]);
-      else if (ev.d[0] === ev.d[1]) banner('DOUBLES', `P${p + 1} rolls ${ev.d[0]} + ${ev.d[1]} and goes again`, PCOL[p]);
-      else banner('', `P${p + 1} rolls ${ev.d[0]} + ${ev.d[1]} = ${ev.d[0] + ev.d[1]}`);
+      if (state.jail[p]) banner(ev.d[0] === ev.d[1] ? 'DOUBLES: OUT OF JAIL' : 'STILL IN JAIL', `${PNAME[p]} rolls ${ev.d[0]} + ${ev.d[1]}`, PCOL[p]);
+      else if (ev.d[0] === ev.d[1]) banner('DOUBLES', `${PNAME[p]} rolls ${ev.d[0]} + ${ev.d[1]} and goes again`, PCOL[p]);
+      else banner('', `${PNAME[p]} rolls ${ev.d[0]} + ${ev.d[1]} = ${ev.d[0] + ev.d[1]}`);
       break;
     case 'speed': lastSpeed = ev.v; showDice(lastRoll[0], lastRoll[1], ev.v);
       if (ev.v > 3) banner(ev.v === 4 ? 'BUS' : 'MR MONOPOLY FACE', ev.v === 4 ? 'move by one die or both' : 'on to the next unowned property', PCOL[p]);
@@ -639,7 +920,7 @@ async function playEvent(ev, turnNo) {
       layoutTokens(p);
       await glide(p, spot(B.jail, 0, 1, true), dur(600), 60);
       state.pos[p] = B.jail; state.jail[p] = true; layoutTokens(); flashSquare(B.jail, '#ffd6cf');
-      banner('GO TO JAIL', `P${p + 1}`, PCOL[p]); logEvent(`${who(p)} goes to jail`, p, turnNo);
+      banner('GO TO JAIL', `${PNAME[p]}`, PCOL[p]); logEvent(`${who(p)} goes to jail`, p, turnNo);
       await sleep(dur(450));
       break;
     case 'goojf': state.jail[p] = false; logEvent(`${who(p)} uses a Get Out of Jail Free card`, p, turnNo); break;
@@ -647,31 +928,54 @@ async function playEvent(ev, turnNo) {
       logEvent(`${who(p)} draws ${ev.deck === 'chance' ? 'Chance' : 'Community Chest'}: “${esc(ev.text)}”`, p, turnNo);
       await showCard(ev.deck, ev.text, p);
       break;
-    case 'buy':
+    case 'offer': {
+      if (!ev.afford) {
+        banner(`${PNAME[p].toUpperCase()} CAN'T AFFORD IT`, `${B.squares[ev.sq].name} costs ${money(ev.price)}: it goes to auction`, PCOL[p]);
+        logEvent(`${who(p)} lands on ${nm(ev.sq)} but can't afford ${money(ev.price)}`, p, turnNo);
+        await sleep(dur(600));
+        break;
+      }
+      offer = { k: ev.k, p, sq: ev.sq, price: ev.price, turn: turnNo, cash: state.cash[p], value: values[ev.k] || null };
+      if (!analysisOn || ev.k == null || skipping) break;
+      showDeed(offer);
+      if (!offer.value) {
+        const v = await getValue(ev.k, Math.max(700, 2600 / speed));
+        if (v && offer.k === ev.k) { offer.value = v; showDeed(offer); }
+      }
+      await sleep(dur(offer.value ? 1700 : 300));
+      break;
+    }
+    case 'buy': {
+      const o = offer && offer.sq === ev.sq && offer.p === p ? offer : null;
       setOwner(ev.sq, p); flashSquare(ev.sq); renderPlayers();
-      banner(`P${p + 1} BUYS ${B.squares[ev.sq].name.toUpperCase()}`, money(ev.price), PCOL[p]);
-      logEvent(`${who(p)} buys ${nm(ev.sq)} for ${money(ev.price)}`, p, turnNo);
+      banner(`${PNAME[p].toUpperCase()} BUYS ${B.squares[ev.sq].name.toUpperCase()}`, money(ev.price), PCOL[p]);
+      if (o) await decide(o, true);
+      else logEvent(`${who(p)} buys ${nm(ev.sq)} for ${money(ev.price)}`, p, turnNo);
       await sleep(dur(520));
       break;
-    case 'auction':
+    }
+    case 'auction': {
+      const o = offer && offer.sq === ev.sq && !offer.decided ? offer : null;
+      if (o) await decide(o, false, ev);
       if (ev.winner == null) { logEvent(`${nm(ev.sq)} is auctioned: no bids`, null, turnNo); break; }
       setOwner(ev.sq, ev.winner); flashSquare(ev.sq); renderPlayers();
-      banner(`AUCTION: ${B.squares[ev.sq].name.toUpperCase()}`, `P${ev.winner + 1} wins it for ${money(ev.price)}`, PCOL[ev.winner]);
+      banner(`AUCTION: ${B.squares[ev.sq].name.toUpperCase()}`, `${PNAME[ev.winner]} wins it for ${money(ev.price)}`, PCOL[ev.winner]);
       logEvent(`Auction: ${who(ev.winner)} wins ${nm(ev.sq)} for ${money(ev.price)}`, ev.winner, turnNo);
       await sleep(dur(750));
       break;
+    }
     case 'pay': {
       if (ev.to >= 0) {
         const here = state.pos[p], k = ownIdx[here], rent = k !== undefined && state.owner[k] === ev.to;
         if (rent) flashSquare(here, '#ffd6cf');
-        banner(`${rent ? 'RENT' : 'PAY'} ${money(ev.amount)}`, `P${p + 1} → P${ev.to + 1}${rent ? ' · ' + B.squares[here].name : ''}`, PCOL[ev.to]);
+        banner(`${rent ? 'RENT' : 'PAY'} ${money(ev.amount)}`, `${PNAME[p]} → ${PNAME[ev.to]}${rent ? ' · ' + B.squares[here].name : ''}`, PCOL[ev.to]);
         logEvent(`${who(p)} pays ${money(ev.amount)}${rent ? ' rent' : ''} to ${who(ev.to)}`, p, turnNo);
         await sleep(dur(ev.amount >= 200 ? 700 : 380));
       } else {
         const fine = state.jail[p] && ev.amount === B.jail_fine;
         const tax = !fine && B.squares[state.pos[p]].type === 'tax' && ev.amount === B.squares[state.pos[p]].tax;
-        if (fine) { state.jail[p] = false; banner('PAYS TO LEAVE JAIL', `P${p + 1} · ${money(ev.amount)}`, PCOL[p]); }
-        if (tax) banner(B.squares[state.pos[p]].name.toUpperCase(), `P${p + 1} pays ${money(ev.amount)}`, PCOL[p]);
+        if (fine) { state.jail[p] = false; banner('PAYS TO LEAVE JAIL', `${PNAME[p]} · ${money(ev.amount)}`, PCOL[p]); }
+        if (tax) banner(B.squares[state.pos[p]].name.toUpperCase(), `${PNAME[p]} pays ${money(ev.amount)}`, PCOL[p]);
         logEvent(`${who(p)} pays ${money(ev.amount)} ${fine ? 'to get out of jail' : tax ? B.squares[state.pos[p]].name.toLowerCase() : 'to the bank'}`, p, turnNo);
         await sleep(dur(fine || tax ? 400 : 180));
       }
@@ -679,7 +983,7 @@ async function playEvent(ev, turnNo) {
     }
     case 'build': {
       state.level[ownIdx[ev.sq]] = ev.level; drawHouses(SQ[ev.sq], ev.level); flashSquare(ev.sq, '#d9f5dc');
-      banner(ev.level === 5 ? 'HOTEL!' : 'BUILDING', `P${p + 1} · ${B.squares[ev.sq].name}`, PCOL[p]);
+      banner(ev.level === 5 ? 'HOTEL!' : 'BUILDING', `${PNAME[p]} · ${B.squares[ev.sq].name}`, PCOL[p]);
       const key = `build-${turnNo}-${p}`;
       if (!spree || spree.key !== key) spree = { key, houses: 0, hotels: 0, squares: [] };
       if (ev.level === 5) spree.hotels++; else spree.houses++;
@@ -709,13 +1013,13 @@ async function playEvent(ev, turnNo) {
       ev.b_gives.forEach(sq => { setOwner(sq, ev.a); flashSquare(sq, '#e4dcff'); });
       renderPlayers();
       const part = (ps, m) => [...ps.map(nm), ...(m > 0 ? [money(m)] : [])].join(' + ') || 'nothing';
-      banner('TRADE!', `P${ev.a + 1} ⇄ P${ev.b + 1}`, '#6b4fd8');
+      banner('TRADE!', `${PNAME[ev.a]} ⇄ ${PNAME[ev.b]}`, '#6b4fd8');
       logEvent(`Trade: ${who(ev.a)} gives ${part(ev.a_gives, ev.money)} for ${who(ev.b)}'s ${part(ev.b_gives, -ev.money)}`, ev.a, turnNo);
       await sleep(dur(1400));
       break;
     }
     case 'bankrupt':
-      banner(`P${p + 1} IS BANKRUPT`, ev.to >= 0 ? `everything goes to P${ev.to + 1}` : 'property goes back to the bank', '#7a1f17');
+      banner(`${PNAME[p].toUpperCase()} IS BANKRUPT`, ev.to >= 0 ? `everything goes to ${PNAME[ev.to]}` : 'property goes back to the bank', '#7a1f17');
       logEvent(`${who(p)} goes bankrupt${ev.to >= 0 ? ' to ' + who(ev.to) : ''}`, p, turnNo);
       await glide(p, [500, 500], dur(700));
       state.alive[p] = false; tokens[p].setAttribute('opacity', 0); renderPlayers();
@@ -732,8 +1036,12 @@ function setRound(t) {
 }
 async function playGame(g) {
   game = g; skipping = false; nextNow = false; odds = []; shownTurn = 0; oddsWanted = 0;
+  offer = null; values = {}; decisions = []; hud.deed.setAttribute('opacity', 0);
+  $('decision').innerHTML = '<div class="sub">When someone lands on an unowned property, this shows what it is worth to them right now.</div>';
+  $('decisions').innerHTML = '';
+  if (analysisOn && g.decisions) getValue(0, 0);  // start working on the first decisions straight away
   $('events').replaceChildren();
-  ['lastChance', 'lastChest'].forEach(id => { $(id).querySelector('.tx').textContent = '—'; $(id).querySelector('.who').textContent = ''; });
+  ['lastChance', 'lastChest'].forEach(id => { $(id).querySelector('.tx').textContent = '—'; $(id).querySelector('.by').textContent = ''; });
   $('gameTitle').textContent = g.kind === 'live' ? 'Now replaying a real game from your PC' : 'Demo game';
   $('about').textContent = g.about || (g.step ? `From step ${g.step.split('/').pop()}` : '');
   const when = g.sampled_at ? new Date(g.sampled_at * 1000).toLocaleTimeString('en-GB') : '';
@@ -764,10 +1072,10 @@ async function playGame(g) {
   const final = turns.length ? turns[turns.length - 1].state : g.log.start;
   applyState({ ...final, winner: r.capped && g.scoring === 'loss' ? null : r.winner });
   if (r.capped) {
-    banner('TIME LIMIT', g.scoring === 'loss' ? 'nobody wins a stopped game' : `P${r.winner + 1} leads on net worth`, r.winner != null ? PCOL[r.winner] : 'var(--ink)');
+    banner('TIME LIMIT', g.scoring === 'loss' ? 'nobody wins a stopped game' : `${PNAME[r.winner]} leads on net worth`, r.winner != null ? PCOL[r.winner] : 'var(--ink)');
     logEvent(`Time limit: the game stops after ${Math.round(r.turns / g.n_players)} rounds`);
   } else {
-    banner(`P${r.winner + 1} WINS!`, game.players[r.winner].label, PCOL[r.winner]);
+    banner(`${PNAME[r.winner].toUpperCase()} WINS!`, game.players[r.winner].label, PCOL[r.winner]);
     logEvent(`${who(r.winner)} wins after ${r.turns} turns`, r.winner);
   }
   renderChart();
@@ -783,7 +1091,7 @@ const ODDS_GAP_MS = 500;
 async function oddsLoop() {
   let lastAsked = -1, lastGame = null, lastAt = 0;
   while (true) {
-    if (!oddsOn || paused || !game || (game.id === lastGame && oddsWanted === lastAsked)) { await new Promise(r => setTimeout(r, 200)); continue; }
+    if (!analysisOn || paused || !game || (game.id === lastGame && oddsWanted === lastAsked)) { await new Promise(r => setTimeout(r, 200)); continue; }
     const wait = ODDS_GAP_MS - (performance.now() - lastAt);
     if (wait > 0) { await new Promise(r => setTimeout(r, wait)); continue; }
     const gid = game.id, t = oddsWanted;
@@ -850,10 +1158,12 @@ function buildToolbar() {
   btn('Next game', 'go', () => { skipping = true; nextNow = true; });
   bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
   const showOdds = () => {
-    ob.textContent = `Win chances: ${oddsOn ? 'on' : 'off'}`; ob.className = oddsOn ? 'on' : '';
-    $('chartCard').style.display = oddsOn ? '' : 'none'; renderPlayers(); renderChart();
+    ob.textContent = `Analysis: ${analysisOn ? 'on' : 'off'}`; ob.className = analysisOn ? 'on' : '';
+    ob.title = 'Win chances and property values (they use one thread at low priority)';
+    $('chartCard').style.display = analysisOn ? '' : 'none'; $('valueCard').style.display = analysisOn ? '' : 'none';
+    renderPlayers(); renderChart();
   };
-  const ob = btn('', '', () => { oddsOn = !oddsOn; showOdds(); });
+  const ob = btn('', '', () => { analysisOn = !analysisOn; showOdds(); });
   showOdds();
 }
 
@@ -871,6 +1181,8 @@ async function main() {
   B.squares.forEach(sq => drawSquare(svg, sq));
   el('rect', { x: C, y: C, width: 1000 - 2 * C, height: 1000 - 2 * C, fill: 'none', stroke: 'var(--board-line)', 'stroke-width': 2.4 }, svg);
   el('g', { id: 'tokens' }, svg);
+  drawJailBars(svg);
+  hud.deed = el('g', { opacity: 0, 'pointer-events': 'none' }, svg);
   buildToolbar();
   pollStatus();
   requestAnimationFrame(tickCounter);
