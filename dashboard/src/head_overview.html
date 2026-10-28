@@ -1,0 +1,176 @@
+<div class="mm">
+  <header class="mm-head" id="top">
+    <div class="mm-brand">
+      <h1 class="mm-title">Monopoly Meta<small>Classic UK edition, two to six players</small></h1>
+      <div class="mm-stripe" aria-hidden="true"><i style="--c: var(--mm-brown)"></i><i style="--c: var(--mm-light-blue)"></i><i style="--c: var(--mm-pink)"></i><i style="--c: var(--mm-orange)"></i><i style="--c: var(--mm-red)"></i><i style="--c: var(--mm-yellow)"></i><i style="--c: var(--mm-green)"></i><i style="--c: var(--mm-dark-blue)"></i></div>
+    </div>
+    <p class="mm-lede">Every property, trade and strategy in classic UK Monopoly, worked out from exact landing odds, Monte Carlo tournaments, paired rollouts and agents found by self-play.</p>
+    <p class="mm-take" id="takeaway">With <b data-draw="take-n">—</b> players, <b data-draw="take-set" data-source="set_economics" data-field="group">—</b> pays for itself fastest and the first player wins <b data-draw="take-seat" data-source="seats" data-field="relative">—</b> their fair share.</p>
+    <div class="mm-bar">
+      <div class="mm-ctl"><span class="mm-label" id="lbl-players">Players</span>
+        <div class="mm-seg" role="group" aria-labelledby="lbl-players">
+          <button type="button" data-players="2" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>2</button>
+          <button type="button" data-players="3" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>3</button>
+          <button type="button" data-players="4" aria-pressed="true"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>4</button>
+          <button type="button" data-players="5" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>5</button>
+          <button type="button" data-players="6" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>6</button>
+        </div>
+      </div>
+      <div class="mm-ctl"><span class="mm-label" id="lbl-rules">Rules</span>
+        <div class="mm-seg" role="group" aria-labelledby="lbl-rules">
+          <button type="button" data-rules="Official rules" aria-pressed="true">Official</button>
+          <button type="button" data-rules="Championship rules" aria-pressed="false">Championship<span class="mm-wide-only">&nbsp;(Speed Die)</span></button>
+        </div>
+      </div>
+    </div>
+    <nav class="mm-tabs" role="tablist" aria-label="Sections">
+      <button type="button" role="tab" data-tab="overview" aria-selected="true" style="--band: var(--mm-red)">The board</button>
+      <button type="button" role="tab" data-tab="properties" aria-selected="false" style="--band: var(--mm-orange)">Properties</button>
+      <button type="button" role="tab" data-tab="trades" aria-selected="false" style="--band: var(--mm-green)">Trading floor</button>
+      <button type="button" role="tab" data-tab="strategies" aria-selected="false" style="--band: var(--mm-light-blue)">Strategies</button>
+      <button type="button" role="tab" data-tab="meta" aria-selected="false" style="--band: var(--mm-dark-blue)">Champions<span class="mm-wide-only">' table</span></button>
+    </nav>
+  </header>
+
+  <!-- ============================== THE BOARD ============================== -->
+  <section class="mm-page" id="overview" data-page="overview">
+    <div class="mm-tiles">
+      <div class="mm-card mm-tile mm-banded" id="tile-landed" style="--band: var(--mm-red)">
+        <span class="mm-tile-label">Most-landed property</span>
+        <span class="mm-big" data-draw="kpi-landed-name" data-source="squares" data-field="name">—</span>
+        <span class="mm-sub"><span data-draw="kpi-landed-rate" data-source="squares" data-field="landings_per_100_turns">—</span> landings per 100 turns</span>
+      </div>
+      <div class="mm-card mm-tile mm-banded" id="tile-payback" style="--band: var(--mm-orange)">
+        <span class="mm-tile-label">Fastest payback with hotels</span>
+        <span class="mm-big" data-draw="kpi-set-name" data-source="set_economics" data-field="group">—</span>
+        <span class="mm-sub"><span data-draw="kpi-set-rounds" data-source="set_economics" data-field="payback_rounds">—</span> rounds to repay the set and hotels</span>
+      </div>
+      <div class="mm-card mm-tile mm-banded" id="tile-seat" style="--band: var(--mm-light-blue)">
+        <span class="mm-tile-label">First player's edge</span>
+        <span class="mm-big" data-draw="kpi-seat" data-source="seats" data-field="relative">—</span>
+        <span class="mm-sub">times their fair share, identical bots</span>
+      </div>
+      <div class="mm-card mm-tile mm-banded" id="tile-length" style="--band: var(--mm-green)">
+        <span class="mm-tile-label">Median game length</span>
+        <span class="mm-big" data-draw="kpi-length" data-source="game_length" data-field="median_rounds">—</span>
+        <span class="mm-sub">rounds, simple bots</span>
+      </div>
+      <div class="mm-card mm-tile mm-banded" id="tile-deal" style="--band: var(--mm-yellow)">
+        <span class="mm-tile-label">Vine Street deal zone</span>
+        <span class="mm-big"><span data-draw="kpi-deal-lo" data-source="deal_zones" data-field="seller_break_even">—</span>–<span data-draw="kpi-deal-hi" data-source="deal_zones" data-field="buyer_maximum">—</span></span>
+        <span class="mm-sub">prices where buyer and seller both gain, simple bots</span>
+      </div>
+      <div class="mm-card mm-tile mm-banded" id="tile-meta" style="--band: var(--mm-dark-blue)">
+        <span class="mm-tile-label">Meta agent vs a simple bot</span>
+        <span class="mm-big" data-draw="kpi-meta" data-source="meta_checks" data-field="relative">—</span>
+        <span class="mm-sub">wins, relative to a simple bot in its seat</span>
+      </div>
+    </div>
+
+    <div class="mm-split">
+      <div class="mm-card" id="board-card">
+        <div class="mm-cardhead">
+          <div><span class="mm-kicker">Roll the dice</span><h2>Where the dice take you</h2></div>
+          <div class="mm-ctl">
+            <div class="mm-seg" role="group" aria-label="Board view">
+              <button type="button" data-view="3d" aria-pressed="true">3D</button>
+              <button type="button" data-view="flat" aria-pressed="false">2D</button>
+            </div>
+            <button type="button" class="mm-icon" data-rotate="1" aria-label="Turn the board left">⟲</button>
+            <button type="button" class="mm-icon" data-rotate="-1" aria-label="Turn the board right">⟳</button>
+          </div>
+        </div>
+        <div class="mm-boardbar">
+          <div class="mm-seg" role="group" aria-label="What the board shows">
+            <button type="button" data-bmode="towers" aria-pressed="true">Landings</button>
+            <button type="button" data-bmode="rent" aria-pressed="false">Top rent</button>
+            <button type="button" data-bmode="worth" aria-pressed="false">Worth to a set</button>
+            <button type="button" data-bmode="roll" aria-pressed="false">Roll from here</button>
+          </div>
+          <button type="button" class="mm-go" data-roll hidden>Roll the dice</button>
+        </div>
+        <p class="mm-note" data-bnote="towers">Each tower is as tall as the square's expected landings per 100 turns, from the exact Markov chain (players stay in jail and roll for doubles). Landing odds are the same at every table size. Drag to turn the board; tap a square for its card.</p>
+        <p class="mm-note" data-bnote="rent" hidden>Each tower is as tall as the most rent the square can charge: a street with a hotel, or a station when one player owns all four. Utilities charge by the dice, so they have no tower.</p>
+        <p class="mm-note" data-bnote="worth" hidden>Each tower is as tall as the most the player it completes a set for should pay, at the chosen table size, from paired rollouts against simple bots. Squares with no price that helps the buyer have no tower.</p>
+        <p class="mm-note" data-bnote="roll" hidden>The board lights up where one throw from the pawn's square can take you, cards and Go to Jail included, from the exact chain. Roll the dice to move the pawn; the light follows it.</p>
+        <div class="mm-board" id="board" data-draw="board" data-source="squares deeds moves property_zones"></div>
+      </div>
+
+      <div class="mm-card mm-deed" id="square-card">
+        <div class="mm-deed-band">
+          <span class="mm-kicker mm-deed-own" data-draw="deed-group" data-source="squares" data-field="group">—</span>
+          <span class="mm-kicker mm-deed-other" data-draw="deed-type" data-source="squares" data-field="type" hidden>—</span>
+          <h2 data-draw="sq-name" data-source="squares" data-field="name">—</h2>
+        </div>
+        <div class="mm-deed-body">
+          <dl class="mm-dl">
+            <dt class="mm-deed-own">Price</dt><dd class="mm-deed-own"><span class="mm-cash" data-draw="sq-price" data-source="squares" data-field="price">—</span></dd>
+            <dt>Landings per 100 turns</dt><dd data-draw="sq-rate" data-source="squares" data-field="landings_per_100_turns">—</dd>
+            <dt>If players leave jail at once</dt><dd data-draw="sq-rate-short" data-source="squares" data-field="landings_per_100_turns_short_jail">—</dd>
+            <dt>Share of all landings</dt><dd data-draw="sq-share" data-source="squares" data-field="landing_share_pct">—</dd>
+          </dl>
+          <div class="mm-deed-street">
+            <hr class="mm-deed-rule">
+            <table class="mm-rent" aria-label="Rent by development level">
+              <tbody>
+                <tr><td>Rent, site only</td><td data-draw="rent-site" data-source="squares" data-field="rent_site">—</td></tr>
+                <tr><td>With the whole colour set</td><td data-draw="rent-set" data-source="squares" data-field="rent_set">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i></span>With 1 house</td><td data-draw="rent-1" data-source="squares" data-field="rent_1_house">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i><i></i></span>With 2 houses</td><td data-draw="rent-2" data-source="squares" data-field="rent_2_houses">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i><i></i><i></i></span>With 3 houses</td><td data-draw="rent-3" data-source="squares" data-field="rent_3_houses">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i><i></i><i></i><i></i></span>With 4 houses</td><td data-draw="rent-4" data-source="squares" data-field="rent_4_houses">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i class="mm-hotel"></i></span>With a hotel</td><td data-draw="rent-h" data-source="squares" data-field="rent_hotel">—</td></tr>
+              </tbody>
+            </table>
+            <dl class="mm-dl"><dt>Each house costs</dt><dd data-draw="deed-house" data-source="deeds" data-field="house_cost">—</dd></dl>
+          </div>
+          <div class="mm-deed-station" hidden>
+            <hr class="mm-deed-rule">
+            <table class="mm-rent" aria-label="Station rent">
+              <tbody>
+                <tr><td>Rent, one station owned</td><td data-draw="st-1" data-source="deeds" data-field="rent_1_stations">—</td></tr>
+                <tr><td>Two owned</td><td data-draw="st-2" data-source="deeds" data-field="rent_2_stations">—</td></tr>
+                <tr><td>Three owned</td><td data-draw="st-3" data-source="deeds" data-field="rent_3_stations">—</td></tr>
+                <tr><td>All four owned</td><td data-draw="st-4" data-source="deeds" data-field="rent_4_stations">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mm-deed-utility" hidden>
+            <hr class="mm-deed-rule">
+            <table class="mm-rent" aria-label="Utility rent">
+              <tbody>
+                <tr><td>One utility owned: the dice ×</td><td data-draw="ut-1" data-source="deeds" data-field="dice_x_1_utilities">—</td></tr>
+                <tr><td>Both owned: the dice ×</td><td data-draw="ut-2" data-source="deeds" data-field="dice_x_2_utilities">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mm-deed-tax" hidden>
+            <hr class="mm-deed-rule">
+            <dl class="mm-dl"><dt>Pay the bank</dt><dd><span class="mm-cash" data-draw="deed-tax" data-source="deeds" data-field="tax">—</span></dd></dl>
+          </div>
+          <div class="mm-deed-own">
+            <hr class="mm-deed-rule">
+            <dl class="mm-dl">
+              <dt>Mortgage value</dt><dd data-draw="deed-mortgage" data-source="deeds" data-field="mortgage_value">—</dd>
+              <dt>To lift the mortgage</dt><dd data-draw="deed-unmortgage" data-source="deeds" data-field="unmortgage_cost">—</dd>
+            </dl>
+          </div>
+          <div class="mm-deed-zone">
+            <hr class="mm-deed-rule">
+            <span class="mm-kicker">Worth to the player it completes a set for, at <span data-draw="deed-n">—</span> players</span>
+            <dl class="mm-dl">
+              <dt>Seller breaks even at</dt><dd data-draw="deed-lo" data-source="property_zones" data-field="seller_break_even">—</dd>
+              <dt>Buyer gains up to</dt><dd data-draw="deed-hi" data-source="property_zones" data-field="buyer_maximum">—</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mm-card" id="ranking-card">
+      <span class="mm-kicker">Most visited</span>
+      <h2>Which properties get landed on most</h2>
+      <p class="mm-note">All 28 properties ranked by expected landings per 100 turns, in their board colours. Select one for its card.</p>
+      <div class="mm-chart" data-draw="ranking" data-source="squares"></div>
+    </div>
+  </section>

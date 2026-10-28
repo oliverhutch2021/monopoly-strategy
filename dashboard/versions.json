@@ -1,6 +1,6 @@
 {
  "dash/meta": 1,
- "dash/params": 2,
+ "dash/params": 3,
  "datasets/squares": 1,
  "datasets/set_economics": 1,
  "datasets/strategies": 1,
@@ -12,8 +12,12 @@
  "datasets/meta_checks": 2,
  "datasets/meta_ablations": 2,
  "datasets/hardening": 2,
- "files/index.html": 2,
+ "files/index.html": 3,
  "datasets/property_trades": 1,
  "datasets/property_zones": 1,
- "datasets/meta_vs_simple": 1
+ "datasets/meta_vs_simple": 1,
+ "datasets/moves": 1,
+ "datasets/deeds": 1,
+ "files/theme.css": 1,
+ "files/board3d.js": 1
 }

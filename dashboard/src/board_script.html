@@ -1,0 +1,257 @@
+<script>
+// ---------------------------------------------------------------- the board (3D and 2D), the property card, the ranking
+(() => {
+  const { P, BOARD, GROUP, SHORT, ok, rows, where, f1, f2, money, tip, line, rgb, ink, heat, textWidth, axisStyle, svgFor, clip } = mm;
+  const pick = (sq) => dash.setParams({ square: +sq });
+  const OWNABLE = ['street', 'station', 'utility'];
+  const TYPE = { go: 'Corner', jail: 'Corner', free_parking: 'Corner', go_to_jail: 'Corner', chance: 'Chance', community_chest: 'Community Chest', tax: 'Tax' };
+  const deed = (sq) => rows('deeds').find((r) => +r.square === +sq);
+  const zoneOf = (sq, n) => rows('property_zones').find((r) => r.opponents === 'Simple bots' && +r.n_players === n && +r.square === +sq);
+
+  // what each board mode measures: a value per square (null = no tower) and how it reads
+  const MODES = {
+    towers: { value: (r) => +r.landings_per_100_turns, label: (v) => f2(v), unit: 'landings per 100 turns' },
+    rent: {
+      value: (r) => (r.type === 'street' ? +r.rent_hotel : r.type === 'station' ? +(deed(r.square) || {}).rent_4_stations : null),
+      label: (v) => money(v), unit: 'top rent',
+    },
+    worth: {
+      value: (r) => { const z = zoneOf(r.square, P().n); return z && z.buyer_maximum !== '' ? +z.buyer_maximum : null; },
+      label: (v) => money(v), unit: 'buyer\'s maximum',
+    },
+  };
+  const values = (mode) => {
+    const m = MODES[mode] || MODES.towers;
+    return rows('squares').map((r) => { const v = m.value(r); return v == null || Number.isNaN(v) ? null : v; });
+  };
+  const odds = (from) => {
+    const p = Array(40).fill(null);
+    rows('moves').filter((r) => +r.from_square === +from).forEach((r) => { p[+r.to_square] = +r.p_roll; });
+    return p;
+  };
+  const pct = (p) => (p >= 0.095 ? d3.format('.0%')(p) : d3.format('.1%')(p));
+
+  // the board's colours, read from the theme so it follows light and dark
+  const palette = (el) => {
+    const c = (v, fb) => MMBoard3D.rgba(rgb(el, v, fb));
+    return {
+      paper: c('var(--mm-board-paper)', 'rgb(239, 230, 204)'), ink: c('var(--mm-board-ink)', 'rgb(34, 29, 22)'),
+      line: c('var(--mm-board-line)', 'rgb(70, 62, 50)'), side: c('var(--mm-board-side)', 'rgb(205, 189, 150)'),
+      neutral: c('var(--mm-board-neutral)', 'rgb(206, 193, 160)'), accent: c('var(--mm-brick)', 'rgb(196, 69, 47)'),
+      glow: c('var(--mm-gold)', 'rgb(201, 150, 42)'), pawn: c('var(--mm-pawn)', 'rgb(184, 57, 43)'),
+      groups: Object.fromEntries(Object.entries(BOARD).map(([g, v]) => [g, c(v, 'rgb(128, 128, 128)')])),
+    };
+  };
+
+  // ---- the 2D board: the same squares as a flat plan, coloured by the chosen measure
+  const cell = (i) => {
+    if (i <= 10) return [10 - i, 10];
+    if (i <= 20) return [0, 20 - i];
+    if (i <= 30) return [i - 20, 0];
+    return [10, i - 30];
+  };
+  const flat = (el, data, vals, mode, label, onTip) => {
+    const size = Math.min(Math.max(260, el.clientWidth || 600), 720);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img')
+      .attr('aria-label', 'Flat board coloured by the chosen measure');
+    const c = size / 11, pad = 1.2;
+    const present = vals.filter((v) => v != null);
+    const color = heat(el, d3.min(present), d3.max(present), mode === 'roll' ? 'var(--mm-gold)' : 'var(--mm-orange)');
+    const paper = rgb(el, 'var(--mm-board-paper)', 'rgb(239, 230, 204)');
+    svg.append('rect').attr('width', size).attr('height', size).attr('rx', 8).attr('fill', paper).attr('stroke', 'var(--mm-board-line)');
+    const sel = P().square;
+    data.forEach((r, i) => {
+      const [cx, cy] = cell(+r.square), v = vals[i];
+      const fill = v == null ? paper : color(v);
+      const node = svg.append('g').attr('transform', `translate(${cx * c},${cy * c})`).style('cursor', 'pointer')
+        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${r.name}${v == null ? '' : ': ' + label(v)}`);
+      node.append('rect').attr('x', pad).attr('y', pad).attr('width', c - 2 * pad).attr('height', c - 2 * pad).attr('rx', 2).attr('fill', fill)
+        .attr('stroke', +r.square === sel ? 'var(--mm-brick)' : 'var(--mm-board-line)').attr('stroke-width', +r.square === sel ? 3 : 0.8);
+      if (r.type === 'street' && BOARD[r.group]) {
+        const b = c * 0.18;
+        const [bx, by, bw, bh] = cy === 10 ? [pad, pad, c - 2 * pad, b] : cy === 0 ? [pad, c - pad - b, c - 2 * pad, b]
+          : cx === 0 ? [c - pad - b, pad, b, c - 2 * pad] : [pad, pad, b, c - 2 * pad];
+        node.append('rect').attr('x', bx).attr('y', by).attr('width', bw).attr('height', bh).attr('fill', BOARD[r.group]);
+      }
+      const fit = (text, maxW) => {
+        const len = text.node().getComputedTextLength();
+        if (len > maxW) text.style('font-size', `${(parseFloat(text.style('font-size')) * maxW) / len}px`);
+      };
+      const tint = ink(fill);
+      if (c >= 56) {
+        fit(node.append('text').attr('x', c / 2).attr('y', c * 0.52).attr('text-anchor', 'middle').attr('fill', tint).style('font-family', 'var(--mm-display)')
+          .style('font-size', `${c * 0.13}px`).text((SHORT[r.name] || r.name).toUpperCase()), c - 10);
+        if (v != null) fit(node.append('text').attr('x', c / 2).attr('y', c * 0.76).attr('text-anchor', 'middle').attr('fill', tint).style('font-weight', 600)
+          .style('font-size', `${c * 0.15}px`).style('font-variant-numeric', 'tabular-nums').text(label(v)), c - 10);
+      } else if (v != null) {
+        fit(node.append('text').attr('x', c / 2).attr('y', c / 2).attr('dy', '0.35em').attr('text-anchor', 'middle').attr('fill', tint)
+          .style('font-size', `${c * 0.24}px`).style('font-variant-numeric', 'tabular-nums').text(label(v)), c - 6);
+      }
+      node.on('click', () => pick(r.square)).on('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); pick(r.square); } })
+        .on('pointermove', (event) => onTip(i, event)).on('pointerleave', () => onTip(null));
+    });
+    svg.append('text').attr('x', size / 2).attr('y', size / 2).attr('text-anchor', 'middle').attr('fill', 'var(--mm-board-ink)')
+      .style('font-family', 'var(--mm-display)').style('font-weight', 700).style('letter-spacing', '.12em').style('font-size', `${c * 0.36}px`)
+      .text(mode === 'roll' ? 'ONE THROW' : MODES[mode].unit.toUpperCase());
+  };
+
+  // ---- the shared drawing: a 3D board when WebGL is there and wanted, else the flat one
+  let live = null, lastRoll = null;
+  const rollDice = async () => {
+    const from = P().square;
+    if (live && live.board && P().view !== 'flat') return live.board.roll();
+    const d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6);
+    let to = (from + d1 + d2) % 40;
+    if (to === 30) to = 10;
+    return { d1, d2, from, to };
+  };
+  document.querySelectorAll('[data-roll]').forEach((b) => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const r = await rollDice();
+    b.disabled = false;
+    if (!r) return;
+    lastRoll = r;
+    dash.setParams({ square: r.to });
+  }));
+  document.querySelectorAll('[data-rotate]').forEach((b) => b.addEventListener('click', () => {
+    if (live && live.board) live.board.turn((+b.dataset.rotate * Math.PI) / 4);
+  }));
+
+  dash.draw('board', {
+    mount(el) {
+      const box3 = document.createElement('div'), flatBox = document.createElement('div'), cap = document.createElement('div');
+      flatBox.className = 'mm-board-flat'; cap.className = 'mm-board-cap';
+      el.append(box3, flatBox, cap);
+      const t = tip(el);
+      const made = { box3, flatBox, cap, t, board: null, mode: 'towers', vals: [] };
+      const hover = (i, event) => {
+        if (i == null || !ok('squares')) return t.hide();
+        const r = rows('squares')[i];
+        if (!r) return t.hide();
+        const parts = [line(r.name, 'mm-tip-head')];
+        const v = made.vals[i];
+        if (made.mode === 'roll') parts.push(line(v ? `${pct(v)} chance to land here in one throw` : 'Out of reach in one throw'));
+        else if (v != null) parts.push(line(`${MODES[made.mode].label(v)} ${MODES[made.mode].unit}`));
+        if (r.price) parts.push(line(`Price ${money(+r.price)}`));
+        t.show(event, parts);
+      };
+      made.hover = hover;
+      if (window.MMBoard3D) made.board = MMBoard3D.create(box3, { onPick: pick, onHover: hover });
+      live = made;
+      return made;
+    },
+    update(el, made) {
+      made.t.hide();
+      if (!ok('squares', 'deeds', 'moves')) { made.box3.hidden = true; made.flatBox.replaceChildren(); made.cap.textContent = ''; return; }
+      const { view, square, bmode, n } = P();
+      const mode = (bmode in MODES || bmode === 'roll') ? bmode : 'towers';
+      const data = rows('squares');
+      const vals = mode === 'roll' ? odds(square) : values(mode);
+      made.mode = mode; made.vals = vals;
+      const use3d = view !== 'flat' && !!made.board;
+      made.box3.hidden = !use3d; made.flatBox.hidden = use3d;
+      const label = mode === 'roll' ? pct : MODES[mode].label;
+      // labels over the board: the chosen square, and in roll mode the likeliest landings
+      const labels = [];
+      if (mode === 'roll') {
+        vals.map((p, i) => [p, i]).filter(([p]) => p).sort((a, b) => b[0] - a[0]).slice(0, 5).forEach(([p, i]) => labels.push({ square: i, text: pct(p) }));
+        labels.push({ square: square, text: 'Start', strong: true });
+      } else if (vals[square] != null) labels.push({ square, text: label(vals[square]), strong: true });
+      if (use3d) {
+        const present = vals.filter((v) => v != null), top = d3.max(present) || 1;
+        const deeds = rows('deeds');
+        made.board.set({
+          squares: data.map((r) => ({ ...r, tax: (deeds.find((d) => +d.square === +r.square) || {}).tax || null })),
+          colors: palette(el), selected: square, mode: mode === 'roll' ? 'roll' : 'towers',
+          heights: mode === 'roll' ? Array(40).fill(null) : vals.map((v) => (v == null ? null : v / top)),
+          moves: mode === 'roll' ? vals : null, labels,
+        });
+        made.board.canvas.setAttribute('aria-label', mode === 'roll'
+          ? `3D board: where one throw from ${data[square].name} can take you`
+          : `3D board: towers show ${MODES[mode].unit}; tallest ${data[d3.maxIndex(vals, (v) => (v == null ? -1 : v))].name}`);
+      } else {
+        made.flatBox.replaceChildren();
+        flat(made.flatBox, data, vals, mode, label, made.hover);
+      }
+      const r = lastRoll;
+      made.cap.textContent = r && r.to === square && mode === 'roll'
+        ? `Rolled ${r.d1} + ${r.d2}${r.d1 === r.d2 ? ', a double' : ''}: ${data[(r.from + r.d1 + r.d2) % 40].name}${(r.from + r.d1 + r.d2) % 40 === 30 ? ', straight to jail' : ''}`
+        : '';
+      if (mode !== 'roll') lastRoll = null;
+    },
+    unmount(el, made) { if (made.board) made.board.destroy(); if (live === made) live = null; },
+  });
+
+  // ---- the property card
+  const current = () => rows('squares').find((r) => +r.square === P().square);
+  const field = (name, fmt) => (el) => {
+    const r = ok('squares') && current();
+    if (!r || r[name] === '' || r[name] == null) { delete el.dataset.where; el.textContent = '—'; return; }
+    el.dataset.where = where({ square: r.square });
+    el.textContent = fmt(r[name], r);
+  };
+  const deedField = (name, fmt) => (el) => {
+    const d = ok('deeds') && deed(P().square);
+    if (!d || d[name] === '' || d[name] == null) { delete el.dataset.where; el.textContent = '—'; return; }
+    el.dataset.where = where({ square: d.square });
+    el.textContent = fmt(d[name]);
+  };
+  const zoneField = (name) => (el) => {
+    const { n, square } = P(), z = ok('property_zones') && zoneOf(square, n);
+    if (!z || z[name] === '' || z[name] == null) {
+      delete el.dataset.where;
+      el.textContent = z ? (name === 'buyer_maximum' ? (z.buyer_note || 'none') : (z.seller_note || 'none')) : '—';
+      return;
+    }
+    el.dataset.where = where({ key: z.key });
+    el.textContent = money(+z[name]) + (name === 'buyer_maximum' && String(z.buyer_maximum_is_all_cash) === 'True' ? '+' : '');
+  };
+  dash.draw('sq-name', field('name', (v) => v));
+  dash.draw('deed-group', field('group', (v) => (v === 'stations' || v === 'utilities' ? GROUP[v].replace(/s$/, '') : `${GROUP[v]} set`)));
+  dash.draw('deed-type', field('type', (v) => TYPE[v] || v));
+  dash.draw('sq-rate', field('landings_per_100_turns', (v) => f2(+v)));
+  dash.draw('sq-rate-short', field('landings_per_100_turns_short_jail', (v) => f2(+v)));
+  dash.draw('sq-share', field('landing_share_pct', (v) => f2(+v) + '%'));
+  dash.draw('sq-price', field('price', (v) => money(+v)));
+  [['rent-site', 'rent_site'], ['rent-set', 'rent_set'], ['rent-1', 'rent_1_house'], ['rent-2', 'rent_2_houses'],
+    ['rent-3', 'rent_3_houses'], ['rent-4', 'rent_4_houses'], ['rent-h', 'rent_hotel']].forEach(([d, f]) => dash.draw(d, field(f, (v) => money(+v))));
+  dash.draw('deed-house', deedField('house_cost', (v) => money(+v)));
+  [1, 2, 3, 4].forEach((k) => dash.draw(`st-${k}`, deedField(`rent_${k}_stations`, (v) => money(+v))));
+  [1, 2].forEach((k) => dash.draw(`ut-${k}`, deedField(`dice_x_${k}_utilities`, (v) => String(+v))));
+  dash.draw('deed-tax', deedField('tax', (v) => money(+v)));
+  dash.draw('deed-mortgage', deedField('mortgage_value', (v) => money(+v)));
+  dash.draw('deed-unmortgage', deedField('unmortgage_cost', (v) => money(+v)));
+  dash.draw('deed-n', (el) => { el.textContent = String(P().n); });
+  dash.draw('deed-lo', zoneField('seller_break_even'));
+  dash.draw('deed-hi', zoneField('buyer_maximum'));
+
+  // ---- the ranking
+  const tipParts = (r) => [line(r.name, 'mm-tip-head'), line(`${f2(+r.landings_per_100_turns)} landings per 100 turns`), ...(r.price ? [line(`Price ${money(+r.price)}`)] : [])];
+  dash.draw('ranking', (el) => {
+    el.replaceChildren();
+    if (!ok('squares')) return;
+    const data = rows('squares').filter((r) => OWNABLE.includes(r.type)).sort((a, b) => +b.landings_per_100_turns - +a.landings_per_100_turns);
+    const narrow = el.clientWidth < 520, rowH = 22, H = data.length * rowH + 26;
+    const { svg, w } = svgFor(el, H);
+    const name = (r) => (narrow ? SHORT[r.name] || r.name : r.name);
+    const left = textWidth(svg, data.map(name)) + 22;
+    const x = d3.scaleLinear([0, d3.max(data, (r) => +r.landings_per_100_turns) * 1.08], [left, w - 40]);
+    const y = d3.scaleBand(data.map((r) => r.square), [4, H - 22]).padding(0.22);
+    svg.append('g').attr('transform', `translate(0,${H - 22})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 70))).tickSize(-(H - 26))).call(axisStyle).call((g) => g.select('.domain').remove());
+    const t = tip(el), sel = P().square;
+    data.forEach((r) => {
+      const v = +r.landings_per_100_turns, yy = y(r.square);
+      const row = svg.append('g').style('cursor', 'pointer').on('click', () => pick(r.square))
+        .on('pointermove', (event) => t.show(event, tipParts(r))).on('pointerleave', () => t.hide());
+      row.append('rect').attr('x', 0).attr('y', yy - 2).attr('width', w).attr('height', y.bandwidth() + 4).attr('fill', 'transparent');
+      row.append('rect').attr('x', left - 14).attr('y', yy + y.bandwidth() / 2 - 4).attr('width', 8).attr('height', 8).attr('rx', 2).attr('fill', BOARD[r.group] || 'var(--mm-muted)');
+      clip(row.append('text').attr('x', left - 20).attr('y', yy + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
+        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', +r.square === sel ? 700 : 400).text(name(r)), left - 22);
+      row.append('rect').attr('x', left).attr('y', yy).attr('width', Math.max(0, x(v) - left)).attr('height', y.bandwidth()).attr('rx', 3)
+        .attr('fill', BOARD[r.group] || 'var(--mm-muted)').attr('opacity', +r.square === sel ? 1 : 0.62);
+      row.append('text').attr('x', x(v) + 4).attr('y', yy + y.bandwidth() / 2).attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)')
+        .style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').text(f2(v));
+    });
+  });
+})();
+</script>

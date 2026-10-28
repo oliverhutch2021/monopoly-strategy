@@ -1,145 +1,70 @@
 <meta name="dash-one-writer">
-<style>
-.mm { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); max-width: 1240px; margin-inline: auto; min-width: 0; }
-.mm-head { display: grid; gap: var(--cds-gap-sm); min-width: 0; }
-.mm-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
-.mm-lede { margin: 0; color: var(--color-fg-muted); max-width: 72ch; }
-.mm .mm-lede b, .mm .mm-take b { font-weight: 600; }
-.mm-take { margin: 0; max-width: 72ch; }
-.mm-bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-lg); align-items: center; }
-.mm-ctl { display: inline-flex; align-items: center; gap: var(--cds-gap-sm); flex-wrap: wrap; min-width: 0; max-width: 100%; }
-.mm-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.mm-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
-.mm-seg button { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); background: transparent; color: var(--color-fg); border: 0; border-left: 1px solid var(--color-border-line); cursor: pointer; font-variant-numeric: tabular-nums; min-height: 2rem; }
-.mm-seg button:first-child { border-left: 0; }
-.mm-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
-.mm-icon { font: inherit; background: transparent; color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; min-height: 2rem; }
-.mm [hidden] { display: none !important; }
-.mm-seg button:focus-visible, .mm-tabs button:focus-visible, .mm-icon:focus-visible, .mm select:focus-visible, .mm input:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
-.mm select { font: inherit; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); max-width: 100%; min-width: 0; min-height: 2rem; }
-.mm-tabs { display: flex; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); overflow-x: auto; scrollbar-width: none; }
-.mm-tabs button { font: inherit; background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: var(--cds-pad-sm) var(--cds-pad-md); cursor: pointer; white-space: nowrap; }
-.mm-tabs button[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
-.mm-page { display: grid; gap: var(--cds-gap-lg); min-width: 0; }
-.mm-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
-.mm-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; display: grid; gap: var(--cds-gap-sm); align-content: start; }
-.mm-card h2, .mm-card h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); text-wrap: balance; }
-.mm-cardhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cds-gap-sm); }
-.mm-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 80ch; }
-.mm-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); }
-.mm-tile { gap: var(--cds-gap-xs); }
-.mm-tile-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.mm-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; overflow-wrap: anywhere; }
-.mm-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
-.mm-chart { position: relative; min-height: 280px; min-width: 0; }
-.mm-chart.mm-tall { min-height: 360px; }
-.mm-chart svg { display: block; overflow: visible; }
-.mm-drag { cursor: grab; touch-action: pan-y; }
-.mm-drag:active { cursor: grabbing; }
-.mm-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 3; color: var(--color-fg); }
-.mm-tip .mm-tip-head { color: var(--cds-text-secondary); }
-.mm-tip i { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; margin-right: 0.35rem; }
-.mm-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.mm-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
-.mm-legend i { display: inline-block; width: 0.75rem; height: 0.25rem; border-radius: 2px; }
-.mm-legend i.mm-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; }
-.mm-split { display: grid; gap: var(--cds-gap-md); grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
-.mm-dl { display: grid; grid-template-columns: auto 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: 0; font-variant-numeric: tabular-nums; }
-.mm-dl dt { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); align-self: center; }
-.mm-dl dd { margin: 0; text-align: right; }
-.mm-rent { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
-.mm-rent th, .mm-rent td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); text-align: right; }
-.mm-rent th:first-child, .mm-rent td:first-child { text-align: left; }
-.mm-tablewrap { overflow: auto; max-height: 26rem; }
-.mm-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
-.mm-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; }
-.mm-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
-.mm-table td.num, .mm-table th.num { text-align: right; }
-.mm-range { width: min(100%, 20rem); accent-color: var(--color-fg); }
-.mm-readouts { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
-.mm-readout { display: grid; gap: 2px; padding: var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
-.mm-readout .mm-big { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-sans); font-weight: var(--cds-font-weight-medium); }
-.mm-pos { color: var(--color-ok); }
-.mm-neg { color: var(--color-bad); }
-.mm-callout { margin: 0; padding: var(--cds-pad-sm) var(--cds-pad-md); border-left: 3px solid var(--color-border-line); font-size: var(--cds-font-size-body); max-width: 80ch; }
-[data-dash-source-state=empty] { color: transparent; }
-[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
-@media (max-width: 760px) {
-  .mm-split { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 640px) {
-  .mm { gap: var(--cds-gap-md); }
-  .mm-lede, .mm-wide-only { display: none; }
-  .mm-card { padding: var(--cds-pad-md); }
-  .mm-tabs button { padding: var(--cds-pad-sm) var(--cds-pad-sm); }
-  .mm-big { font-size: var(--cds-font-size-heading); font-family: var(--font-anthropic-sans); font-weight: var(--cds-font-weight-medium); }
-  .mm-chart, .mm-chart.mm-tall { min-height: 220px; }
-  .mm-range { width: 100%; }
-  .mm-ctl.mm-grow { flex: 1 1 100%; }
-  .mm-ctl.mm-grow select { flex: 1 1 auto; }
-}
-</style>
+<link rel="stylesheet" href="theme.css">
+<script src="board3d.js"></script>
 
 <div class="mm">
   <header class="mm-head" id="top">
-    <h1 class="mm-title">Monopoly Meta</h1>
-    <p class="mm-lede">Classic UK Monopoly at every table size from 2 to 6 players: exact landing odds, property payback, Monte Carlo tournaments, trade valuations from paired rollouts, and meta agents found by self-play.</p>
+    <div class="mm-brand">
+      <h1 class="mm-title">Monopoly Meta<small>Classic UK edition, two to six players</small></h1>
+      <div class="mm-stripe" aria-hidden="true"><i style="--c: var(--mm-brown)"></i><i style="--c: var(--mm-light-blue)"></i><i style="--c: var(--mm-pink)"></i><i style="--c: var(--mm-orange)"></i><i style="--c: var(--mm-red)"></i><i style="--c: var(--mm-yellow)"></i><i style="--c: var(--mm-green)"></i><i style="--c: var(--mm-dark-blue)"></i></div>
+    </div>
+    <p class="mm-lede">Every property, trade and strategy in classic UK Monopoly, worked out from exact landing odds, Monte Carlo tournaments, paired rollouts and agents found by self-play.</p>
     <p class="mm-take" id="takeaway">With <b data-draw="take-n">—</b> players, <b data-draw="take-set" data-source="set_economics" data-field="group">—</b> pays for itself fastest and the first player wins <b data-draw="take-seat" data-source="seats" data-field="relative">—</b> their fair share.</p>
     <div class="mm-bar">
       <div class="mm-ctl"><span class="mm-label" id="lbl-players">Players</span>
         <div class="mm-seg" role="group" aria-labelledby="lbl-players">
-          <button type="button" data-players="2" aria-pressed="false">2</button>
-          <button type="button" data-players="3" aria-pressed="false">3</button>
-          <button type="button" data-players="4" aria-pressed="true">4</button>
-          <button type="button" data-players="5" aria-pressed="false">5</button>
-          <button type="button" data-players="6" aria-pressed="false">6</button>
+          <button type="button" data-players="2" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>2</button>
+          <button type="button" data-players="3" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>3</button>
+          <button type="button" data-players="4" aria-pressed="true"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>4</button>
+          <button type="button" data-players="5" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>5</button>
+          <button type="button" data-players="6" aria-pressed="false"><svg viewBox="0 0 12 15" aria-hidden="true"><path d="M6 .8a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM3.9 6.2h4.2l-.7 4.1 2.8 2.4v1.5H1.8v-1.5l2.8-2.4z"/></svg>6</button>
         </div>
       </div>
       <div class="mm-ctl"><span class="mm-label" id="lbl-rules">Rules</span>
         <div class="mm-seg" role="group" aria-labelledby="lbl-rules">
           <button type="button" data-rules="Official rules" aria-pressed="true">Official</button>
-          <button type="button" data-rules="Championship rules" aria-pressed="false">Championship<span class="mm-wide-only"> (Speed Die)</span></button>
+          <button type="button" data-rules="Championship rules" aria-pressed="false">Championship<span class="mm-wide-only">&nbsp;(Speed Die)</span></button>
         </div>
       </div>
     </div>
     <nav class="mm-tabs" role="tablist" aria-label="Sections">
-      <button type="button" role="tab" data-tab="overview" aria-selected="true">Overview</button>
-      <button type="button" role="tab" data-tab="properties" aria-selected="false">Properties</button>
-      <button type="button" role="tab" data-tab="trades" aria-selected="false">Trades</button>
-      <button type="button" role="tab" data-tab="strategies" aria-selected="false">Strategies</button>
-      <button type="button" role="tab" data-tab="meta" aria-selected="false">Meta<span class="mm-wide-only"> agents</span></button>
+      <button type="button" role="tab" data-tab="overview" aria-selected="true" style="--band: var(--mm-red)">The board</button>
+      <button type="button" role="tab" data-tab="properties" aria-selected="false" style="--band: var(--mm-orange)">Properties</button>
+      <button type="button" role="tab" data-tab="trades" aria-selected="false" style="--band: var(--mm-green)">Trading floor</button>
+      <button type="button" role="tab" data-tab="strategies" aria-selected="false" style="--band: var(--mm-light-blue)">Strategies</button>
+      <button type="button" role="tab" data-tab="meta" aria-selected="false" style="--band: var(--mm-dark-blue)">Champions<span class="mm-wide-only">' table</span></button>
     </nav>
   </header>
 
-  <!-- ============================== OVERVIEW ============================== -->
+  <!-- ============================== THE BOARD ============================== -->
   <section class="mm-page" id="overview" data-page="overview">
     <div class="mm-tiles">
-      <div class="mm-card mm-tile" id="tile-landed">
+      <div class="mm-card mm-tile mm-banded" id="tile-landed" style="--band: var(--mm-red)">
         <span class="mm-tile-label">Most-landed property</span>
         <span class="mm-big" data-draw="kpi-landed-name" data-source="squares" data-field="name">—</span>
         <span class="mm-sub"><span data-draw="kpi-landed-rate" data-source="squares" data-field="landings_per_100_turns">—</span> landings per 100 turns</span>
       </div>
-      <div class="mm-card mm-tile" id="tile-payback">
+      <div class="mm-card mm-tile mm-banded" id="tile-payback" style="--band: var(--mm-orange)">
         <span class="mm-tile-label">Fastest payback with hotels</span>
         <span class="mm-big" data-draw="kpi-set-name" data-source="set_economics" data-field="group">—</span>
-        <span class="mm-sub"><span data-draw="kpi-set-rounds" data-source="set_economics" data-field="payback_rounds">—</span> rounds to repay set and hotels</span>
+        <span class="mm-sub"><span data-draw="kpi-set-rounds" data-source="set_economics" data-field="payback_rounds">—</span> rounds to repay the set and hotels</span>
       </div>
-      <div class="mm-card mm-tile" id="tile-seat">
+      <div class="mm-card mm-tile mm-banded" id="tile-seat" style="--band: var(--mm-light-blue)">
         <span class="mm-tile-label">First player's edge</span>
         <span class="mm-big" data-draw="kpi-seat" data-source="seats" data-field="relative">—</span>
         <span class="mm-sub">times their fair share, identical bots</span>
       </div>
-      <div class="mm-card mm-tile" id="tile-length">
+      <div class="mm-card mm-tile mm-banded" id="tile-length" style="--band: var(--mm-green)">
         <span class="mm-tile-label">Median game length</span>
         <span class="mm-big" data-draw="kpi-length" data-source="game_length" data-field="median_rounds">—</span>
         <span class="mm-sub">rounds, simple bots</span>
       </div>
-      <div class="mm-card mm-tile" id="tile-deal">
+      <div class="mm-card mm-tile mm-banded" id="tile-deal" style="--band: var(--mm-yellow)">
         <span class="mm-tile-label">Vine Street deal zone</span>
-        <span class="mm-big"><span data-draw="kpi-deal-lo" data-source="deal_zones" data-field="seller_break_even">—</span> – <span data-draw="kpi-deal-hi" data-source="deal_zones" data-field="buyer_maximum">—</span></span>
+        <span class="mm-big"><span data-draw="kpi-deal-lo" data-source="deal_zones" data-field="seller_break_even">—</span>–<span data-draw="kpi-deal-hi" data-source="deal_zones" data-field="buyer_maximum">—</span></span>
         <span class="mm-sub">prices where buyer and seller both gain, simple bots</span>
       </div>
-      <div class="mm-card mm-tile" id="tile-meta">
+      <div class="mm-card mm-tile mm-banded" id="tile-meta" style="--band: var(--mm-dark-blue)">
         <span class="mm-tile-label">Meta agent vs a simple bot</span>
         <span class="mm-big" data-draw="kpi-meta" data-source="meta_checks" data-field="relative">—</span>
         <span class="mm-sub">wins, relative to a simple bot in its seat</span>
@@ -149,46 +74,107 @@
     <div class="mm-split">
       <div class="mm-card" id="board-card">
         <div class="mm-cardhead">
-          <h2>Where the dice take you</h2>
+          <div><span class="mm-kicker">Roll the dice</span><h2>Where the dice take you</h2></div>
           <div class="mm-ctl">
             <div class="mm-seg" role="group" aria-label="Board view">
               <button type="button" data-view="3d" aria-pressed="true">3D</button>
-              <button type="button" data-view="flat" aria-pressed="false">Flat</button>
+              <button type="button" data-view="flat" aria-pressed="false">2D</button>
             </div>
-            <button type="button" class="mm-icon" data-rotate="-1" aria-label="Rotate left">⟲</button>
-            <button type="button" class="mm-icon" data-rotate="1" aria-label="Rotate right">⟳</button>
+            <button type="button" class="mm-icon" data-rotate="1" aria-label="Turn the board left">⟲</button>
+            <button type="button" class="mm-icon" data-rotate="-1" aria-label="Turn the board right">⟳</button>
           </div>
         </div>
-        <p class="mm-note">Expected landings per 100 turns from the exact Markov chain (players stay in jail and roll for doubles). The taller and darker the tower, the more often players land there. Landing odds don't depend on the number of players. Drag to rotate; select a square for its rents.</p>
-        <div class="mm-chart mm-tall" id="board" data-draw="board" data-source="squares"></div>
+        <div class="mm-boardbar">
+          <div class="mm-seg" role="group" aria-label="What the board shows">
+            <button type="button" data-bmode="towers" aria-pressed="true">Landings</button>
+            <button type="button" data-bmode="rent" aria-pressed="false">Top rent</button>
+            <button type="button" data-bmode="worth" aria-pressed="false">Worth to a set</button>
+            <button type="button" data-bmode="roll" aria-pressed="false">Roll from here</button>
+          </div>
+          <button type="button" class="mm-go" data-roll hidden>Roll the dice</button>
+        </div>
+        <p class="mm-note" data-bnote="towers">Each tower is as tall as the square's expected landings per 100 turns, from the exact Markov chain (players stay in jail and roll for doubles). Landing odds are the same at every table size. Drag to turn the board; tap a square for its card.</p>
+        <p class="mm-note" data-bnote="rent" hidden>Each tower is as tall as the most rent the square can charge: a street with a hotel, or a station when one player owns all four. Utilities charge by the dice, so they have no tower.</p>
+        <p class="mm-note" data-bnote="worth" hidden>Each tower is as tall as the most the player it completes a set for should pay, at the chosen table size, from paired rollouts against simple bots. Squares with no price that helps the buyer have no tower.</p>
+        <p class="mm-note" data-bnote="roll" hidden>The board lights up where one throw from the pawn's square can take you, cards and Go to Jail included, from the exact chain. Roll the dice to move the pawn; the light follows it.</p>
+        <div class="mm-board" id="board" data-draw="board" data-source="squares deeds moves property_zones"></div>
       </div>
-      <div class="mm-card" id="square-card">
-        <h2 data-draw="sq-name" data-source="squares" data-field="name">—</h2>
-        <dl class="mm-dl">
-          <dt>Landings per 100 turns</dt><dd data-draw="sq-rate" data-source="squares" data-field="landings_per_100_turns">—</dd>
-          <dt>If players leave jail at once</dt><dd data-draw="sq-rate-short" data-source="squares" data-field="landings_per_100_turns_short_jail">—</dd>
-          <dt>Share of all landings</dt><dd data-draw="sq-share" data-source="squares" data-field="landing_share_pct">—</dd>
-          <dt>Price</dt><dd data-draw="sq-price" data-source="squares" data-field="price">—</dd>
-        </dl>
-        <table class="mm-rent" aria-label="Rent by development level">
-          <thead><tr><th>Development</th><th>Rent</th></tr></thead>
-          <tbody>
-            <tr><td>Site only</td><td data-draw="rent-site" data-source="squares" data-field="rent_site">—</td></tr>
-            <tr><td>Full colour set</td><td data-draw="rent-set" data-source="squares" data-field="rent_set">—</td></tr>
-            <tr><td>1 house</td><td data-draw="rent-1" data-source="squares" data-field="rent_1_house">—</td></tr>
-            <tr><td>2 houses</td><td data-draw="rent-2" data-source="squares" data-field="rent_2_houses">—</td></tr>
-            <tr><td>3 houses</td><td data-draw="rent-3" data-source="squares" data-field="rent_3_houses">—</td></tr>
-            <tr><td>4 houses</td><td data-draw="rent-4" data-source="squares" data-field="rent_4_houses">—</td></tr>
-            <tr><td>Hotel</td><td data-draw="rent-h" data-source="squares" data-field="rent_hotel">—</td></tr>
-          </tbody>
-        </table>
-        <p class="mm-note">Stations, utilities and other squares have no house rents.</p>
+
+      <div class="mm-card mm-deed" id="square-card">
+        <div class="mm-deed-band">
+          <span class="mm-kicker mm-deed-own" data-draw="deed-group" data-source="squares" data-field="group">—</span>
+          <span class="mm-kicker mm-deed-other" data-draw="deed-type" data-source="squares" data-field="type" hidden>—</span>
+          <h2 data-draw="sq-name" data-source="squares" data-field="name">—</h2>
+        </div>
+        <div class="mm-deed-body">
+          <dl class="mm-dl">
+            <dt class="mm-deed-own">Price</dt><dd class="mm-deed-own"><span class="mm-cash" data-draw="sq-price" data-source="squares" data-field="price">—</span></dd>
+            <dt>Landings per 100 turns</dt><dd data-draw="sq-rate" data-source="squares" data-field="landings_per_100_turns">—</dd>
+            <dt>If players leave jail at once</dt><dd data-draw="sq-rate-short" data-source="squares" data-field="landings_per_100_turns_short_jail">—</dd>
+            <dt>Share of all landings</dt><dd data-draw="sq-share" data-source="squares" data-field="landing_share_pct">—</dd>
+          </dl>
+          <div class="mm-deed-street">
+            <hr class="mm-deed-rule">
+            <table class="mm-rent" aria-label="Rent by development level">
+              <tbody>
+                <tr><td>Rent, site only</td><td data-draw="rent-site" data-source="squares" data-field="rent_site">—</td></tr>
+                <tr><td>With the whole colour set</td><td data-draw="rent-set" data-source="squares" data-field="rent_set">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i></span>With 1 house</td><td data-draw="rent-1" data-source="squares" data-field="rent_1_house">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i><i></i></span>With 2 houses</td><td data-draw="rent-2" data-source="squares" data-field="rent_2_houses">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i><i></i><i></i></span>With 3 houses</td><td data-draw="rent-3" data-source="squares" data-field="rent_3_houses">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i></i><i></i><i></i><i></i></span>With 4 houses</td><td data-draw="rent-4" data-source="squares" data-field="rent_4_houses">—</td></tr>
+                <tr><td><span class="mm-pieces" aria-hidden="true"><i class="mm-hotel"></i></span>With a hotel</td><td data-draw="rent-h" data-source="squares" data-field="rent_hotel">—</td></tr>
+              </tbody>
+            </table>
+            <dl class="mm-dl"><dt>Each house costs</dt><dd data-draw="deed-house" data-source="deeds" data-field="house_cost">—</dd></dl>
+          </div>
+          <div class="mm-deed-station" hidden>
+            <hr class="mm-deed-rule">
+            <table class="mm-rent" aria-label="Station rent">
+              <tbody>
+                <tr><td>Rent, one station owned</td><td data-draw="st-1" data-source="deeds" data-field="rent_1_stations">—</td></tr>
+                <tr><td>Two owned</td><td data-draw="st-2" data-source="deeds" data-field="rent_2_stations">—</td></tr>
+                <tr><td>Three owned</td><td data-draw="st-3" data-source="deeds" data-field="rent_3_stations">—</td></tr>
+                <tr><td>All four owned</td><td data-draw="st-4" data-source="deeds" data-field="rent_4_stations">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mm-deed-utility" hidden>
+            <hr class="mm-deed-rule">
+            <table class="mm-rent" aria-label="Utility rent">
+              <tbody>
+                <tr><td>One utility owned: the dice ×</td><td data-draw="ut-1" data-source="deeds" data-field="dice_x_1_utilities">—</td></tr>
+                <tr><td>Both owned: the dice ×</td><td data-draw="ut-2" data-source="deeds" data-field="dice_x_2_utilities">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mm-deed-tax" hidden>
+            <hr class="mm-deed-rule">
+            <dl class="mm-dl"><dt>Pay the bank</dt><dd><span class="mm-cash" data-draw="deed-tax" data-source="deeds" data-field="tax">—</span></dd></dl>
+          </div>
+          <div class="mm-deed-own">
+            <hr class="mm-deed-rule">
+            <dl class="mm-dl">
+              <dt>Mortgage value</dt><dd data-draw="deed-mortgage" data-source="deeds" data-field="mortgage_value">—</dd>
+              <dt>To lift the mortgage</dt><dd data-draw="deed-unmortgage" data-source="deeds" data-field="unmortgage_cost">—</dd>
+            </dl>
+          </div>
+          <div class="mm-deed-zone">
+            <hr class="mm-deed-rule">
+            <span class="mm-kicker">Worth to the player it completes a set for, at <span data-draw="deed-n">—</span> players</span>
+            <dl class="mm-dl">
+              <dt>Seller breaks even at</dt><dd data-draw="deed-lo" data-source="property_zones" data-field="seller_break_even">—</dd>
+              <dt>Buyer gains up to</dt><dd data-draw="deed-hi" data-source="property_zones" data-field="buyer_maximum">—</dd>
+            </dl>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="mm-card" id="ranking-card">
+      <span class="mm-kicker">Most visited</span>
       <h2>Which properties get landed on most</h2>
-      <p class="mm-note">All 28 properties ranked by expected landings per 100 turns, in their board colours. Select one for its rents.</p>
+      <p class="mm-note">All 28 properties ranked by expected landings per 100 turns, in their board colours. Select one for its card.</p>
       <div class="mm-chart" data-draw="ranking" data-source="squares"></div>
     </div>
   </section>
@@ -197,12 +183,14 @@
   <section class="mm-page" id="properties" data-page="properties" hidden>
     <div class="mm-grid">
       <div class="mm-card" id="payback-card">
+        <span class="mm-kicker">Payback</span>
         <h2>How fast each set pays for itself</h2>
         <p class="mm-note">Rounds until a set and its buildings pay for themselves: total cost ÷ expected rent per round from every opponent, at the chosen table size. The ranking is the same at every size; more opponents make every set pay back faster.</p>
         <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>3 houses</span><span><i style="background: var(--mm-c1)"></i>Hotels</span></div>
         <div class="mm-chart" data-draw="payback" data-source="set_economics"></div>
       </div>
       <div class="mm-card" id="marginal-card">
+        <span class="mm-kicker">Houses and hotels</span>
         <h2>Which building is the best buy</h2>
         <p class="mm-note">Extra rent per round for every £100 spent on that building level, at the chosen table size. The third house is the best buy for every set except brown.</p>
         <div class="mm-chart" data-draw="marginal" data-source="set_economics"></div>
@@ -213,7 +201,8 @@
   <!-- ============================== TRADES ============================== -->
   <section class="mm-page" id="trades" data-page="trades" hidden>
     <div class="mm-card" id="property-trade-card">
-      <h2>What is a property worth to the player it completes a set for?</h2>
+      <span class="mm-kicker">Trading floor</span>
+        <h2>What is a property worth to the player it completes a set for?</h2>
       <p class="mm-note">Ten rounds in, the seller owns the chosen property and the buyer owns the rest of its group; everyone else holds unrelated properties. Each price was played out 1,000 times (2,000 for Vine Street), each sale paired with keeping the property on the same dice. The shaded band is the deal zone, where both sides gain.</p>
       <div class="mm-bar">
         <label class="mm-ctl mm-grow"><span class="mm-label">Property</span>
@@ -242,14 +231,16 @@
     </div>
 
     <div class="mm-card" id="all-zones-card">
-      <h2>Deal zones for every property</h2>
+      <span class="mm-kicker">Deal zones</span>
+        <h2>Deal zones for every property</h2>
       <p class="mm-note">For the chosen table size: the lowest price at which selling stops hurting the seller, and the highest at which buying still helps the buyer. Between them both sides gain. An arrow means the buyer still gains at £1,200, all the cash they have (or, for the seller, that no price tested makes up for it). A hollow dot marks a break-even that is uncertain, usually because the seller rarely wins either way. Sorted by the buyer's maximum; select a row to plot it above.</p>
       <div class="mm-legend"><span><i class="mm-dot" style="background: var(--mm-c1)"></i>Seller's break-even</span><span><i class="mm-dot" style="background: var(--mm-c0)"></i>Buyer's maximum</span><span><i style="background: var(--mm-c2); opacity: .5"></i>Deal zone</span></div>
       <div class="mm-chart" data-draw="all-zones" data-source="property_zones"></div>
     </div>
 
     <div class="mm-card" id="trade-card">
-      <h2>Vine Street in depth: who plays on, and who buys</h2>
+      <span class="mm-kicker">Vine Street</span>
+        <h2>Vine Street in depth: who plays on, and who buys</h2>
       <p class="mm-note">The same Vine Street sale with 2,000 rollouts per price, played out by simple bots or by meta agents under either rule set, and sold to a player who needs it or one who doesn't.</p>
       <div class="mm-bar">
         <label class="mm-ctl mm-grow"><span class="mm-label">Rest of the game played by</span>
@@ -300,18 +291,21 @@
   <!-- ============================== STRATEGIES ============================== -->
   <section class="mm-page" id="strategies" data-page="strategies" hidden>
     <div class="mm-card" id="tweaks-card">
-      <h2>Which tweaks to the simple bot win?</h2>
+      <span class="mm-kicker">Strategy tweaks</span>
+        <h2>Which tweaks to the simple bot win?</h2>
       <p class="mm-note">One tweaked bot against copies of the simple bot, seats rotated, for the chosen rules. Cells show wins relative to a fair share (1.00), shaded one way above it and the other way below; an asterisk marks a result not significant at 95%.</p>
       <div class="mm-chart" data-draw="tweaks" data-source="strategies"></div>
     </div>
     <div class="mm-grid">
       <div class="mm-card" id="seats-card">
+        <span class="mm-kicker">Seat order</span>
         <h2>Does going first matter?</h2>
         <p class="mm-note">Identical simple bots in fixed seats, for the chosen rules. Wins relative to a fair share, with 95% intervals.</p>
         <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>First player</span><span><i style="background: var(--mm-c1)"></i>Last player</span></div>
         <div class="mm-chart" data-draw="seats" data-source="seats"></div>
       </div>
       <div class="mm-card" id="length-card">
+        <span class="mm-kicker">Game length</span>
         <h2>How long games last</h2>
         <p class="mm-note">Median rounds per game with simple bots, by rule set.</p>
         <div class="mm-legend" data-draw="length-legend" data-source="game_length"></div>
@@ -323,24 +317,28 @@
   <!-- ============================== META AGENTS ============================== -->
   <section class="mm-page" id="meta" data-page="meta" hidden>
     <div class="mm-card" id="checks-card">
-      <h2>How strong are the meta agents?</h2>
+      <span class="mm-kicker">Champions' table</span>
+        <h2>How strong are the meta agents?</h2>
       <p class="mm-note">Meta agents were evolved by self-play, then hardened: challengers trained to beat them joined the opponent pool until none won by 5% or more, or self-play cycled and the least exploitable agent was kept. 1.0 means level with the player it replaces, on the same 4,000 games.</p>
       <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>Meta agent vs a simple bot, at a table of simple bots</span><span><i style="background: var(--mm-c1)"></i>Simple bot at a table of meta agents</span><span><i style="background: var(--mm-c2)"></i>Best challenger trained against the meta</span></div>
       <div class="mm-chart" data-draw="checks" data-source="meta_checks"></div>
     </div>
     <div class="mm-card" id="why-card">
-      <h2>Why can a meta agent lose to simple bots?</h2>
+      <span class="mm-kicker">Diagnosis</span>
+        <h2>Why can a meta agent lose to simple bots?</h2>
       <p class="mm-note">Official rules, at a table of simple bots: the meta agent, and the meta agent with one group of its settings copied from the simple bot, each against a simple bot in the same seat on the same 3,000 games. A change that lifts it (in colour) shows a setting tuned for meta opponents rather than simple ones. These games are separate from the chart above, so its numbers differ slightly.</p>
       <p class="mm-callout" data-draw="why-take" data-source="meta_vs_simple" data-field="relative">—</p>
       <div class="mm-chart" data-draw="why" data-source="meta_vs_simple"></div>
     </div>
     <div class="mm-grid">
       <div class="mm-card" id="ablations-card">
+        <span class="mm-kicker">Off the meta</span>
         <h2>Deviating from the meta</h2>
         <p class="mm-note">One player changes one thing and plays against meta agents, on the same games as an unchanged meta agent. Bars left of 1.0 lose; faded bars are not significant. Changes the meta agent already makes are left out.</p>
         <div class="mm-chart mm-tall" data-draw="ablations" data-source="meta_ablations"></div>
       </div>
       <div class="mm-card" id="settings-card">
+        <span class="mm-kicker">The meta agent</span>
         <h2>The meta agent's settings</h2>
         <p class="mm-note">What evolution settled on for the chosen rules and table size. Settings whose ablation barely matters drift freely, so read the ones that matter.</p>
         <div class="mm-tablewrap">
@@ -352,7 +350,8 @@
       </div>
     </div>
     <div class="mm-card" id="hardening-card">
-      <h2>Hardening rounds</h2>
+      <span class="mm-kicker">Hardening</span>
+        <h2>Hardening rounds</h2>
       <p class="mm-note">Each round trains a challenger against the current meta agent. The ratio is the challenger's win credit over the meta agent's own at the same table; under 1.05 the meta stands.</p>
       <div class="mm-tablewrap">
         <table class="mm-table" data-source="hardening" data-row-key="key">
@@ -362,6 +361,9 @@
       </div>
     </div>
   </section>
+  <footer class="mm-foot">
+    <span>Monopoly Meta is an independent, unofficial analysis made for learning and research. It isn't affiliated with or endorsed by Hasbro. MONOPOLY is a trademark of Hasbro; board names, prices and rents are used only to model the game. The board, cards, icons and colours on this page are the project's own designs.</span>
+  </footer>
 </div>
 
 <script>
@@ -372,13 +374,14 @@ window.mm = (() => {
     return {
       n: +(p.players ?? 4), rules: p.rules ?? 'Official rules', opp: p.opponents ?? 'Simple bots',
       deal: p.deal ?? "Completes the buyer's set", price: +(p.price ?? 650), square: +(p.square ?? 24),
-      view: p.view ?? '3d', property: +(p.property ?? 19), popp: p.popp ?? 'Simple bots', pprice: +(p.pprice ?? 600),
+      view: p.view ?? '3d', bmode: p.bmode ?? 'towers', property: +(p.property ?? 19), popp: p.popp ?? 'Simple bots', pprice: +(p.pprice ?? 600),
     };
   };
   const GROUP = { brown: 'Brown', light_blue: 'Light blue', pink: 'Pink', orange: 'Orange', red: 'Red',
     yellow: 'Yellow', green: 'Green', dark_blue: 'Dark blue', stations: 'Stations', utilities: 'Utilities' };
-  const BOARD = { brown: '#8b5a3c', light_blue: '#8fc9e8', pink: '#d0479b', orange: '#ec8a2c', red: '#d93a2b',
-    yellow: '#f1d22a', green: '#2f9e4f', dark_blue: '#28509e', stations: '#5f5e5a', utilities: '#9a9993' };
+  const BOARD = { brown: 'var(--mm-brown)', light_blue: 'var(--mm-light-blue)', pink: 'var(--mm-pink)', orange: 'var(--mm-orange)',
+    red: 'var(--mm-red)', yellow: 'var(--mm-yellow)', green: 'var(--mm-green)', dark_blue: 'var(--mm-dark-blue)',
+    stations: 'var(--mm-station)', utilities: 'var(--mm-utility)' };
   const STREETS = ['brown', 'light_blue', 'pink', 'orange', 'red', 'yellow', 'green', 'dark_blue'];
   const SHORT = { 'Jail / Just Visiting': 'Jail', 'Community Chest': 'Comm. Chest', 'The Angel Islington': 'Angel', 'Northumberland Avenue': 'Northumb. Ave', 'Kings Cross Station': "King's Cross", 'Marylebone Station': 'Marylebone', 'Fenchurch St Station': 'Fenchurch St', 'Liverpool Street Station': 'Liverpool St', 'Marlborough Street': 'Marlborough St', 'Pentonville Road': 'Pentonville Rd', 'Whitechapel Road': 'Whitechapel Rd', 'Old Kent Road': 'Old Kent Rd', 'Trafalgar Square': 'Trafalgar Sq', 'Leicester Square': 'Leicester Sq', 'Electric Company': 'Electric Co', 'Coventry Street': 'Coventry St', 'Regent Street': 'Regent St', 'Oxford Street': 'Oxford St', 'Bond Street': 'Bond St', 'Fleet Street': 'Fleet St', 'Bow Street': 'Bow St', 'Vine Street': 'Vine St', 'Euston Road': 'Euston Rd' };
   const ok = (...ids) => ids.every((id) => dash.data(id).status === 'ok');
@@ -449,9 +452,9 @@ window.mm = (() => {
     }
     return text;
   };
-  // the heat ramp used by both board views: panel colour to the first series colour
-  const heat = (el, lo, hi) => {
-    const a = rgb(el, 'var(--color-panel)', 'rgb(244, 244, 244)'), b = rgb(el, (dash.colors && dash.colors[0]) || '#2a78d6', 'rgb(42, 120, 214)');
+  // the heat ramp of the flat board: board paper to a theme colour
+  const heat = (el, lo, hi, to = 'var(--mm-orange)') => {
+    const a = rgb(el, 'var(--mm-board-paper)', 'rgb(239, 230, 204)'), b = rgb(el, to, 'rgb(236, 138, 44)');
     return d3.scaleLinear().domain([lo, hi]).range([d3.interpolateRgb(a, b)(0.12), b]).interpolate(d3.interpolateRgb).clamp(true);
   };
   // the price curve shared by both trade cards: Δ win chance for buyer, seller and everyone else
@@ -482,7 +485,7 @@ window.mm = (() => {
     svg.append('line').attr('x1', x(p)).attr('x2', x(p)).attr('y1', T).attr('y2', H - 28).attr('stroke', 'var(--color-fg)').attr('stroke-dasharray', '3 3');
     ROLES.forEach(([role, col]) => {
       const r = data.find((d) => d.role === role && +d.price === p);
-      if (r) svg.append('circle').attr('cx', x(p)).attr('cy', y(+r.d_win_pp)).attr('r', 4.5).attr('fill', col).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+      if (r) svg.append('circle').attr('cx', x(p)).attr('cy', y(+r.d_win_pp)).attr('r', 4.5).attr('fill', col).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2);
     });
     svg.append('text').attr('x', 0).attr('y', 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Change in win chance, percentage points');
     const t = tip(el);
@@ -515,14 +518,11 @@ window.mm = (() => {
 // ---------------------------------------------------------------- controls, tabs, colours
 (() => {
   const root = document.querySelector('.mm');
-  const setColors = () => {
-    (dash.colors || []).forEach((c, i) => root.style.setProperty(`--mm-c${i}`, c));
-    root.style.setProperty('--mm-muted', 'var(--cds-chart-muted)');
-  };
-  setColors();
+  const setColors = () => {};  // series colours come from the theme (theme.css)
   document.querySelectorAll('[data-players]').forEach((b) => b.addEventListener('click', () => dash.setParams({ players: +b.dataset.players })));
   document.querySelectorAll('[data-rules]').forEach((b) => b.addEventListener('click', () => dash.setParams({ rules: b.dataset.rules })));
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => dash.setParams({ view: b.dataset.view })));
+  document.querySelectorAll('[data-bmode]').forEach((b) => b.addEventListener('click', () => dash.setParams({ bmode: b.dataset.bmode })));
   document.querySelectorAll('#sel-opponents').forEach((s) => s.addEventListener('change', () => {
     const p = { opponents: s.value };
     if (s.value !== 'Simple bots') p.deal = "Completes the buyer's set";
@@ -547,6 +547,22 @@ window.mm = (() => {
     document.querySelectorAll('[data-rules]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.rules === rules)));
     document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
     document.querySelectorAll('[data-rotate]').forEach((b) => { if (b.hidden !== (view !== '3d')) b.hidden = view !== '3d'; });
+    const { bmode, square } = mm.P();
+    document.querySelectorAll('[data-bmode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bmode === bmode)));
+    document.querySelectorAll('[data-bnote]').forEach((p) => { if (p.hidden !== (p.dataset.bnote !== bmode)) p.hidden = p.dataset.bnote !== bmode; });
+    document.querySelectorAll('[data-roll]').forEach((b) => { if (b.hidden !== (bmode !== 'roll')) b.hidden = bmode !== 'roll'; });
+    // the property card shows the parts that fit the chosen square, in its colour
+    const sq = mm.ok('squares') ? mm.rows('squares').find((r) => +r.square === square) : null;
+    const type = sq ? sq.type : 'street', own = ['street', 'station', 'utility'].includes(type);
+    const showOnly = (sel, on) => document.querySelectorAll(sel).forEach((e) => { if (e.hidden === on) e.hidden = !on; });
+    showOnly('.mm-deed-street', type === 'street'); showOnly('.mm-deed-station', type === 'station');
+    showOnly('.mm-deed-utility', type === 'utility'); showOnly('.mm-deed-tax', type === 'tax');
+    showOnly('.mm-deed-own', own); showOnly('.mm-deed-other', !own); showOnly('.mm-deed-zone', own);
+    const band = sq && mm.BOARD[sq.group] ? mm.BOARD[sq.group] : 'var(--mm-board-ink)';
+    document.querySelectorAll('.mm-deed-band').forEach((e) => {
+      e.style.setProperty('--band', band);
+      e.classList.toggle('mm-light', !!sq && ['light_blue', 'yellow'].includes(sq.group));
+    });
     document.querySelectorAll('#sel-opponents').forEach((s) => { s.value = opp; });
     document.querySelectorAll('#sel-deal').forEach((s) => { s.value = deal; s.disabled = opp !== 'Simple bots'; });
     document.querySelectorAll('#price').forEach((r) => { if (r !== document.activeElement) r.value = String(price); });
@@ -612,168 +628,238 @@ window.mm = (() => {
 </script>
 
 <script>
-// ---------------------------------------------------------------- board (3D and flat), square details, ranking
+// ---------------------------------------------------------------- the board (3D and 2D), the property card, the ranking
 (() => {
-  const { P, BOARD, SHORT, ok, rows, where, f1, f2, money, tip, line, rgb, ink, heat, textWidth, axisStyle, svgFor, clip } = mm;
+  const { P, BOARD, GROUP, SHORT, ok, rows, where, f1, f2, money, tip, line, rgb, ink, heat, textWidth, axisStyle, svgFor, clip } = mm;
+  const pick = (sq) => dash.setParams({ square: +sq });
+  const OWNABLE = ['street', 'station', 'utility'];
+  const TYPE = { go: 'Corner', jail: 'Corner', free_parking: 'Corner', go_to_jail: 'Corner', chance: 'Chance', community_chest: 'Community Chest', tax: 'Tax' };
+  const deed = (sq) => rows('deeds').find((r) => +r.square === +sq);
+  const zoneOf = (sq, n) => rows('property_zones').find((r) => r.opponents === 'Simple bots' && +r.n_players === n && +r.square === +sq);
+
+  // what each board mode measures: a value per square (null = no tower) and how it reads
+  const MODES = {
+    towers: { value: (r) => +r.landings_per_100_turns, label: (v) => f2(v), unit: 'landings per 100 turns' },
+    rent: {
+      value: (r) => (r.type === 'street' ? +r.rent_hotel : r.type === 'station' ? +(deed(r.square) || {}).rent_4_stations : null),
+      label: (v) => money(v), unit: 'top rent',
+    },
+    worth: {
+      value: (r) => { const z = zoneOf(r.square, P().n); return z && z.buyer_maximum !== '' ? +z.buyer_maximum : null; },
+      label: (v) => money(v), unit: 'buyer\'s maximum',
+    },
+  };
+  const values = (mode) => {
+    const m = MODES[mode] || MODES.towers;
+    return rows('squares').map((r) => { const v = m.value(r); return v == null || Number.isNaN(v) ? null : v; });
+  };
+  const odds = (from) => {
+    const p = Array(40).fill(null);
+    rows('moves').filter((r) => +r.from_square === +from).forEach((r) => { p[+r.to_square] = +r.p_roll; });
+    return p;
+  };
+  const pct = (p) => (p >= 0.095 ? d3.format('.0%')(p) : d3.format('.1%')(p));
+
+  // the board's colours, read from the theme so it follows light and dark
+  const palette = (el) => {
+    const c = (v, fb) => MMBoard3D.rgba(rgb(el, v, fb));
+    return {
+      paper: c('var(--mm-board-paper)', 'rgb(239, 230, 204)'), ink: c('var(--mm-board-ink)', 'rgb(34, 29, 22)'),
+      line: c('var(--mm-board-line)', 'rgb(70, 62, 50)'), side: c('var(--mm-board-side)', 'rgb(205, 189, 150)'),
+      neutral: c('var(--mm-board-neutral)', 'rgb(206, 193, 160)'), accent: c('var(--mm-brick)', 'rgb(196, 69, 47)'),
+      glow: c('var(--mm-gold)', 'rgb(201, 150, 42)'), pawn: c('var(--mm-pawn)', 'rgb(184, 57, 43)'),
+      groups: Object.fromEntries(Object.entries(BOARD).map(([g, v]) => [g, c(v, 'rgb(128, 128, 128)')])),
+    };
+  };
+
+  // ---- the 2D board: the same squares as a flat plan, coloured by the chosen measure
   const cell = (i) => {
     if (i <= 10) return [10 - i, 10];
     if (i <= 20) return [0, 20 - i];
     if (i <= 30) return [i - 20, 0];
     return [10, i - 30];
   };
-  const pick = (sq) => dash.setParams({ square: +sq });
-  const tipParts = (r) => [line(r.name, 'mm-tip-head'), line(`${f2(+r.landings_per_100_turns)} landings per 100 turns`), ...(r.price ? [line(`Price ${money(+r.price)}`)] : [])];
-  // view angle, kept across redraws; dragging or the rotate buttons turn the board
-  let theta = -0.55;
-  document.querySelectorAll('[data-rotate]').forEach((b) => b.addEventListener('click', () => { theta += (+b.dataset.rotate * Math.PI) / 4; dash.draw('board'); }));
-
-  const flat = (el, data) => {
+  const flat = (el, data, vals, mode, label, onTip) => {
     const size = Math.min(Math.max(260, el.clientWidth || 600), 720);
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img').attr('aria-label', 'Board heat map of landing rates');
-    const c = size / 11, pad = 1.5;
-    const vals = data.map((r) => +r.landings_per_100_turns);
-    const color = heat(el, d3.min(vals), d3.max(vals));
-    const t = tip(el);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${size} ${size}`).attr('role', 'img')
+      .attr('aria-label', 'Flat board coloured by the chosen measure');
+    const c = size / 11, pad = 1.2;
+    const present = vals.filter((v) => v != null);
+    const color = heat(el, d3.min(present), d3.max(present), mode === 'roll' ? 'var(--mm-gold)' : 'var(--mm-orange)');
+    const paper = rgb(el, 'var(--mm-board-paper)', 'rgb(239, 230, 204)');
+    svg.append('rect').attr('width', size).attr('height', size).attr('rx', 8).attr('fill', paper).attr('stroke', 'var(--mm-board-line)');
     const sel = P().square;
-    data.forEach((r) => {
-      const [cx, cy] = cell(+r.square);
-      const fill = color(+r.landings_per_100_turns);
+    data.forEach((r, i) => {
+      const [cx, cy] = cell(+r.square), v = vals[i];
+      const fill = v == null ? paper : color(v);
       const node = svg.append('g').attr('transform', `translate(${cx * c},${cy * c})`).style('cursor', 'pointer')
-        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${r.name}: ${f2(+r.landings_per_100_turns)} landings per 100 turns`);
-      node.append('rect').attr('x', pad).attr('y', pad).attr('width', c - 2 * pad).attr('height', c - 2 * pad).attr('rx', 3).attr('fill', fill)
-        .attr('stroke', +r.square === sel ? 'var(--color-fg)' : 'var(--color-border-line)').attr('stroke-width', +r.square === sel ? 2.5 : 1);
-      if (BOARD[r.group] && r.type === 'street') {
-        const [bx, by, bw, bh] = cy === 10 ? [pad, pad, c - 2 * pad, c * 0.16] : cy === 0 ? [pad, c - pad - c * 0.16, c - 2 * pad, c * 0.16]
-          : cx === 0 ? [c - pad - c * 0.16, pad, c * 0.16, c - 2 * pad] : [pad, pad, c * 0.16, c - 2 * pad];
+        .attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${r.name}${v == null ? '' : ': ' + label(v)}`);
+      node.append('rect').attr('x', pad).attr('y', pad).attr('width', c - 2 * pad).attr('height', c - 2 * pad).attr('rx', 2).attr('fill', fill)
+        .attr('stroke', +r.square === sel ? 'var(--mm-brick)' : 'var(--mm-board-line)').attr('stroke-width', +r.square === sel ? 3 : 0.8);
+      if (r.type === 'street' && BOARD[r.group]) {
+        const b = c * 0.18;
+        const [bx, by, bw, bh] = cy === 10 ? [pad, pad, c - 2 * pad, b] : cy === 0 ? [pad, c - pad - b, c - 2 * pad, b]
+          : cx === 0 ? [c - pad - b, pad, b, c - 2 * pad] : [pad, pad, b, c - 2 * pad];
         node.append('rect').attr('x', bx).attr('y', by).attr('width', bw).attr('height', bh).attr('fill', BOARD[r.group]);
       }
       const fit = (text, maxW) => {
         const len = text.node().getComputedTextLength();
         if (len > maxW) text.style('font-size', `${(parseFloat(text.style('font-size')) * maxW) / len}px`);
       };
+      const tint = ink(fill);
       if (c >= 56) {
-        fit(node.append('text').attr('x', c / 2).attr('y', c * 0.5).attr('text-anchor', 'middle').attr('fill', ink(fill)).style('font-size', `${c * 0.13}px`).text(SHORT[r.name] || r.name), c - 10);
-        fit(node.append('text').attr('x', c / 2).attr('y', c * 0.74).attr('text-anchor', 'middle').attr('fill', ink(fill)).style('font-size', `${c * 0.15}px`).style('font-variant-numeric', 'tabular-nums').text(f2(+r.landings_per_100_turns)), c - 10);
-      } else {
-        fit(node.append('text').attr('x', c / 2).attr('y', c / 2).attr('dy', '0.35em').attr('text-anchor', 'middle').attr('fill', ink(fill)).style('font-size', `${c * 0.26}px`).style('font-variant-numeric', 'tabular-nums').text(f1(+r.landings_per_100_turns)), c - 6);
+        fit(node.append('text').attr('x', c / 2).attr('y', c * 0.52).attr('text-anchor', 'middle').attr('fill', tint).style('font-family', 'var(--mm-display)')
+          .style('font-size', `${c * 0.13}px`).text((SHORT[r.name] || r.name).toUpperCase()), c - 10);
+        if (v != null) fit(node.append('text').attr('x', c / 2).attr('y', c * 0.76).attr('text-anchor', 'middle').attr('fill', tint).style('font-weight', 600)
+          .style('font-size', `${c * 0.15}px`).style('font-variant-numeric', 'tabular-nums').text(label(v)), c - 10);
+      } else if (v != null) {
+        fit(node.append('text').attr('x', c / 2).attr('y', c / 2).attr('dy', '0.35em').attr('text-anchor', 'middle').attr('fill', tint)
+          .style('font-size', `${c * 0.24}px`).style('font-variant-numeric', 'tabular-nums').text(label(v)), c - 6);
       }
       node.on('click', () => pick(r.square)).on('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); pick(r.square); } })
-        .on('pointermove', (event) => t.show(event, tipParts(r))).on('pointerleave', () => t.hide());
+        .on('pointermove', (event) => onTip(i, event)).on('pointerleave', () => onTip(null));
     });
-    const lw = c * 6, gid = 'mm-heat-' + Math.random().toString(36).slice(2, 7);
-    const grad = svg.append('defs').append('linearGradient').attr('id', gid);
-    grad.append('stop').attr('offset', '0%').attr('stop-color', color(d3.min(vals)));
-    grad.append('stop').attr('offset', '100%').attr('stop-color', color(d3.max(vals)));
-    const lg = svg.append('g').attr('transform', `translate(${c * 2.5},${c * 5})`);
-    lg.append('text').attr('x', lw / 2).attr('y', -c * 0.6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text('Landings per 100 turns');
-    lg.append('rect').attr('width', lw).attr('height', Math.max(6, c * 0.2)).attr('rx', 3).attr('fill', `url(#${gid})`);
-    lg.append('text').attr('y', Math.max(6, c * 0.2) + 14).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(d3.min(vals)));
-    lg.append('text').attr('x', lw).attr('y', Math.max(6, c * 0.2) + 14).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(d3.max(vals)));
+    svg.append('text').attr('x', size / 2).attr('y', size / 2).attr('text-anchor', 'middle').attr('fill', 'var(--mm-board-ink)')
+      .style('font-family', 'var(--mm-display)').style('font-weight', 700).style('letter-spacing', '.12em').style('font-size', `${c * 0.36}px`)
+      .text(mode === 'roll' ? 'ONE THROW' : MODES[mode].unit.toUpperCase());
   };
 
-  const tower = (el, data) => {
-    const W = Math.max(260, el.clientWidth || 600), H = Math.round(Math.min(Math.max(W * 0.8, 260), 560));
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('class', 'mm-drag')
-      .attr('role', 'img').attr('aria-label', '3D board: each square is a tower as tall as its landing rate. Drag to rotate.');
-    const vals = data.map((r) => +r.landings_per_100_turns);
-    const vmax = d3.max(vals), HMAX = 3.2, PHI = 0.6, sp = Math.sin(PHI), cp = Math.cos(PHI), R = 5.5 * Math.SQRT2;
-    const color = heat(el, d3.min(vals), vmax);
-    const floorTint = rgb(el, 'var(--color-border-line)', 'rgb(225, 224, 217)'), base = rgb(el, 'var(--color-bg)', 'rgb(250, 250, 248)');
-    const s = Math.min((W - 24) / (2 * R), (H - 64) / (2 * R * sp + HMAX * cp));
-    const ox = W / 2, oy = 12 + HMAX * cp * s + R * sp * s;
-    const t = tip(el);
-    const g = svg.append('g');
-    const legend = svg.append('g');
-    let dragged = 0;
-    const render = () => {
-      g.selectAll('*').remove();
-      const cos = Math.cos(theta), sin = Math.sin(theta);
-      const proj = (x, y, z) => { const xr = x * cos - z * sin, zr = x * sin + z * cos; return [ox + xr * s, oy + zr * sp * s - y * cp * s]; };
-      const depth = (x, z) => x * sin + z * cos;
-      const poly = (pts) => 'M' + pts.map((p) => proj(...p).map((v) => v.toFixed(1)).join(',')).join('L') + 'Z';
-      const quad = (x, z, h, y) => [[x - h, y, z - h], [x + h, y, z - h], [x + h, y, z + h], [x - h, y, z + h]];
-      g.append('path').attr('d', poly(quad(0, 0, 5.55, 0))).attr('fill', base).attr('stroke', 'var(--color-border-line)');
-      g.append('path').attr('d', poly(quad(0, 0, 4.45, 0))).attr('fill', 'none').attr('stroke', 'var(--color-border-line)');
-      const sel = P().square;
-      const items = data.map((r) => { const [cx, cy] = cell(+r.square); return { r, x: cx - 5, z: cy - 5 }; });
-      items.forEach(({ r, x, z }) => {
-        const street = BOARD[r.group] && r.type === 'street';
-        g.append('path').attr('d', poly(quad(x, z, 0.47, 0))).attr('fill', street ? BOARD[r.group] : floorTint).attr('opacity', street ? 0.9 : 0.55);
-      });
-      items.sort((a, b) => depth(a.x, a.z) - depth(b.x, b.z)).forEach(({ r, x, z }) => {
-        const v = +r.landings_per_100_turns, h = (v / vmax) * HMAX, b = 0.3, top = color(v);
-        const node = g.append('g').style('cursor', 'pointer');
-        // the side faces that face the viewer, darker than the top
-        [[1, 0, 0.55], [-1, 0, 0.55], [0, 1, 0.95], [0, -1, 0.95]].forEach(([nx, nz, dark]) => {
-          if (nx * sin + nz * cos <= 0) return;
-          const a = nx ? [[x + nx * b, 0, z - b], [x + nx * b, 0, z + b], [x + nx * b, h, z + b], [x + nx * b, h, z - b]]
-            : [[x - b, 0, z + nz * b], [x + b, 0, z + nz * b], [x + b, h, z + nz * b], [x - b, h, z + nz * b]];
-          node.append('path').attr('d', poly(a)).attr('fill', d3.color(top).darker(dark).formatRgb());
+  // ---- the shared drawing: a 3D board when WebGL is there and wanted, else the flat one
+  let live = null, lastRoll = null;
+  const rollDice = async () => {
+    const from = P().square;
+    if (live && live.board && P().view !== 'flat') return live.board.roll();
+    const d1 = 1 + Math.floor(Math.random() * 6), d2 = 1 + Math.floor(Math.random() * 6);
+    let to = (from + d1 + d2) % 40;
+    if (to === 30) to = 10;
+    return { d1, d2, from, to };
+  };
+  document.querySelectorAll('[data-roll]').forEach((b) => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const r = await rollDice();
+    b.disabled = false;
+    if (!r) return;
+    lastRoll = r;
+    dash.setParams({ square: r.to });
+  }));
+  document.querySelectorAll('[data-rotate]').forEach((b) => b.addEventListener('click', () => {
+    if (live && live.board) live.board.turn((+b.dataset.rotate * Math.PI) / 4);
+  }));
+
+  dash.draw('board', {
+    mount(el) {
+      const box3 = document.createElement('div'), flatBox = document.createElement('div'), cap = document.createElement('div');
+      flatBox.className = 'mm-board-flat'; cap.className = 'mm-board-cap';
+      el.append(box3, flatBox, cap);
+      const t = tip(el);
+      const made = { box3, flatBox, cap, t, board: null, mode: 'towers', vals: [] };
+      const hover = (i, event) => {
+        if (i == null || !ok('squares')) return t.hide();
+        const r = rows('squares')[i];
+        if (!r) return t.hide();
+        const parts = [line(r.name, 'mm-tip-head')];
+        const v = made.vals[i];
+        if (made.mode === 'roll') parts.push(line(v ? `${pct(v)} chance to land here in one throw` : 'Out of reach in one throw'));
+        else if (v != null) parts.push(line(`${MODES[made.mode].label(v)} ${MODES[made.mode].unit}`));
+        if (r.price) parts.push(line(`Price ${money(+r.price)}`));
+        t.show(event, parts);
+      };
+      made.hover = hover;
+      if (window.MMBoard3D) made.board = MMBoard3D.create(box3, { onPick: pick, onHover: hover });
+      live = made;
+      return made;
+    },
+    update(el, made) {
+      made.t.hide();
+      if (!ok('squares', 'deeds', 'moves')) { made.box3.hidden = true; made.flatBox.replaceChildren(); made.cap.textContent = ''; return; }
+      const { view, square, bmode, n } = P();
+      const mode = (bmode in MODES || bmode === 'roll') ? bmode : 'towers';
+      const data = rows('squares');
+      const vals = mode === 'roll' ? odds(square) : values(mode);
+      made.mode = mode; made.vals = vals;
+      const use3d = view !== 'flat' && !!made.board;
+      made.box3.hidden = !use3d; made.flatBox.hidden = use3d;
+      const label = mode === 'roll' ? pct : MODES[mode].label;
+      // labels over the board: the chosen square, and in roll mode the likeliest landings
+      const labels = [];
+      if (mode === 'roll') {
+        vals.map((p, i) => [p, i]).filter(([p]) => p).sort((a, b) => b[0] - a[0]).slice(0, 5).forEach(([p, i]) => labels.push({ square: i, text: pct(p) }));
+        labels.push({ square: square, text: 'Start', strong: true });
+      } else if (vals[square] != null) labels.push({ square, text: label(vals[square]), strong: true });
+      if (use3d) {
+        const present = vals.filter((v) => v != null), top = d3.max(present) || 1;
+        const deeds = rows('deeds');
+        made.board.set({
+          squares: data.map((r) => ({ ...r, tax: (deeds.find((d) => +d.square === +r.square) || {}).tax || null })),
+          colors: palette(el), selected: square, mode: mode === 'roll' ? 'roll' : 'towers',
+          heights: mode === 'roll' ? Array(40).fill(null) : vals.map((v) => (v == null ? null : v / top)),
+          moves: mode === 'roll' ? vals : null, labels,
         });
-        node.append('path').attr('d', poly(quad(x, z, b, h))).attr('fill', top)
-          .attr('stroke', +r.square === sel ? 'var(--color-fg)' : 'none').attr('stroke-width', 2);
-        node.on('pointermove', (event) => { if (!dragged) t.show(event, tipParts(r)); }).on('pointerleave', () => t.hide())
-          .on('click', () => { if (dragged < 4) pick(r.square); });
-      });
-      // corner names beside the corners facing the viewer, where no tower can cover them
-      [[5, 5, 'GO'], [-5, 5, 'Jail'], [-5, -5, 'Free Parking'], [5, -5, 'Go to Jail']].forEach(([x, z, name]) => {
-        if (depth(x, z) < -1) return;
-        const [px, py] = proj(x * 1.1, 0, z * 1.1), right = px >= ox;
-        const label = g.append('text').attr('x', right ? px + 8 : px - 8).attr('y', py).attr('dy', '0.35em').attr('text-anchor', right ? 'start' : 'end')
-          .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').style('pointer-events', 'none').text(name);
-        const box = label.node().getBBox();
-        if (box.x < 2) label.attr('text-anchor', 'start').attr('x', 2);
-        if (box.x + box.width > W - 2) label.attr('text-anchor', 'end').attr('x', W - 2);
-      });
-    };
-    // legend: a ramp of the tower colours, bottom left
-    const gid = 'mm-heat3d-' + Math.random().toString(36).slice(2, 7);
-    const grad = legend.append('defs').append('linearGradient').attr('id', gid);
-    grad.append('stop').attr('offset', '0%').attr('stop-color', color(d3.min(vals)));
-    grad.append('stop').attr('offset', '100%').attr('stop-color', color(vmax));
-    const lw = Math.min(140, W * 0.35);
-    legend.attr('transform', `translate(4,${H - 24})`);
-    legend.append('rect').attr('width', lw).attr('height', 6).attr('rx', 3).attr('fill', `url(#${gid})`);
-    legend.append('text').attr('y', 20).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(d3.min(vals)));
-    legend.append('text').attr('x', lw).attr('y', 20).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(f2(vmax));
-    let startX = null;
-    svg.on('pointerdown', (event) => { startX = event.clientX; dragged = 0; })
-      .on('pointermove.rotate', (event) => {
-        if (startX == null || !(event.buttons & 1)) return;
-        const dx = event.clientX - startX;
-        if (Math.abs(dx) < 1) return;
-        dragged += Math.abs(dx); startX = event.clientX; theta += dx * 0.012; t.hide(); render();
-      })
-      .on('pointerup pointercancel', () => { startX = null; setTimeout(() => { dragged = 0; }, 0); });
-    render();
-  };
-
-  dash.draw('board', (el) => {
-    el.replaceChildren();
-    if (!ok('squares')) return;
-    if (P().view === 'flat') flat(el, rows('squares'));
-    else tower(el, rows('squares'));
+        made.board.canvas.setAttribute('aria-label', mode === 'roll'
+          ? `3D board: where one throw from ${data[square].name} can take you`
+          : `3D board: towers show ${MODES[mode].unit}; tallest ${data[d3.maxIndex(vals, (v) => (v == null ? -1 : v))].name}`);
+      } else {
+        made.flatBox.replaceChildren();
+        flat(made.flatBox, data, vals, mode, label, made.hover);
+      }
+      const r = lastRoll;
+      made.cap.textContent = r && r.to === square && mode === 'roll'
+        ? `Rolled ${r.d1} + ${r.d2}${r.d1 === r.d2 ? ', a double' : ''}: ${data[(r.from + r.d1 + r.d2) % 40].name}${(r.from + r.d1 + r.d2) % 40 === 30 ? ', straight to jail' : ''}`
+        : '';
+      if (mode !== 'roll') lastRoll = null;
+    },
+    unmount(el, made) { if (made.board) made.board.destroy(); if (live === made) live = null; },
   });
 
+  // ---- the property card
   const current = () => rows('squares').find((r) => +r.square === P().square);
   const field = (name, fmt) => (el) => {
     const r = ok('squares') && current();
     if (!r || r[name] === '' || r[name] == null) { delete el.dataset.where; el.textContent = '—'; return; }
     el.dataset.where = where({ square: r.square });
-    el.textContent = fmt(r[name]);
+    el.textContent = fmt(r[name], r);
+  };
+  const deedField = (name, fmt) => (el) => {
+    const d = ok('deeds') && deed(P().square);
+    if (!d || d[name] === '' || d[name] == null) { delete el.dataset.where; el.textContent = '—'; return; }
+    el.dataset.where = where({ square: d.square });
+    el.textContent = fmt(d[name]);
+  };
+  const zoneField = (name) => (el) => {
+    const { n, square } = P(), z = ok('property_zones') && zoneOf(square, n);
+    if (!z || z[name] === '' || z[name] == null) {
+      delete el.dataset.where;
+      el.textContent = z ? (name === 'buyer_maximum' ? (z.buyer_note || 'none') : (z.seller_note || 'none')) : '—';
+      return;
+    }
+    el.dataset.where = where({ key: z.key });
+    el.textContent = money(+z[name]) + (name === 'buyer_maximum' && String(z.buyer_maximum_is_all_cash) === 'True' ? '+' : '');
   };
   dash.draw('sq-name', field('name', (v) => v));
+  dash.draw('deed-group', field('group', (v) => (v === 'stations' || v === 'utilities' ? GROUP[v].replace(/s$/, '') : `${GROUP[v]} set`)));
+  dash.draw('deed-type', field('type', (v) => TYPE[v] || v));
   dash.draw('sq-rate', field('landings_per_100_turns', (v) => f2(+v)));
   dash.draw('sq-rate-short', field('landings_per_100_turns_short_jail', (v) => f2(+v)));
   dash.draw('sq-share', field('landing_share_pct', (v) => f2(+v) + '%'));
   dash.draw('sq-price', field('price', (v) => money(+v)));
   [['rent-site', 'rent_site'], ['rent-set', 'rent_set'], ['rent-1', 'rent_1_house'], ['rent-2', 'rent_2_houses'],
     ['rent-3', 'rent_3_houses'], ['rent-4', 'rent_4_houses'], ['rent-h', 'rent_hotel']].forEach(([d, f]) => dash.draw(d, field(f, (v) => money(+v))));
+  dash.draw('deed-house', deedField('house_cost', (v) => money(+v)));
+  [1, 2, 3, 4].forEach((k) => dash.draw(`st-${k}`, deedField(`rent_${k}_stations`, (v) => money(+v))));
+  [1, 2].forEach((k) => dash.draw(`ut-${k}`, deedField(`dice_x_${k}_utilities`, (v) => String(+v))));
+  dash.draw('deed-tax', deedField('tax', (v) => money(+v)));
+  dash.draw('deed-mortgage', deedField('mortgage_value', (v) => money(+v)));
+  dash.draw('deed-unmortgage', deedField('unmortgage_cost', (v) => money(+v)));
+  dash.draw('deed-n', (el) => { el.textContent = String(P().n); });
+  dash.draw('deed-lo', zoneField('seller_break_even'));
+  dash.draw('deed-hi', zoneField('buyer_maximum'));
 
+  // ---- the ranking
+  const tipParts = (r) => [line(r.name, 'mm-tip-head'), line(`${f2(+r.landings_per_100_turns)} landings per 100 turns`), ...(r.price ? [line(`Price ${money(+r.price)}`)] : [])];
   dash.draw('ranking', (el) => {
     el.replaceChildren();
     if (!ok('squares')) return;
-    const data = rows('squares').filter((r) => ['street', 'station', 'utility'].includes(r.type)).sort((a, b) => +b.landings_per_100_turns - +a.landings_per_100_turns);
+    const data = rows('squares').filter((r) => OWNABLE.includes(r.type)).sort((a, b) => +b.landings_per_100_turns - +a.landings_per_100_turns);
     const narrow = el.clientWidth < 520, rowH = 22, H = data.length * rowH + 26;
     const { svg, w } = svgFor(el, H);
     const name = (r) => (narrow ? SHORT[r.name] || r.name : r.name);
@@ -789,9 +875,9 @@ window.mm = (() => {
       row.append('rect').attr('x', 0).attr('y', yy - 2).attr('width', w).attr('height', y.bandwidth() + 4).attr('fill', 'transparent');
       row.append('rect').attr('x', left - 14).attr('y', yy + y.bandwidth() / 2 - 4).attr('width', 8).attr('height', 8).attr('rx', 2).attr('fill', BOARD[r.group] || 'var(--mm-muted)');
       clip(row.append('text').attr('x', left - 20).attr('y', yy + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end')
-        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', +r.square === sel ? 600 : 400).text(name(r)), left - 22);
+        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', +r.square === sel ? 700 : 400).text(name(r)), left - 22);
       row.append('rect').attr('x', left).attr('y', yy).attr('width', Math.max(0, x(v) - left)).attr('height', y.bandwidth()).attr('rx', 3)
-        .attr('fill', 'var(--mm-c0)').attr('opacity', +r.square === sel ? 1 : 0.7);
+        .attr('fill', BOARD[r.group] || 'var(--mm-muted)').attr('opacity', +r.square === sel ? 1 : 0.62);
       row.append('text').attr('x', x(v) + 4).attr('y', yy + y.bandwidth() / 2).attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)')
         .style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').text(f2(v));
     });
@@ -845,8 +931,8 @@ window.mm = (() => {
     const x = d3.scaleBand(levels, [left, w]).padding(0.06);
     const y = d3.scaleBand(STREETS, [top, H]).padding(0.06);
     const max = d3.max(data, (r) => +r.marginal_return_pct);
-    const hi = rgb(el, (dash.colors && dash.colors[0]) || '#2a78d6', 'rgb(42, 120, 214)');
-    const lo = rgb(el, 'var(--color-panel)', 'rgb(244, 244, 244)');
+    const hi = rgb(el, 'var(--mm-cash)', 'rgb(42, 120, 214)');
+    const lo = rgb(el, 'var(--mm-card)', 'rgb(248, 242, 228)');
     const color = (v) => d3.interpolateRgb(lo, hi)(0.08 + 0.92 * (v / max));
     levels.forEach((l) => svg.append('text').attr('x', x(l) + x.bandwidth() / 2).attr('y', top - 8).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(names[l]));
     STREETS.forEach((g) => svg.append('text').attr('x', left - 8).attr('y', y(g) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(GROUP[g]));
@@ -946,8 +1032,8 @@ window.mm = (() => {
       // a seller who rarely wins either way has a flat curve, so its break-even is shown hollow
       const shaky = +r.seller_win_pct_without < 2 || +r.seller_break_even_se > 150;
       const arrow = (v, colour) => row.append('path').attr('d', `M${x(v) - 2},${yc - 5}L${x(v) + 6},${yc}L${x(v) - 2},${yc + 5}Z`).attr('fill', colour);
-      const dot = (v, colour, hollow) => row.append('circle').attr('cx', x(v)).attr('cy', yc).attr('r', 4.5).attr('fill', hollow ? 'var(--color-panel)' : colour)
-        .attr('stroke', hollow ? colour : 'var(--color-panel)').attr('stroke-width', hollow ? 2 : 1.5);
+      const dot = (v, colour, hollow) => row.append('circle').attr('cx', x(v)).attr('cy', yc).attr('r', 4.5).attr('fill', hollow ? 'var(--mm-card)' : colour)
+        .attr('stroke', hollow ? colour : 'var(--mm-card)').attr('stroke-width', hollow ? 2 : 1.5);
       if (lo != null) dot(lo, 'var(--mm-c1)', shaky);
       else if (r.seller_note) arrow(1200, 'var(--mm-c1)');
       if (hi != null) { if (cens) arrow(hi, 'var(--mm-c0)'); else dot(hi, 'var(--mm-c0)', false); } else if (r.buyer_note) dot(0, 'var(--mm-c0)', true);
@@ -1029,9 +1115,9 @@ window.mm = (() => {
     const x = d3.scaleBand(counts, [left, w]).padding(0.06);
     const roomy = x.bandwidth() >= 64;
     const lim = d3.max(data, (r) => Math.abs(Math.log2(+r.relative))) || 1;
-    const blue = rgb(el, (dash.colors && dash.colors[0]) || '#2a78d6', 'rgb(42, 120, 214)');
-    const red = rgb(el, 'var(--cds-chart-status-critical)', 'rgb(208, 59, 59)');
-    const mid = rgb(el, 'var(--color-panel)', 'rgb(244, 244, 244)');
+    const blue = rgb(el, 'var(--mm-cash)', 'rgb(42, 120, 214)');
+    const red = rgb(el, 'var(--mm-brick)', 'rgb(196, 69, 47)');
+    const mid = rgb(el, 'var(--mm-card)', 'rgb(248, 242, 228)');
     const color = (v) => { const s = Math.log2(v) / lim; return s >= 0 ? d3.interpolateRgb(mid, blue)(Math.min(1, s)) : d3.interpolateRgb(mid, red)(Math.min(1, -s)); };
     counts.forEach((n) => svg.append('text').attr('x', x(n) + x.bandwidth() / 2).attr('y', 14).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(roomy ? `${n} players` : `${n}p`));
     const t = tip(el);
@@ -1072,7 +1158,7 @@ window.mm = (() => {
     pts.forEach((d) => {
       const cx = x(d.n) + (d.i ? 8 : -8);
       svg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', y(d.lo)).attr('y2', y(d.hi)).attr('stroke', `var(--mm-c${d.i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round');
-      svg.append('circle').attr('cx', cx).attr('cy', y(d.v)).attr('r', 5).attr('fill', `var(--mm-c${d.i})`).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2)
+      svg.append('circle').attr('cx', cx).attr('cy', y(d.v)).attr('r', 5).attr('fill', `var(--mm-c${d.i})`).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2)
         .on('pointermove', (event) => t.show(event, [line(`${d.k} player, ${d.n} players`, 'mm-tip-head'), line(`${f2(d.v)}× fair share (95% CI ${f2(d.lo)}–${f2(d.hi)})`)]))
         .on('pointerleave', () => t.hide());
     });
@@ -1102,7 +1188,7 @@ window.mm = (() => {
     names.forEach((name, i) => {
       const pts = data.filter((r) => r.rules === name).map((r) => ({ n: +r.n_players, v: +r.median_rounds })).sort((a, b) => a.n - b.n);
       svg.append('path').attr('d', d3.line().x((d) => x(d.n)).y((d) => y(d.v))(pts)).attr('fill', 'none').attr('stroke', `var(--mm-c${i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
-      pts.forEach((d) => svg.append('circle').attr('cx', x(d.n)).attr('cy', y(d.v)).attr('r', 4).attr('fill', `var(--mm-c${i})`).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2)
+      pts.forEach((d) => svg.append('circle').attr('cx', x(d.n)).attr('cy', y(d.v)).attr('r', 4).attr('fill', `var(--mm-c${i})`).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2)
         .on('pointermove', (event) => t.show(event, [line(`${name}, ${d.n} players`, 'mm-tip-head'), line(`median ${f1(d.v)} rounds`)]))
         .on('pointerleave', () => t.hide()));
     });
@@ -1134,7 +1220,7 @@ window.mm = (() => {
       const [, i, label] = CHECKS.find(([c]) => c === r.check);
       const cx = x(+r.n_players) + (i - 1) * 10;
       svg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', y(+r.rel_low)).attr('y2', y(+r.rel_high)).attr('stroke', `var(--mm-c${i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round');
-      svg.append('circle').attr('cx', cx).attr('cy', y(+r.relative)).attr('r', 5).attr('fill', `var(--mm-c${i})`).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2)
+      svg.append('circle').attr('cx', cx).attr('cy', y(+r.relative)).attr('r', 5).attr('fill', `var(--mm-c${i})`).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2)
         .on('pointermove', (event) => t.show(event, [line(`${r.n_players} players`, 'mm-tip-head'), line(`${label}: ${f2(+r.relative)}× (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`)]))
         .on('pointerleave', () => t.hide());
     });
@@ -1207,7 +1293,7 @@ window.mm = (() => {
       if (narrow) svg.append('text').attr('x', left).attr('y', y0 + 11).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', lift > 0.05 ? 600 : 400).text(whyLabel(r));
       else clip(svg.append('text').attr('x', left - 10).attr('y', yc).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', lift > 0.05 ? 600 : 400).text(whyLabel(r)), left - 12);
       svg.append('line').attr('x1', x(+r.rel_low)).attr('x2', x(+r.rel_high)).attr('y1', yc).attr('y2', yc).attr('stroke', col).attr('stroke-width', 2).attr('stroke-linecap', 'round');
-      svg.append('circle').attr('cx', x(+r.relative)).attr('cy', yc).attr('r', 5).attr('fill', col).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5)
+      svg.append('circle').attr('cx', x(+r.relative)).attr('cy', yc).attr('r', 5).attr('fill', col).attr('stroke', 'var(--mm-card)').attr('stroke-width', 1.5)
         .on('pointermove', (event) => t.show(event, [line(whyLabel(r), 'mm-tip-head'), line(`${f2(+r.relative)}× a simple bot in the same seat (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`)]))
         .on('pointerleave', () => t.hide());
     });

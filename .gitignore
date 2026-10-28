@@ -13,3 +13,8 @@ mlruns/
 data/positions/
 .sync/
 target/
+dashboard/*.json.tmp
+dashboard/index.json
+dashboard/theme.css.json
+dashboard/board3d.js.json
+dashboard/index.html.json

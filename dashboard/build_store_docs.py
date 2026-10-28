@@ -57,6 +57,14 @@ D = {
                        "The official-rules meta agent at a table of simple bots, alone and with one group of its "
                        "settings copied from the simple bot: wins relative to a simple bot in the same seat, 3,000 "
                        "paired games each, 95% bootstrap intervals. From scripts/09_meta_vs_simple.py."),
+    "moves": ("Where one throw takes you",
+              "For every starting square: the chance of ending on each square after one throw of the dice (p_roll) "
+              "and at the end of the turn, doubles rolled again (p_turn), cards and Go to Jail included, from the "
+              "exact 123-state Markov chain with cards drawn at random. Exported by scripts/11_board_data.py."),
+    "deeds": ("Property card details",
+              "Each square's type and group, taxes, and for properties the mortgage value, the cost to lift the "
+              "mortgage, the house cost, station rents and utility dice multipliers, from the classic UK edition "
+              "data. Exported by scripts/11_board_data.py."),
     "hardening": ("Meta hardening rounds",
                   "Each best-response round: the challenger's win credit over the meta agent's own at the same "
                   "table, and which round's agent was kept."),
@@ -66,7 +74,7 @@ if "--params" in sys.argv:
     writes.append({"op": "set", "collection": "dash", "doc_id": "params",
                    "data": {"players": 4, "rules": "Official rules", "opponents": "Simple bots",
                             "deal": "Completes the buyer's set", "price": 650, "square": 24, "view": "3d",
-                            "property": 19, "popp": "Simple bots", "pprice": 600}})
+                            "property": 19, "popp": "Simple bots", "pprice": 600, "bmode": "towers"}})
 versions = json.loads((HERE / "versions.json").read_text()) if (HERE / "versions.json").exists() else {}
 only = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
 for ds, (title, desc) in D.items():
@@ -79,12 +87,12 @@ for ds, (title, desc) in D.items():
     if f"datasets/{ds}" in versions:
         w["if_version"] = versions[f"datasets/{ds}"]
     writes.append(w)
-page = (HERE / "index.html").read_text()
-(HERE / "index.json").write_text(json.dumps({"text": page}))
-w = {"op": "set", "collection": "files", "doc_id": "index.html", "file_path": str(HERE / "index.json")}
-if "files/index.html" in versions:
-    w["if_version"] = versions["files/index.html"]
-writes.append(w)
+for name in ["index.html", "theme.css", "board3d.js"]:  # the page and the files it links to
+    (HERE / f"{name}.json").write_text(json.dumps({"text": (HERE / name).read_text()}))
+    w = {"op": "set", "collection": "files", "doc_id": name, "file_path": str(HERE / f"{name}.json")}
+    if f"files/{name}" in versions:
+        w["if_version"] = versions[f"files/{name}"]
+    writes.append(w)
 for x in writes:
     if x["collection"] == "dash" and f"dash/{x['doc_id']}" in versions:
         x["if_version"] = versions[f"dash/{x['doc_id']}"]

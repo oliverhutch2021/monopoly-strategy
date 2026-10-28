@@ -12,5 +12,7 @@
  "hardening": "/_blob/0ed6b221d343bc202e7701c9d8be0440",
  "property_trades": "/_blob/fcad69f838cc125fed88d0a8c0ec7898",
  "property_zones": "/_blob/299d53c13d72e2f4dbb41f3435ba010a",
- "meta_vs_simple": "/_blob/3f0c0d4ae0278d80cc3ca6eda60d57bc"
+ "meta_vs_simple": "/_blob/3f0c0d4ae0278d80cc3ca6eda60d57bc",
+ "moves": "/_blob/64e0a214a0d9fd9f8345497244d8bd3c",
+ "deeds": "/_blob/a1ff51659caa1fbca7dbb00c2c4d36f2"
 }
