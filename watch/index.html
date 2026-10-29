@@ -1823,7 +1823,7 @@ async function askSetup(last) {
         <table>
           <tr><td>Rules</td><td>${choice('mode', [['standard', 'Official'], ['championship', 'Championship (Speed Die, time limit)']])}</td></tr>
           <tr><td>Players</td><td>${choice('players', [2, 3, 4, 5, 6].map(n => [n, n]))}</td></tr>
-          <tr><td>Against</td><td>${choice('opponents', [['v05', 'Hardened agents (v0.5)', avail('v05')], ['v03', 'v0.3 agents', avail('v03')],
+          <tr><td>Against</td><td>${choice('opponents', [['v05', 'Best agents (v0.5)', avail('v05')], ['v03', 'v0.3 agents', avail('v03')],
             ['simple', 'Simple bots']])}</td></tr>
           <tr><td>You go</td><td>${choice('seat', [['first', 'First'], ['random', 'Random']])}</td></tr>
           <tr><td>Coach</td><td>${choice('coach', [[false, 'Off (a fair test)'], [true, 'On: win chances and what a property is worth to you']])}</td></tr>
@@ -1882,7 +1882,7 @@ async function liveGame(info) {
   $('events').replaceChildren();
   ['lastChance', 'lastChest'].forEach(id => { $(id).querySelector('.tx').textContent = '—'; $(id).querySelector('.by').textContent = ''; });
   $('gameTitle').textContent = 'You against the meta agents';
-  $('about').innerHTML = `You are the ${who(info.seat)}; the others are ${esc(info.players.find(p => p.role !== 'you').label.toLowerCase())}s.`;
+  $('about').innerHTML = `You are the ${who(info.seat)}. Your opponents: ${esc(info.players.find(p => p.role !== 'you').label)}.`;
   $('gameMeta').textContent = `${info.n_players} players · ${info.rules} · seed ${info.seed}`;
   makeTokens(info.n_players);
   hud.kind.textContent = 'YOU AGAINST THE META AGENTS';

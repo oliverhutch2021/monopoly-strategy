@@ -14,12 +14,14 @@ v0.4 (results/v04/tables) found that every v0.3 meta agent can be beaten by 1.2-
    agent at a table of old ones and the other way round; both at a table of simple bots.
 4. (--recheck) v0.4's two searches, with v0.4's budgets and seeds, against the new agent: the best-response
    search with the new moves (v0.4's tactics arm) and MAP-Elites. Before and after, like for like.
+5. Keep the better agent. The new agent replaces the old one only if its worst measured exploit (the two
+   searches and v0.4's exploits) is smaller than the old one's (v0.4's searches and the same exploits).
 
 Outputs, under <results>/tables (MM_RESULTS=results/v05):
   hardened/ablations_<mode>.csv       step 1
   hardened/harden_<mode>_<n>p*.json   step 2's rounds (also its checkpoints)
   hardened/<mode>_<n>p.json           the new agent and steps 3-4
-  meta_agents_<mode>.json             the v0.5 meta agents
+  meta_agents_<mode>.json             the meta agents kept (step 5): the new one where it is better
   hardened/summary.md, summary.csv    before and after (--summary)
 v0.4's results are read from results/v04/tables (MM_FROM overrides). MM_SMOKE=1 shrinks every budget.
 """
@@ -36,7 +38,7 @@ import pandas as pd
 from meta_common import EVAL_GAMES, MODES, PLAYER_COUNTS, ROOT, TAB, rules_for
 from run_config import scaled
 from monopoly_meta import watch
-from monopoly_meta.harden import Budget, ablate, exposure, harden, label
+from monopoly_meta.harden import Budget, ablate, exposure, harden, keep_better, label, worst_exploit
 from monopoly_meta.meta import BALANCED, evaluate, evolve, paired_ratio
 from monopoly_meta.unconventional import (TACTIC_NAMES, TACTICS, league_picks, pick_finalists, random_genome_ext,
                                           search, validate, vary, with_tactics)
@@ -146,17 +148,13 @@ def harden_size(mode: str, n: int) -> None:
     worst_before, worst_after = max(before, key=lambda r: r["ratio"]), max(after, key=lambda r: r["ratio"])
     rec = {"mode": mode, "n_players": n, "v03": meta, "v05": new, "v05_tactics": label(new),
            "before": inp["before"], "pool": list(pool),
-           "hardening": {"selected_round": res["selected_round"] + 1, "rounds": [
+           "hardening": {"selected_round": res["selected_round"], "rounds": [
                {k: v for k, v in r.items() if k not in ("meta", "exposure", "evolution", "candidates")}
                for r in res["rounds"]], "final": [{k: v for k, v in f.items() if k != "exposure"} for f in
                                                   res["final"]], "final_pool": list(res["pool"])},
            "known_before": before, "known_after": after, "new_in_old": new_in_old, "old_in_new": old_in_new,
            "vs_simple": vs_simple, "seconds": round(time.time() - t0)}
     path.write_text(json.dumps(rec, indent=1, default=float))
-    agents = TAB / f"meta_agents_{mode}.json"
-    cur = json.loads(agents.read_text()) if agents.exists() else {}
-    cur[str(n)] = new
-    agents.write_text(json.dumps(dict(sorted(cur.items())), indent=2))
     log(f"{n} players hardened in {rec['seconds']} s: new agent ({label(new)}); v0.4's worst exploit "
         f"{worst_before['ratio']:.3f}x -> {worst_after['ratio']:.3f}x ({worst_after['name']}); new agent at a "
         f"table of old ones {new_in_old['ratio']:.3f}x, old at a table of new {old_in_new['ratio']:.3f}x")
@@ -225,10 +223,40 @@ def recheck(mode: str, n: int) -> None:
                                                      "history": state["history"]},
                       "finalists": finds, "seconds": round(time.time() - t0)}
     path.write_text(json.dumps(rec, indent=1, default=float))
+    keep_agents(mode)
     b = finds[0]
     log(f"{n} players rechecked in {rec['recheck']['seconds']} s: best MAP-Elites find "
         f"{ci(b['ratio'], b['ci_low'], b['ci_high'])} the new agent ({b['label']}); against the old agent "
         f"{inp['before']['best_find']:.3f}")
+
+
+# ---------------------------------------------------------------------- step 5
+def choice(rec: dict) -> dict | None:
+    """Old agent or new: the one whose worst measured exploit is smaller (None before the recheck)."""
+    rc = rec.get("recheck")
+    if rc is None:
+        return None
+    old = worst_exploit([rec["before"]["tactics_arm"], rec["before"]["best_find"]], rec["known_before"])
+    new = worst_exploit([rc["tactics_arm"]["ratio"], rc["finalists"][0]["ratio"]], rec["known_after"])
+    return {"agent": "v0.5" if keep_better(old, new) == "new" else "v0.3", "worst_v03": old, "worst_v05": new}
+
+
+def keep_agents(mode: str) -> None:
+    """Record the choice in each table size's results and write the meta agents kept."""
+    kept = {}
+    for p in sorted(OUT.glob(f"{mode}_[0-9]p.json")):
+        rec = json.loads(p.read_text())
+        c = choice(rec)
+        if c is None:
+            continue
+        if rec.get("chosen") != c:
+            rec["chosen"] = c
+            p.write_text(json.dumps(rec, indent=1, default=float))
+        kept[str(rec["n_players"])] = rec["v05"] if c["agent"] == "v0.5" else rec["v03"]
+        log(f"  [{rec['n_players']}p] keeping the {c['agent']} agent: worst exploit {c['worst_v03']:.3f}x for v0.3, "
+            f"{c['worst_v05']:.3f}x for v0.5")
+    if kept:
+        (TAB / f"meta_agents_{mode}.json").write_text(json.dumps(dict(sorted(kept.items())), indent=2))
 
 
 # ---------------------------------------------------------------------- summary
@@ -239,16 +267,22 @@ def summarize() -> None:
     lines = ["# Hardened meta agents (v0.5)", "",
              "Ratios are a strategy's win credit at a table of meta agents, divided by the meta agent's own credit in "
              "that seat on the same games (above 1 beats the meta agent), with 95% intervals. *Before* is v0.4's "
-             "measurement against the v0.3 agents; *after* repeats it against the v0.5 agents.", ""]
+             "measurement against the v0.3 agents; *after* repeats it against the v0.5 agents. *Kept* is the agent "
+             "with the smaller worst exploit (the two searches and v0.4's exploits), so a table size where "
+             "hardening made things worse keeps its v0.3 agent.", ""]
     rows = []
+    for mode in MODES:
+        keep_agents(mode)
+    parts = [json.loads(p.read_text()) for mode in MODES for p in sorted(OUT.glob(f"{mode}_[0-9]p.json"))]
     for mode in MODES:
         ps = sorted((x for x in parts if x["mode"] == mode), key=lambda x: x["n_players"])
         if not ps:
             continue
         lines += [f"## {'Official' if mode == 'standard' else 'Championship'} rules", "",
-                  "| Players | Hardening rounds | v0.4's exploits, worst: before -> after | Challenger search: "
-                  "before -> after | MAP-Elites: before -> after | New agent at a table of old | Old agent at a "
-                  "table of new | New agent's moves |", "|---|---|---|---|---|---|---|---|"]
+                  "| Players | Kept | Worst exploit: v0.3 -> v0.5 | Hardening rounds | v0.4's exploits, worst: "
+                  "before -> after | Challenger search: before -> after | MAP-Elites: before -> after | New agent at a "
+                  "table of old | Old agent at a table of new | New agent's moves |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
         for x in ps:
             n = x["n_players"]
             wb = max(x["known_before"], key=lambda r: r["ratio"])
@@ -260,12 +294,18 @@ def summarize() -> None:
             me = f"{x['before']['best_find']:.3f} -> " + (ci(bf["ratio"], bf["ci_low"], bf["ci_high"]) if rc
                                                           else "not run")
             h = x["hardening"]
-            lines.append(f"| {n} | {len(h['rounds'])} (kept round {h['selected_round']}) | {wb['ratio']:.3f} -> "
+            c = x.get("chosen")
+            kept = c["agent"] if c else "not decided"
+            worst = f"{c['worst_v03']:.3f} -> {c['worst_v05']:.3f}" if c else "-"
+            rnd = "kept the old agent" if h["selected_round"] == 0 else f"kept round {h['selected_round']}"
+            lines.append(f"| {n} | {kept} | {worst} | {len(h['rounds'])} ({rnd}) | {wb['ratio']:.3f} -> "
                          f"{ci(wa['ratio'], wa['ci_low'], wa['ci_high'])} ({wa['name']}) | {arm} | {me} | "
                          f"{ci(x['new_in_old']['ratio'], x['new_in_old']['ci_low'], x['new_in_old']['ci_high'])} | "
                          f"{ci(x['old_in_new']['ratio'], x['old_in_new']['ci_low'], x['old_in_new']['ci_high'])} | "
                          f"{x['v05_tactics']} |")
-            rows.append({"mode": mode, "n_players": n, "rounds": len(h["rounds"]), "kept_round": h["selected_round"],
+            rows.append({"mode": mode, "n_players": n, "kept": kept, "worst_v03": c["worst_v03"] if c else None,
+                         "worst_v05": c["worst_v05"] if c else None,
+                         "rounds": len(h["rounds"]), "kept_round": h["selected_round"],
                          "known_worst_before": wb["ratio"], "known_worst_after": wa["ratio"],
                          "known_worst_after_name": wa["name"], "arm_before": x["before"]["tactics_arm"],
                          "arm_after": rc["tactics_arm"]["ratio"] if rc else None,

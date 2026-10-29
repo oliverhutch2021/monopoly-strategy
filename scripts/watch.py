@@ -225,7 +225,7 @@ def demo_game() -> dict:
 
 
 # ---------------------------------------------------------------------- playing them yourself
-# Whose meta agents you can play against: the hardened v0.5 agents once that run has made them, and v0.3's.
+# Whose meta agents you can play against: v0.5's (the hardened agent where it beat v0.3's), and v0.3's.
 OPPONENTS = {"v05": ("v0.5 meta agent", ROOT / "results" / "v05" / "tables"),
              "v03": ("v0.3 meta agent", ROOT / "results" / "tables")}
 PLAY: dict = {"session": None, "id": None}
@@ -237,6 +237,19 @@ def meta_genome(kind: str, mode: str, n: int) -> dict | None:
         return {k: v for k, v in metas[str(n)].items() if k != "name"}
     except (KeyError, OSError, ValueError):
         return None
+
+
+def agent_label(kind: str, mode: str, n: int) -> str:
+    """The agent's name: v0.5's pick is the hardened agent or, where hardening made it worse, the v0.3 agent
+    it kept (scripts/14_harden.py, step 5)."""
+    if kind == "v05":
+        try:
+            rec = json.loads((OPPONENTS["v05"][1] / "hardened" / f"{mode}_{n}p.json").read_text())
+            if (rec.get("chosen") or {}).get("agent") == "v0.3":
+                return "v0.3 meta agent (kept in v0.5)"
+        except (OSError, ValueError):
+            pass
+    return OPPONENTS[kind][0]
 
 
 def play_options() -> dict:
@@ -253,7 +266,7 @@ def play_new(body: dict) -> dict:
     if genome is None and kind != "simple":  # the newest agents there are, else the simple bot
         kind = next((k for k in OPPONENTS if meta_genome(k, mode, n)), "simple")
         genome = meta_genome(kind, mode, n) if kind in OPPONENTS else None
-    label = OPPONENTS[kind][0] if genome else "Simple bot"
+    label = agent_label(kind, mode, n) if genome else "Simple bot"
     bot = to_spec(genome, label) if genome else to_spec(dict(BALANCED), label)
     seat = body.get("seat")
     seat = random.randrange(n) if seat in (None, "random") else min(n - 1, max(0, int(seat)))

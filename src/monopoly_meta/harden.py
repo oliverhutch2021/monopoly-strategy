@@ -20,7 +20,9 @@ Each round
 The round's exploitability is the worst ratio it showed, known or fresh. Rounds stop once that is below
 `threshold`. Because later rounds face a bigger pool, the agents of all rounds are finally measured
 against the final pool (which holds the exploits found against every round's agent, the last one's
-too), and the least exploited one is returned.
+too), and the least exploited one is returned: the starting agent too, if no round did better (in v0.5's
+first run at 6 players every round made things worse). After the full recheck, `keep_better` decides
+between the old agent and the new one on their worst measured exploit.
 
 Everything is checkpointed (the state after each phase, and the oracle's archive after each batch), so
 a stopped run resumes where it was.
@@ -143,7 +145,7 @@ def harden(meta: dict, pool: dict[str, dict], n_players: int, rules: Rules, *, s
            rounds: int = 4, threshold: float = 1.05, workers: int | None = None, ckpt: Path | None = None,
            log=print) -> dict:
     """Best-response iteration from `meta` against the known exploits in `pool` (see the module notes).
-    Returns {"meta", "selected_round", "rounds", "final", "pool"}."""
+    Returns {"meta", "selected_round" (0: the starting agent was kept, k: round k's), "rounds", "final", "pool"}."""
     b = budget
     if ckpt is not None and ckpt.exists():
         state = json.loads(ckpt.read_text())
@@ -246,10 +248,21 @@ def harden(meta: dict, pool: dict[str, dict], n_players: int, rules: Rules, *, s
             final.append({"agent": name, **_worst(exp), "exposure": exp})
         state["final"] = final
         save()
-    rounds_ = [x for x in state["final"] if x["agent"] != "start"]
-    best = _least_exploited(rounds_, fitness=False)
-    log(f"  [{n}p] hardening done: round {best + 1}'s agent is the least exploited by the final pool "
-        f"({rounds_[best]['worst']:.3f}x, {rounds_[best]['worst_name']}); the starting agent "
-        f"{state['final'][0]['worst']:.3f}x")
-    return {"meta": state["rounds"][best]["meta"], "selected_round": best, "rounds": state["rounds"],
-            "final": state["final"], "pool": state["pool"]}
+    best = _least_exploited(state["final"], fitness=False)  # the starting agent too: hardening can make it worse
+    pick = state["final"][best]
+    who = "the starting agent" if best == 0 else f"round {best}'s agent"
+    log(f"  [{n}p] hardening done: {who} is the least exploited by the final pool ({pick['worst']:.3f}x, "
+        f"{pick['worst_name']}); the starting agent {state['final'][0]['worst']:.3f}x")
+    return {"meta": state["start"] if best == 0 else state["rounds"][best - 1]["meta"], "selected_round": best,
+            "rounds": state["rounds"], "final": state["final"], "pool": state["pool"]}
+
+
+def worst_exploit(searches: list[float], known: list[dict]) -> float:
+    """An agent's exploitability as measured: the strongest of what the searches found against it and of the
+    known exploits played against it."""
+    return max([*searches, *(r["ratio"] for r in known)], default=0.0)
+
+
+def keep_better(old: float, new: float) -> str:
+    """Which agent to keep after hardening: the new one only if its worst measured exploit is smaller."""
+    return "new" if new < old else "old"

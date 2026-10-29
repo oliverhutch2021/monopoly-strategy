@@ -1,4 +1,6 @@
 """v0.5's hardening: the extra sparring pool, exposure tables, ablations and the resumable rounds."""
+from pathlib import Path
+
 import pytest
 
 from monopoly_meta import harden as hd
@@ -59,6 +61,8 @@ def test_hardening_resumes_exactly(tmp_path, monkeypatch):
     rules = tournament_rules(2)
     whole = harden(META, pool, 2, rules, ckpt=tmp_path / "a.json", **args)
     assert len(whole["rounds"]) == 2 and len(whole["final"]) == 3  # start + two rounds
+    k = whole["selected_round"]  # 0 = the starting agent, kept when no round did better
+    assert whole["meta"] == (with_tactics(META) if k == 0 else whole["rounds"][k - 1]["meta"])
     # one fresh exploit joins after each round (threshold 0 lets any in), the last round's too, so that every
     # round's agent meets the exploits found against it in the final comparison
     assert len(whole["pool"]) == 5
@@ -89,3 +93,35 @@ def test_hardening_resumes_exactly(tmp_path, monkeypatch):
 def test_every_tactic_has_a_name_in_labels():
     g = with_tactics({**META, **{k: hi for k, (off, lo, hi) in TACTICS.items()}})
     assert len(hd.label(g).split(", ")) == len(TACTICS)
+
+
+def test_the_final_pick_can_keep_the_starting_agent():
+    final = [{"agent": "start", "worst": 1.4, "self_capped": 0.0},
+             {"agent": "round 1", "worst": 5.3, "self_capped": 0.0},
+             {"agent": "round 2", "worst": 1.6, "self_capped": 0.0}]
+    assert hd._least_exploited(final, fitness=False) == 0
+    final[2]["worst"] = 1.2
+    assert hd._least_exploited(final, fitness=False) == 2
+
+
+def test_keeping_the_better_agent():
+    known = [{"ratio": 1.1}, {"ratio": 1.29}]
+    assert hd.worst_exploit([1.05, 1.11], known) == 1.29
+    assert hd.worst_exploit([], []) == 0.0
+    assert hd.keep_better(1.71, 1.29) == "new" and hd.keep_better(1.52, 5.26) == "old"
+    assert hd.keep_better(1.5, 1.5) == "old"  # a tie keeps what we had
+
+
+def test_the_choice_after_the_recheck():
+    import importlib
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    choice = importlib.import_module("14_harden").choice
+    rec = {"before": {"tactics_arm": 1.36, "best_find": 1.52}, "known_before": [{"ratio": 1.51}],
+           "known_after": [{"ratio": 5.08}]}
+    assert choice(rec) is None  # not rechecked yet
+    rec["recheck"] = {"tactics_arm": {"ratio": 5.2}, "finalists": [{"ratio": 5.26}]}
+    assert choice(rec) == {"agent": "v0.3", "worst_v03": 1.52, "worst_v05": 5.26}
+    rec["recheck"] = {"tactics_arm": {"ratio": 1.05}, "finalists": [{"ratio": 1.11}]}
+    rec["known_after"] = [{"ratio": 1.28}]
+    assert choice(rec)["agent"] == "v0.5"

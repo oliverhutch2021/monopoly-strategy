@@ -106,7 +106,8 @@ first), it:
    and old agents at each other's tables.
 
 Then, for every size again, it repeats Step 4's two searches against the new agents, with Step 4's
-budgets and seeds, so the before and after numbers compare like for like. The new agents are saved in
+budgets and seeds, so the before and after numbers compare like for like. A new agent replaces the old one
+only where its worst measured exploit is smaller; elsewhere the old agent stays. The agents kept are saved in
 `results/v05/tables/meta_agents_<mode>.json`; `results/v05/tables/hardened/summary.md` sums it all up.
 If you stop it, `make v05` carries on where it was.
 
@@ -151,7 +152,8 @@ make play
 ```
 
 Your browser opens the board in play mode. Pick the rules, the table size, your seat and who you play: the
-hardened v0.5 agents once Step 5 has made them, v0.3's agents, or the simple bots. The game runs on your PC
+best agents from Step 5 (the hardened one wherever it beat the v0.3 agent), the v0.3 agents, or the
+simple bots. The game runs on your PC
 and stops whenever it needs a decision from you:
 
 - buying, and your bid when a property is auctioned (everyone bids once, in secret);
