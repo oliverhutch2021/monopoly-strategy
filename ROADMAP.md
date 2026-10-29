@@ -7,12 +7,25 @@ trade, auction bid and building decision is worth, in win-probability and in pou
 Phase 0  Rules engine + exact Markov chain + ROI + bots         <- done (v0.1)
 Phase 1  Rollout evaluator + trade price curves                 <- done; 2-6 players (v0.2)
 Phase 5a Meta agents by evolutionary self-play, 2-6 players     <- done (v0.2)
+Phase 5c Unconventional strategies: new moves + MAP-Elites      <- v0.4, running
 Phase 2  Data pipeline: millions of simulated positions         -> Parquet / DuckDB
 Phase 3  Learned value function  P(win | state)                 -> LightGBM + SHAP, calibrated vs rollouts
 Phase 4  Instant valuations: trades, auctions, builds, cash     -> indifference prices in £
 Phase 5b Value-driven agents (self-play with the learned model) -> beyond the heuristic bot family
 Phase 6  Showcase: web dashboard, consulting deck, notebooks + report
 ```
+
+## Phase 5c: unconventional strategies (v0.4)
+- Eight optional tactics for the heuristic bot, all off by default so v0.3's games are unchanged:
+  auction sniping, the housing lock, borrowing to build, jail by the numbers, dodging with the Speed
+  Die, card counting, taxing the leader and playing the clock (`HeuristicBot` in
+  `src/monopoly_meta/policies.py`; `src/monopoly_meta/unconventional.py`).
+- A controlled comparison: v0.3's exploitability search with and without the new moves, with the same
+  budget and on the same games (`scripts/12_exploitability.py`, `scripts/13_unconventional.py`).
+- MAP-Elites over eight behaviour descriptors, so strong strategies of every style survive; the best
+  finds re-measured on fresh games; a league of them with its Nash mixture.
+- Next: if a tactic beats the meta agents, put it in the opponent pool and harden the meta agents
+  against it (v0.2's refinement loop), and report the v0.4 agents.
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the

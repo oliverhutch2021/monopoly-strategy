@@ -65,7 +65,27 @@ For each table size under official and championship rules, it trains challengers
 agents from three starting points with a much bigger search than hardening used, then measures the best
 one against the meta agent on 40,000 paired games. It writes to `results/v04`; the v0.3 results stay as
 they are. This is also the comparison run for the unconventional-strategy search that comes next: same
-search, same games, but without the new moves.
+search, same games, but without the new moves. Step 4 runs it too, so you can skip straight there.
+
+## Step 4: unconventional strategies (about 6 hours)
+
+```
+make sync && make v04
+```
+
+Can moves people rarely make beat the meta agents? The bots now have eight optional tactics: forcing an
+auction when every rival is short of cash, hoarding houses so rivals can't build, mortgaging lone
+properties to build, staying in jail by the numbers, dodging dangerous squares with the Speed Die,
+counting cards, charging the leader more, and playing the clock near the time limit. For each table size
+(4 players first, so a stopped run has the most-played sizes) under both rule sets it:
+
+1. runs Step 3's test, old moves only: the control arm (skipped wherever Step 3 already ran);
+2. runs the same test with the new moves allowed, and plays both challengers on the same 40,000 games;
+3. runs a MAP-Elites search, which keeps the best strategy for each style of play rather than one winner;
+4. re-measures the strongest finds on fresh games, and plays them all against each other in a league.
+
+It writes to `results/v04`. Championship games at 5 and 6 players often run to the time limit, so those
+two sizes take about half the time. Leave it overnight; `make watch` shows the games it's trying.
 
 ## Watching a run
 
@@ -99,9 +119,8 @@ replays that exact game with the same code. With no job running it shows demo ga
 
 ## Later steps
 
-Claude adds each one here when it's ready: the unconventional-strategy search (v0.4), engine checks
-(Phase A), studies at scale (Phase B), position data (Phase C), model training (Phase D), and the agent
-league (Phase F).
+Claude adds each one here when it's ready: engine checks (Phase A), studies at scale (Phase B), position
+data (Phase C), model training (Phase D), and the agent league (Phase F).
 
 ## If something goes wrong
 

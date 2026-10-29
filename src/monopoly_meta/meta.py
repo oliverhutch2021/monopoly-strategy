@@ -173,21 +173,28 @@ class EvolutionResult:
 def evolve(n_players: int, generations: int = 12, pop_size: int = 8, games: int = 800,
            seed: int = 0, hof_size: int = 6, init: list[dict] | None = None,
            opponents: list[dict] | None = None, workers: int | None = None,
-           rules: Rules | None = None, hof_init: list[dict] | None = None, log=print) -> EvolutionResult:
+           rules: Rules | None = None, hof_init: list[dict] | None = None, log=print,
+           mutator=mutate, sampler=random_genome) -> EvolutionResult:
     """(mu + lambda) evolution strategy with self-play fitness.
 
     If `opponents` is given, candidates are scored against that fixed table instead of
-    against the population (used to train a best-response challenger).
+    against the population (used to train a best-response challenger). `mutator(genome, rng)` and
+    `sampler(rng)` replace the variation operators (v0.4 uses ones that can switch tactics on); the
+    defaults are v0.3's and use the random numbers exactly as before.
     """
     rng = random.Random(seed)
     population = [dict(g) for g in (init or [])]
     while len(population) < pop_size:
-        population.append(random_genome(rng) if len(population) % 2 else mutate(BALANCED, rng, 0.25, 0.3))
+        if len(population) % 2:
+            population.append(sampler(rng))
+        else:
+            g = mutate(BALANCED, rng, 0.25, 0.3)
+            population.append(g if mutator is mutate else mutator(g, rng))
     population = population[:pop_size]
     hof: list[dict] = [dict(g) for g in (hof_init or [])]
     history = []
     for gen in range(generations):
-        children = [mutate(rng.choice(population), rng) for _ in range(pop_size)]
+        children = [mutator(rng.choice(population), rng) for _ in range(pop_size)]
         candidates = population + children
         if opponents is not None:
             pool, fixed = opponents, True

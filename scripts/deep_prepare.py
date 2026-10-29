@@ -16,12 +16,20 @@ RECOMPUTED = ["property_trades", "meta_standard/trade_*p.csv", "meta_championshi
               "meta_standard/exploit", "meta_championship/exploit"]
 
 
+def shown(p):
+    """A path relative to the repo when it is inside it (MM_RESULTS may also be an absolute path)."""
+    try:
+        return p.relative_to(ROOT)
+    except ValueError:
+        return p
+
+
 def main():
     if TABLES.resolve() == SOURCE.resolve():
         raise SystemExit("Set MM_RESULTS to a new folder, e.g. MM_RESULTS=results/v04")
     marker = TABLES / ".prepared"
     if marker.exists():
-        print(f"{TABLES.relative_to(ROOT)} already prepared")
+        print(f"{shown(TABLES)} already prepared")
         return
     if TABLES.exists():  # an attempt that stopped half-way
         shutil.rmtree(TABLES)
@@ -30,7 +38,7 @@ def main():
         for p in TABLES.glob(pattern):
             shutil.rmtree(p) if p.is_dir() else p.unlink()
     marker.write_text(f"copied from results/tables; sample scale {SCALE:g}\n")
-    print(f"prepared {TABLES.relative_to(ROOT)} from results/tables (scale {SCALE:g})")
+    print(f"prepared {shown(TABLES)} from results/tables (scale {SCALE:g})")
 
 
 if __name__ == "__main__":

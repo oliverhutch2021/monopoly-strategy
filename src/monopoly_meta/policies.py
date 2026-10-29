@@ -285,6 +285,17 @@ def can_build_ignoring_cash(g, p, sq) -> bool:
     return s.bank_hotels > 0 if lv == 4 else s.bank_houses > 0
 
 
+def set_rival(g, p, sq) -> int:
+    """The player who owns the rest of sq's colour group (call only when blocks_opponent is true)."""
+    ed = g.ed
+    return g.s.owner[next(x for x in ed.group_squares[ed.group_of[sq]] if x != sq)]
+
+
+def fine_amount(ed) -> int:
+    """The fine on the "Pay a £10 fine or take a Chance" card."""
+    return next((c.amount for c in (*ed.chance, *ed.community_chest) if c.action == "fine_or_chance"), 10)
+
+
 # ---------------------------------------------------------------------- heuristic bot
 @dataclass
 class HeuristicBot(Policy):
@@ -304,6 +315,25 @@ class HeuristicBot(Policy):
     accept_trades  consider other players' proposals at all
     offer_mult     cash offer for a set-completing piece, as a multiple of face value
     ask_mult       cash demanded before handing an opponent their set, as a multiple of face value
+
+    Tactics (v0.4). Each is off at its default, and then the bot plays exactly as before:
+    snipe          pass on a property at its printed price when every rival has less than snipe x the
+                   price in cash, so it goes to auction, where nobody can bid it up to the price (0 = off)
+    lock           housing lock: while the bank has at most this many houses and a rival owns a set that
+                   still needs houses, stop at four houses instead of building hotels; and when raising
+                   cash, mortgage everything else before selling a house (0 = off)
+    leverage       mortgage up to this share of our properties outside sets to build our sets to three
+                   houses (0 = off)
+    jail_exposure  stay in jail while one roll from there would cost at least this much on average, and
+                   otherwise leave at once (0 = off: the jail setting decides)
+    dodge          in Speed Die choices, also avoid squares from which the next roll is dangerous: the
+                   expected cost of that roll times dodge counts against a square (0 = off)
+    count_cards    remember every card drawn: "Pay a £10 fine or take a Chance" and Speed Die choices
+                   use the cards that can actually come next
+    leader_tax     ask this many times more before handing the richest player a set, and bid this many
+                   times more to stop them completing one (1 = off)
+    endgame_rounds in the last this-many rounds before the time limit, stay in jail and keep
+                   endgame_reserve as the cash reserve for buying and building (0 = off)
     """
     name: str = "heuristic"
     reserve: int = 150
@@ -320,9 +350,24 @@ class HeuristicBot(Policy):
     accept_trades: bool = True
     offer_mult: float = 2.0
     ask_mult: float = 2.0
+    # tactics (v0.4), all off by default
+    snipe: float = 0.0
+    lock: int = 0
+    leverage: float = 0.0
+    jail_exposure: float = 0.0
+    dodge: float = 0.0
+    count_cards: bool = False
+    leader_tax: float = 1.0
+    endgame_rounds: int = 0
+    endgame_reserve: float = 0.0
 
     def _weight(self, g, sq) -> float:
         return self.group_weight.get(g.ed.group_names[g.ed.group_of[sq]], 1.0)
+
+    def _endgame(self, g) -> bool:
+        """Within endgame_rounds rounds of the time limit?"""
+        s = g.s
+        return g.rules.max_turns - s.turn <= self.endgame_rounds * sum(s.alive)
 
     def buy(self, g, p, sq) -> bool:
         cash, price = g.s.cash[p], g.ed.price[sq]
@@ -331,7 +376,16 @@ class HeuristicBot(Policy):
         w = self._weight(g, sq)
         if w <= 0:
             return False
-        return cash - price >= self.reserve / w
+        if self.snipe and g.rules.auctions and self._snipe(g, p, price):
+            return False
+        reserve = self.endgame_reserve if self.endgame_rounds and self._endgame(g) else self.reserve
+        return cash - price >= reserve / w
+
+    def _snipe(self, g, p, price) -> bool:
+        """Every rival is too poor to bid the property up to its printed price."""
+        s = g.s
+        richest = max((s.cash[q] for q in range(s.n_players) if q != p and s.alive[q]), default=0)
+        return richest < self.snipe * price
 
     def max_bid(self, g, p, sq) -> int:
         price, cash = g.ed.price[sq], g.s.cash[p]
@@ -340,9 +394,18 @@ class HeuristicBot(Policy):
         val = price * self.bid_frac * self._weight(g, sq)
         if blocks_opponent(g, p, sq):
             val *= self.block_bonus
-        return int(max(0, min(val, cash - self.reserve)))
+            if self.leader_tax != 1.0 and set_rival(g, p, sq) == leader(g):
+                val *= self.leader_tax
+        reserve = self.endgame_reserve if self.endgame_rounds and self._endgame(g) else self.reserve
+        return int(max(0, min(val, cash - reserve)))
 
     def jail_decision(self, g, p) -> str:
+        if self.endgame_rounds and self._endgame(g):
+            return "roll"  # sit tight: a player in jail lands nowhere, so pays no rent
+        if self.jail_exposure:
+            if expected_exposure(g, p, g.ed.jail_square) >= self.jail_exposure:
+                return "roll"
+            return "card" if g.s.goojf[p] else "pay"
         if self.jail == "long":
             return "roll"
         if self.jail == "adaptive" and unowned_count(g) <= 6 and opponents_built(g, p) > 0:
@@ -350,7 +413,37 @@ class HeuristicBot(Policy):
         return "card" if g.s.goojf[p] else "pay"
 
     def fine_or_chance(self, g, p) -> str:
+        if self.count_cards:
+            vals = next_card_values(g, p, "chance")
+            return "chance" if vals and sum(vals) / len(vals) > -fine_amount(g.ed) else "fine"
         return "chance" if self.take_chance else "fine"
+
+    def bus_choice(self, g, p, options) -> int:
+        if not (self.dodge or self.count_cards):
+            return super().bus_choice(g, p, options)
+        n = g.n_sq
+        return max(options, key=lambda st: self._destination(g, p, (g.s.pos[p] + st) % n))
+
+    def triple_destination(self, g, p) -> int:
+        if not (self.dodge or self.count_cards):
+            return super().triple_destination(g, p)
+        return max(range(g.n_sq), key=lambda sq: self._destination(g, p, sq))
+
+    def _destination(self, g, p, sq) -> float:
+        """destination_score, with the cards that can come next (count_cards) and the danger of the
+        roll after (dodge)."""
+        score = destination_score(g, p, sq, self)
+        t = g.types[sq]
+        if self.count_cards and (t == T_CHANCE or t == T_CC):
+            vals = next_card_values(g, p, "chance" if t == T_CHANCE else "cc")
+            if vals:
+                score += sum(vals) / len(vals) / 100 - 0.1  # in place of the flat 0.1 for a card square
+        if self.dodge:
+            score -= self.dodge * expected_exposure(g, p, sq) / 100
+        return score
+
+    def raise_cash(self, g, p, target) -> None:
+        default_liquidation(g, p, target, houses_last=bool(self.lock))
 
     def _below_cap(self, g, p) -> bool:
         """Does p own a buildable set with a property still below build_cap?"""
@@ -373,7 +466,10 @@ class HeuristicBot(Policy):
         if i_get_set:  # happy to pay up to face difference for a set of my own
             return g.s.cash[me] + cash_in >= self.build_reserve // 2 and cash_in >= face_give - face_get - 50
         if they_get_set:
-            return cash_in + face_get >= self.ask_mult * face_give
+            ask = self.ask_mult
+            if self.leader_tax != 1.0 and other == leader(g):
+                ask *= self.leader_tax
+            return cash_in + face_get >= ask * face_give
         return cash_in + face_get >= 1.2 * face_give
 
     def _try_trade(self, g, p) -> None:
@@ -406,6 +502,7 @@ class HeuristicBot(Policy):
 
     def manage(self, g, p) -> None:
         s, ed = g.s, g.ed
+        build_reserve = self.endgame_reserve if self.endgame_rounds and self._endgame(g) else self.build_reserve
         if self.trades:
             self._try_trade(g, p)
         # 1. unmortgage pieces of complete sets (needed before we can build), then the rest
@@ -415,7 +512,7 @@ class HeuristicBot(Policy):
                 in_set = g.types[sq] == T_STREET and g.owns_group(p, ed.group_of[sq])
                 return (not in_set, -ed.price[sq])
             for sq in sorted(mortgaged, key=key):
-                if s.cash[p] - ed.unmortgage_cost(sq) >= self.build_reserve:
+                if s.cash[p] - ed.unmortgage_cost(sq) >= build_reserve:
                     g.unmortgage(p, sq)
         # 2. build, best marginal rent per pound first, respecting the build cap
         top = min(self.max_level, HOTEL)
@@ -426,17 +523,67 @@ class HeuristicBot(Policy):
                 best, best_score = None, -1.0
                 for gi in ed.street_groups:
                     hc = ed.house_cost[gi]
-                    if s.cash[p] - hc < self.build_reserve:
+                    if s.cash[p] - hc < build_reserve:
                         continue
                     for sq in ed.group_squares[gi]:
                         lv = s.level[sq]
                         if lv < cap and g.can_build(p, sq):
+                            if lv == 4 and self.lock and self._locking(g, p):
+                                continue  # hold the four houses: the rival can't have them
                             score = (ed.rent[sq][lv + 1] - ed.rent[sq][lv]) / hc
                             if score > best_score:
                                 best, best_score = sq, score
                 if best is None:
                     break
                 g.build(p, best)
+        # 3. borrow against lone properties to bring our sets up to three houses
+        if self.leverage:
+            self._leverage(g, p, build_reserve)
+
+    def _locking(self, g, p) -> bool:
+        """Housing lock: the bank is short of houses and a rival still needs houses for a set."""
+        s, ed = g.s, g.ed
+        if s.bank_houses > self.lock:
+            return False
+        for gi in ed.street_groups:
+            sqs = ed.group_squares[gi]
+            q = s.owner[sqs[0]]
+            if q == BANK or q == p or not s.alive[q]:
+                continue
+            if all(s.owner[x] == q for x in sqs) and not any(s.mortgaged[x] for x in sqs) \
+                    and min(s.level[x] for x in sqs) < 4:
+                return True
+        return False
+
+    def _leverage(self, g, p, build_reserve) -> None:
+        """Mortgage lone properties (cheapest first, up to `leverage` of what they would raise) to
+        build our sets up to three houses, the level where rents jump."""
+        s, ed = g.s, g.ed
+        target = min(3, self.build_cap, self.max_level)
+        lone = sorted((sq for sq in ed.ownable if s.owner[sq] == p and not s.mortgaged[sq]
+                       and not (g.types[sq] == T_STREET and g.owns_group(p, ed.group_of[sq]))),
+                      key=lambda x: (ed.mortgage_value(x), x))
+        budget = self.leverage * sum(ed.mortgage_value(x) for x in lone)
+        raised = 0
+        while True:
+            best, best_score = None, -1.0
+            for gi in ed.street_groups:
+                hc = ed.house_cost[gi]
+                for sq in ed.group_squares[gi]:
+                    lv = s.level[sq]
+                    if lv < target and can_build_ignoring_cash(g, p, sq):
+                        score = (ed.rent[sq][lv + 1] - ed.rent[sq][lv]) / hc
+                        if score > best_score:
+                            best, best_score = sq, score
+            if best is None:
+                return
+            hc = ed.house_cost[ed.group_of[best]]
+            while s.cash[p] - hc < build_reserve and lone and raised + ed.mortgage_value(lone[0]) <= budget:
+                sq = lone.pop(0)
+                if g.mortgage(p, sq):
+                    raised += ed.mortgage_value(sq)
+            if s.cash[p] - hc < build_reserve or not g.build(p, best):
+                return
 
 
 # ---------------------------------------------------------------------- baselines

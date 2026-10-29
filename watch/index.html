@@ -688,7 +688,7 @@ function renderPlayers() {
     if (s.jail[p] && !out) extras.push('in jail');
     const pct = sm ? (final ? (win ? 1 : 0) : sm.p[p]) : null;
     row.innerHTML = `<div class="tok" style="grid-row: span ${pct != null ? 3 : 2}" title="${esc(PNAME[p])}">${pieceToScale(p)}</div>
-      <div class="name"><span style="color:${PCOL[p]}">${PNAME[p]}</span> <span class="lbl">${esc(pl.label)}</span>${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
+      <div class="name" title="${esc(PNAME[p] + ': ' + pl.label)}"><span style="color:${PCOL[p]}">${PNAME[p]}</span> <span class="lbl">${esc(pl.label)}</span>${win ? ' 🏆' : ''}${out ? ' · bankrupt' : ''}</div>
       <div class="money">${money(s.cash[p])}</div>
       <div class="detail"><span class="pips">${pips || '<span>no property</span>'}</span>${extras.map(x => `<span>${x}</span>`).join('')}</div>
       ${pct != null ? `<div class="odds"><div class="bar"><i style="width:${(100 * pct).toFixed(1)}%;background:${PCOL[p]}"></i></div>

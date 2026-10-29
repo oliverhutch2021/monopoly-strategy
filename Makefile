@@ -13,7 +13,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test golden doctor sync status watch v03 exploit smoke
+.PHONY: help setup test golden doctor sync status watch v03 exploit v04 smoke
 
 help:  ## List the commands
 	@grep -hE '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 14
@@ -47,6 +47,9 @@ v03:  ## Run 2: finish v0.3 (about an hour; resumable; FORCE=1 restarts on new c
 
 exploit:  ## Run 3: can a bigger search beat the meta agents? (2-3 hours; resumable)
 	$(PY) scripts/jobs.py run exploit $(JOB_FLAGS)
+
+v04:  ## Run 4: unconventional strategies, with run 3 as its control (about 6 hours; resumable)
+	$(PY) scripts/jobs.py run v04 $(JOB_FLAGS)
 
 smoke:  ## Two-minute check that the job runner works end to end
 	$(PY) scripts/jobs.py run smoke $(JOB_FLAGS)

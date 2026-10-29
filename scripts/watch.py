@@ -32,6 +32,7 @@ from monopoly_meta.engine import Rules, championship_rules
 from monopoly_meta.meta import to_spec, tournament_rules
 from monopoly_meta.policies import make_bot
 from monopoly_meta.replay import RecordingGame, buy_value, win_chances
+from monopoly_meta.unconventional import TACTIC_NAMES, tactics_on
 
 ROOT = Path(__file__).resolve().parents[1]
 WATCH = ROOT / ".sync" / "watch"
@@ -175,6 +176,9 @@ def player_labels(lineup, seat, context) -> list[dict]:
             label, role = context.get("candidate", "Candidate"), "candidate"
         else:
             label, role = context.get("opponents", "Opponent"), "opponent"
+        on = tactics_on(spec) if isinstance(spec, dict) else []
+        if on:  # the v0.4 moves it is trying, e.g. "Explorer · housing lock, card counting"
+            label += " · " + ", ".join(TACTIC_NAMES[k] for k in on)
         out.append({"label": label, "role": role})
     return out
 

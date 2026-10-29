@@ -60,6 +60,14 @@ JOBS: dict[str, list[tuple]] = {
         ("exploitability-standard", ["scripts/12_exploitability.py", "--mode", "standard"], V04),
         ("exploitability-championship", ["scripts/12_exploitability.py", "--mode", "championship"], V04),
     ],
+    # v0.4, run 2: unconventional strategies. For each table size (4 players first, so a stopped run still has
+    # the most-played sizes) and both rule sets: the control arm above, then scripts/13_unconventional.py (the
+    # same search with the new moves allowed, a MAP-Elites search, and checks of what they found).
+    "v04": [("prepare", ["scripts/deep_prepare.py"], V04)]
+    + [step for n in ("4", "3", "5", "2", "6") for mode in ("standard", "championship") for step in (
+        (f"{n}p-{mode}-control", ["scripts/12_exploitability.py", "--mode", mode, n], V04),
+        (f"{n}p-{mode}-new-moves", ["scripts/13_unconventional.py", "--mode", mode, n], V04))]
+    + [("summary", ["scripts/13_unconventional.py", "--summary"], V04)],
     # On hold: every v0.3 study at 10x the samples. Most of these are measured with the meta agent at the table,
     # so they wait until the unconventional-strategy search has settled which agent that is (and will likely
     # run on the Rust engine, in minutes). Steps already done by "exploit" are skipped.
