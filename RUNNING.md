@@ -143,6 +143,27 @@ replays that exact game with the same code. With no job running it shows demo ga
 - If the page doesn't open, go to http://localhost:8765 yourself. If Windows can't reach it, try
   `make watch HOST=0.0.0.0`.
 
+## Playing the meta agents yourself
+
+```
+cd /mnt/h/monopoly-strategy
+make play
+```
+
+Your browser opens the board in play mode. Pick the rules, the table size, your seat and who you play: the
+hardened v0.5 agents once Step 5 has made them, v0.3's agents, or the simple bots. The game runs on your PC
+and stops whenever it needs a decision from you:
+
+- buying, and your bid when a property is auctioned (everyone bids once, in secret);
+- jail, the £10-fine-or-Chance card and, under championship rules, the Speed Die;
+- building, mortgages and raising cash when you owe more than you have;
+- trades: yes or no to the bots' offers, and offers of your own (properties and cash), which the bot answers
+  with its normal trade logic.
+
+As for the bots, you build, mortgage and trade once per turn, after you move. The Coach switch shows the win
+chances and what a property is worth to you; it starts off, for a fair test. You can play while a job runs:
+the game uses one thread at the lowest priority. Ctrl+C in the window stops it.
+
 ## Later steps
 
 Claude adds each one here when it's ready: engine checks (Phase A), studies at scale (Phase B), position

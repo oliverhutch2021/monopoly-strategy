@@ -13,7 +13,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test golden doctor sync status watch v03 exploit v04 v05 smoke
+.PHONY: help setup test golden doctor sync status watch play v03 exploit v04 v05 smoke
 
 help:  ## List the commands
 	@grep -hE '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 14
@@ -41,6 +41,9 @@ status:  ## Show which job steps are done
 
 watch:  ## Watch the running job's games live on a board in your browser (Ctrl+C stops it; the job carries on)
 	$(PY) scripts/watch.py --host $(HOST) --port $(PORT)
+
+play:  ## Play against the meta agents yourself, in your browser (Ctrl+C stops it)
+	$(PY) scripts/watch.py --play --host $(HOST) --port $(PORT)
 
 v03:  ## Run 2: finish v0.3 (about an hour; resumable; FORCE=1 restarts on new code)
 	$(PY) scripts/jobs.py run v03 $(JOB_FLAGS)

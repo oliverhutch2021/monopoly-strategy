@@ -9,6 +9,11 @@ While a job runs, every few seconds it saves one of the games it is about to pla
 seed and the rules (src/monopoly_meta/watch.py). This server replays that exact game with the same code
 (src/monopoly_meta/replay.py), so the board shows a real game from the run, slowed down for people.
 With no job running it plays demo games between the meta agents. It only reads the job's files.
+
+    make play                        play against the meta agents yourself (the same page, ?play)
+
+In play mode one seat is yours (src/monopoly_meta/human.py): the game runs here and waits for your
+decisions, which the page asks you for; the other seats are the meta agents.
 """
 from __future__ import annotations
 
@@ -29,7 +34,8 @@ from urllib.parse import parse_qs, urlparse
 
 from monopoly_meta import load_edition
 from monopoly_meta.engine import Rules, championship_rules
-from monopoly_meta.meta import to_spec, tournament_rules
+from monopoly_meta.human import PlaySession
+from monopoly_meta.meta import BALANCED, to_spec, tournament_rules
 from monopoly_meta.policies import make_bot
 from monopoly_meta.replay import RecordingGame, buy_value, win_chances
 from monopoly_meta.unconventional import TACTIC_NAMES, tactics_on
@@ -218,6 +224,76 @@ def demo_game() -> dict:
             "players": [{"label": label, "role": "opponent"}] * n, "log": log}
 
 
+# ---------------------------------------------------------------------- playing them yourself
+# Whose meta agents you can play against: the hardened v0.5 agents once that run has made them, and v0.3's.
+OPPONENTS = {"v05": ("v0.5 meta agent", ROOT / "results" / "v05" / "tables"),
+             "v03": ("v0.3 meta agent", ROOT / "results" / "tables")}
+PLAY: dict = {"session": None, "id": None}
+
+
+def meta_genome(kind: str, mode: str, n: int) -> dict | None:
+    try:
+        metas = json.loads((OPPONENTS[kind][1] / f"meta_agents_{mode}.json").read_text())
+        return {k: v for k, v in metas[str(n)].items() if k != "name"}
+    except (KeyError, OSError, ValueError):
+        return None
+
+
+def play_options() -> dict:
+    """Which opponents exist for each rule set and table size."""
+    return {mode: {kind: [n for n in range(2, 7) if meta_genome(kind, mode, n)] for kind in OPPONENTS}
+            for mode in ("standard", "championship")}
+
+
+def play_new(body: dict) -> dict:
+    mode = body.get("mode") if body.get("mode") in ("standard", "championship") else "standard"
+    n = min(6, max(2, int(body.get("players") or 4)))
+    kind = body.get("opponents")
+    genome = meta_genome(kind, mode, n) if kind in OPPONENTS else None
+    if genome is None and kind != "simple":  # the newest agents there are, else the simple bot
+        kind = next((k for k in OPPONENTS if meta_genome(k, mode, n)), "simple")
+        genome = meta_genome(kind, mode, n) if kind in OPPONENTS else None
+    label = OPPONENTS[kind][0] if genome else "Simple bot"
+    bot = to_spec(genome, label) if genome else to_spec(dict(BALANCED), label)
+    seat = body.get("seat")
+    seat = random.randrange(n) if seat in (None, "random") else min(n - 1, max(0, int(seat)))
+    seed = random.randrange(1 << 30)
+    rules = championship_rules(n) if mode == "championship" else tournament_rules(n)
+    lineup = [bot] * n
+    if PLAY["session"] is not None:
+        PLAY["session"].close()
+    session = PlaySession(lineup, seat, rules, seed)
+    gid = f"play-{seed}-{time.time():.3f}"
+    # the coach (win chances, property values) plays your seat with the same agent in its playouts
+    GAMES[gid] = {"lineup": lineup, "rules": rules, "states": session.g.states, "decisions": session.g.decisions,
+                  "odds": {}, "values": {}}
+    while len(GAMES) > 4:
+        GAMES.pop(next(iter(GAMES)))
+    with WAKE:
+        CURRENT["gid"] = gid
+        QUEUE.clear()
+    PLAY.update(session=session, id=gid)
+    players = [{"label": "You", "role": "you"} if i == seat else {"label": label, "role": "opponent"}
+               for i in range(n)]
+    return {"kind": "play", "id": gid, "seat": seat, "n_players": n, "mode": mode, "rules": rules_label(rules),
+            "scoring": rules.stalemate, "max_rounds": rules.max_turns // n, "seed": seed, "players": players,
+            "opponents": kind, "start": session.start_state, "decisions": 0}
+
+
+def play_poll(gid: str, since: int) -> dict:
+    s = PLAY["session"]
+    if s is None or PLAY["id"] != gid:
+        return {"error": "This game has ended: start a new one."}
+    return s.poll(max(0, since), wait=1.0)
+
+
+def play_answer(body: dict) -> dict:
+    s = PLAY["session"]
+    if s is None or PLAY["id"] != body.get("id"):
+        return {"ok": False, "error": "This game has ended: start a new one."}
+    return {"ok": s.answer(int(body.get("qid", -1)), body.get("value"))}
+
+
 # ---------------------------------------------------------------------- job status
 class Progress:
     """Reads a job's progress.log incrementally: games finished, games in flight, recent speed."""
@@ -352,9 +428,34 @@ class Handler(BaseHTTPRequestHandler):
                 q = parse_qs(url.query)
                 n = max(8, min(400, int(q.get("n", ["64"])[0])))
                 self.send(odds(q.get("id", [""])[0], int(q.get("turn", ["0"])[0]), n))
+            elif url.path == "/api/play/options":
+                self.send(play_options())
+            elif url.path == "/api/play/poll":
+                q = parse_qs(url.query)
+                self.send(play_poll(q.get("id", [""])[0], int(q.get("since", ["0"])[0] or 0)))
             elif url.path == "/api/value":
                 q = parse_qs(url.query)
                 self.send(value(q.get("id", [""])[0], int(q.get("k", ["0"])[0])))
+            else:
+                self.send({"error": "not found"}, code=404)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        except Exception as exc:  # report, keep serving
+            self.send({"error": f"{type(exc).__name__}: {exc}"}, code=500)
+
+
+class PlayHandler(Handler):
+    """The viewer's server, plus the two things play mode sends: a new game and your answers."""
+
+    def do_POST(self):
+        url = urlparse(self.path)
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+            body = json.loads(self.rfile.read(min(n, 1 << 20)) or b"{}") if n else {}
+            if url.path == "/api/play/new":
+                self.send(play_new(body if isinstance(body, dict) else {}))
+            elif url.path == "/api/play/answer":
+                self.send(play_answer(body if isinstance(body, dict) else {}))
             else:
                 self.send({"error": "not found"}, code=404)
         except (BrokenPipeError, ConnectionResetError):
@@ -379,6 +480,7 @@ def main() -> None:
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-browser", action="store_true")
+    ap.add_argument("--play", action="store_true", help="open the page in play mode: you against the meta agents")
     a = ap.parse_args()
     try:
         os.nice(19)  # lowest priority: a running job always comes first
@@ -387,15 +489,16 @@ def main() -> None:
     server = None
     for port in range(a.port, a.port + 20):
         try:
-            server = ThreadingHTTPServer((a.host, port), Handler)
+            server = ThreadingHTTPServer((a.host, port), PlayHandler)
             break
         except OSError:
             continue
     if server is None:
         raise SystemExit(f"No free port from {a.port} to {a.port + 19}")
     threading.Thread(target=value_worker, daemon=True).start()
-    url = f"http://localhost:{server.server_address[1]}"
-    print(f"Watching on {url}  (Ctrl+C to stop). If no browser window opens, paste that address into one.",
+    url = f"http://localhost:{server.server_address[1]}" + ("/?play" if a.play else "")
+    print(f"{'Playing' if a.play else 'Watching'} on {url}  (Ctrl+C to stop). If no browser window opens, paste "
+          "that address into one.",
           flush=True)
     if not a.no_browser:
         open_browser(url)

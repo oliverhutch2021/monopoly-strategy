@@ -158,6 +158,47 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
 .hud-small:not([fill]) { fill: #3f4c42; }
 .flash { animation: flash .9s ease-out; }
 @keyframes flash { 0% { fill-opacity: .8; } 100% { fill-opacity: 0; } }
+/* play mode (?play): your decisions, in a panel over the middle of the board (under it on a narrow screen) */
+.boardwrap { position: relative; width: 100%; max-width: calc(100vh - 112px); }
+.boardwrap #board { max-width: 100%; }
+.ask { position: absolute; left: 16.5%; top: 16.5%; width: 67%; max-height: 67%; overflow: auto; z-index: 2;
+  background: rgba(251,248,239,.97); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.35); padding: 14px 16px;
+  font-size: 13.5px; line-height: 1.4; }
+.ask[hidden] { display: none; }
+.ask.peek { opacity: .08; pointer-events: none; }
+.ask h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .03em; line-height: 1.15; }
+.ask h3 .pimg { vertical-align: -4px; margin-right: 4px; }
+.ask .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.ask button { font-size: 13px; }
+.ask button.main { background: var(--ink); color: #fff; font-size: 14px; padding: 8px 16px; }
+.ask button.main:hover { background: #3a342a; }
+.ask button:disabled { opacity: .35; cursor: default; }
+.ask .note { margin-top: 8px; padding: 6px 10px; border-radius: 8px; background: #fff3cf; font-weight: 600; }
+.ask .note.good { background: #d8eedf; } .ask .note.bad { background: #fde0dc; }
+.ask .coach { margin-top: 8px; padding: 6px 10px; border-radius: 8px; background: #e8f0fb; color: #23436e; }
+.ask .muted { color: var(--muted); font-size: 12px; }
+.ask .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.ask table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12.5px; }
+.ask td { padding: 4px 4px; border-top: 1px solid var(--line); vertical-align: middle; }
+.ask td.acts { text-align: right; white-space: nowrap; }
+.ask td.acts button { font-size: 11.5px; padding: 3px 8px; margin-left: 3px; }
+.ask .tabs { display: flex; gap: 6px; margin-top: 8px; }
+.ask .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.ask .cols h4 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.ask label.prop { display: flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 2px 0; cursor: pointer; }
+.ask input[type=number] { width: 110px; font: 600 14px var(--body); padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); }
+.ask select { font: 500 13px var(--body); padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); max-width: 100%; }
+.ask .choice { display: flex; flex-wrap: wrap; gap: 6px; }
+.ask .choice button.on { background: var(--ink); color: #fff; }
+.ask .choice button { white-space: normal; text-align: left; }
+.ask .deedline { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; margin-top: 4px; }
+.peekbtn { position: absolute; right: 18.5%; top: 17.5%; z-index: 3; font-size: 11.5px; padding: 3px 9px; }
+.peekbtn[hidden] { display: none; }
+@media (max-width: 980px) {
+  .boardwrap { max-width: 100%; }
+  .ask { position: static; width: 100%; max-height: none; margin-top: 10px; }
+  .peekbtn { display: none; }
+}
 </style>
 </head>
 <body>
@@ -195,7 +236,11 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
     </section>
   </div>
   <div class="centre">
-    <svg id="board" viewBox="-40 -40 1080 1080" role="img" aria-label="Board replaying a game"></svg>
+    <div class="boardwrap">
+      <svg id="board" viewBox="-40 -40 1080 1080" role="img" aria-label="Board replaying a game"></svg>
+      <div class="ask" id="ask" hidden></div>
+      <button class="peekbtn" id="peek" hidden title="Hold to see the board under this panel">👁 Board</button>
+    </div>
     <div class="toolbar" id="toolbar"></div>
   </div>
   <div class="right">
@@ -289,6 +334,7 @@ let since = 0, shownTurn = 0, odds = [];
 // draws the earlier board instead. Cell-local positions from watch/board/manifest.json: "tall" cells are the top and
 // bottom rows, "wide" ones the sides; every cell stands upright.
 const KIT = URLP.get('board') !== 'drawn';
+const PLAY = URLP.has('play');  // you against the meta agents (make play); see 'play mode' below
 const KIT_CELL = {
   tall: { houses: [[10.25, 123], [18.75, 123], [27.25, 123], [35.75, 123]], house: [7.5, 10], hotel: [23, 123],
     hotelSize: [30, 10], token: [40.667, 78] },
@@ -868,6 +914,7 @@ function renderReadout() {
 }
 let rewindHTML = '', tpHTML = '';  // what's on screen: redrawn only when it changes, so a click always lands
 function renderRewind() {
+  if (PLAY) { if (rewindHTML) { $('rewind').innerHTML = ''; rewindHTML = ''; } return; }
   const n = game ? game.log.turns.length : 0;
   const html = !game ? '' : [
     `<button data-act="back" title="Go back one turn (← key)"${atState === 0 && !midTurn ? ' disabled' : ''}>◀ Turn</button>`,
@@ -982,7 +1029,7 @@ function moment(i, k) {
 }
 function renderTurningPoints(tps) {
   let html = '';
-  if (game && analysisOn) {
+  if (game && analysisOn && !PLAY) {
     html = '<div class="tph">Turning points</div>' + (!tps.length
       ? '<div class="sub">The biggest swings in the win chances show up here as the game goes on.</div>'
       : '<div class="tps">' + tps.map((tp, i) => {
@@ -1115,9 +1162,11 @@ async function decide(o, bought, auctionEv = null) {
   }
   setDeed(false);
 }
+const them = p => (PLAY && session && p === session.seat ? 'you' : 'them');  // you, in a game you're playing
+const they = p => (PLAY && session && p === session.seat ? 'you' : 'they');
 function logDecision(o) {
   const v = o.value, vd = v ? verdict(v) : null;
-  const worth = v ? ` · worth ≈ ${money(v.value)} to them (<span style="color:${vd.colour}">${vd.text.toLowerCase()}</span>)` : '';
+  const worth = v ? ` · worth ≈ ${money(v.value)} to ${them(o.p)} (<span style="color:${vd.colour}">${vd.text.toLowerCase()}</span>)` : '';
   const text = o.bought ? `${who(o.p)} buys ${nm(o.sq)} for ${money(o.price)}${worth}`
     : `${who(o.p)} passes on ${nm(o.sq)} (${money(o.price)})${worth}`;
   logEvent(text, o.p, o.turn, `decision-${o.k}`);
@@ -1137,15 +1186,15 @@ function renderDecision(o) {
       <small>TITLE DEED · TURN ${o.turn}</small><b>${esc(sq.name.toUpperCase())}</b></div>
     <div class="body">
       <div class="row"><span>Price <b>${money(o.price)}</b></span><span>${who(o.p)} ${choice} ${call.mark}</span></div>
-      ${v ? `<div class="row"><span class="muted">Value to them right now</span><span class="big" style="color:${vd.colour}">≈ ${money(v.value)}</span></div>
+      ${v ? `<div class="row"><span class="muted">Value to ${them(o.p)} right now</span><span class="big" style="color:${vd.colour}">≈ ${money(v.value)}</span></div>
       <div class="muted">± ${money(1.96 * (v.value_se || 0))}: money over the next ${v.horizon_rounds} rounds, against someone else owning it</div>
-      <div class="row"><span>Chance of winning if they own it</span><b>${pct(v.p_own)}</b></div>
+      <div class="row"><span>Chance of winning if ${they(o.p)} own it</span><b>${pct(v.p_own)}</b></div>
       <div class="row"><span>… if someone else does</span><b>${pct(v.p_other)}</b></div>
       <div class="row"><span class="verdict" style="background:${vd.colour}">${vd.text}</span>
-        <span class="muted">${call.note ? 'the bot ' + call.note : ''}</span></div>
-      <div class="muted">${v.if_passed ? `If they pass: ${PNAME[v.if_passed.winner]} wins the auction for ${money(v.if_passed.price)}` : 'If they pass: it stays with the bank'}
+        <span class="muted">${call.note ? (them(o.p) === 'you' ? 'you ' : 'the bot ') + call.note : ''}</span></div>
+      <div class="muted">${v.if_passed ? `If ${they(o.p)} pass: ${PNAME[v.if_passed.winner]} wins the auction for ${money(v.if_passed.price)}` : `If ${they(o.p)} pass: it stays with the bank`}
         · ${v.n} paired playouts</div>`
-      : `<div class="muted">${analysisOn ? 'Working out what it is worth to them…' : 'Analysis is off.'}</div>`}
+      : `<div class="muted">${analysisOn ? `Working out what it is worth to ${them(o.p)}…` : PLAY ? 'The coach is off.' : 'Analysis is off.'}</div>`}
     </div></div>`;
 }
 function renderDecisions() {
@@ -1303,7 +1352,7 @@ function setRound(t) {
   shownTurn = t;
   const n = game.n_players, round = Math.floor(t / n) + 1;
   $('round').textContent = `Round ${round}` + (game.max_rounds ? ` of ${game.max_rounds}` : '');
-  $('turnSub').textContent = `Turn ${t + 1} of ${game.log.turns.length}`;
+  $('turnSub').textContent = game.kind === 'play' ? `Turn ${t + 1}` : `Turn ${t + 1} of ${game.log.turns.length}`;
   hud.round.textContent = `ROUND ${round} · TURN ${t + 1}`;
 }
 async function playGame(g) {
@@ -1386,7 +1435,7 @@ function slowDown() { if (speed > MOMENT_SPEED) { if (savedSpeed == null) savedS
 function restoreSpeed() { if (savedSpeed != null) { speed = savedSpeed; savedSpeed = null; } }
 function requestSeek(target, { play = false, oneTurn = false } = {}) {
   // go to the position after `target` turns: paused there, playing on from there, or playing just the next turn
-  if (!game) return;
+  if (!game || PLAY) return;  // a game you're playing can't go back
   seekTo = Math.max(0, Math.min(game.log.turns.length, target));
   skipping = true;  // whatever is animating now finishes at once
   playTo = oneTurn ? seekTo + 1 : null;
@@ -1550,17 +1599,355 @@ function buildToolbar() {
   });
   bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
   btn('Skip to the end', '', () => { playTo = null; restoreSpeed(); skipping = true; });
-  btn('Next game', 'go', () => { skipping = true; nextNow = true; playTo = null; setPaused(false); });
+  btn(PLAY ? 'New game' : 'Next game', 'go', () => {
+    skipping = true; nextNow = true; playTo = null; setPaused(false);
+    if (askCancel) askCancel();  // play mode: drop the question on screen
+  });
   bar.appendChild(Object.assign(document.createElement('span'), { className: 'sep' }));
   const showOdds = () => {
-    ob.textContent = `Analysis: ${analysisOn ? 'on' : 'off'}`; ob.className = analysisOn ? 'on' : '';
-    ob.title = 'Win chances and property values (they use one thread at low priority)';
+    ob.textContent = `${PLAY ? 'Coach' : 'Analysis'}: ${analysisOn ? 'on' : 'off'}`; ob.className = analysisOn ? 'on' : '';
+    ob.title = PLAY ? 'Win chances and what properties are worth to you (one thread, low priority)'
+      : 'Win chances and property values (they use one thread at low priority)';
     $('chartCard').style.display = analysisOn ? '' : 'none'; $('valueCard').style.display = analysisOn ? '' : 'none';
     renderPlayers(); renderChart();
   };
   const ob = btn('', '', () => { analysisOn = !analysisOn; showOdds(); });
   showOdds();
+  showCoach = showOdds;
 }
+
+// ------------------------------------------------------------------ play mode (?play): you against the meta agents
+// The game runs on the server (src/monopoly_meta/human.py) and stops whenever it needs a decision from your seat.
+// This page animates what has happened since, then asks you in the panel over the board; your answer goes back and
+// the game carries on. As for the bots, building, mortgages and trades come once per turn, after you move.
+let session = null;           // the game you're playing (/api/play/new's reply)
+let askCancel = null;         // ends the question on screen (New game)
+let manageTab = 'props', tradeDraft = null, giveUp = false;
+const declined = new Set();   // trade offers you asked not to see again
+const sqName = sq => `<span class="sw" style="background:${B.squares[sq].colour || '#9a9488'}"></span>${nm(sq)}`;
+const sqList = sqs => (sqs.length ? sqs.map(sqName).join(', ') : 'nothing');
+const whose = p => (session && p === session.seat ? 'you' : PNAME[p]);
+
+function showAsk(html, handlers = {}) {
+  const a = $('ask');
+  a.innerHTML = html; a.hidden = false; a.classList.remove('peek'); a.scrollTop = 0;
+  $('peek').hidden = innerWidth <= 980;
+  a.querySelectorAll('[data-act]').forEach(b => { const f = handlers[b.dataset.act]; if (f) b.onclick = () => f(b); });
+  return a;
+}
+function hideAsk() { $('ask').hidden = true; $('peek').hidden = true; }
+function deedLine(sq) {
+  const s = B.squares[sq], parts = [`Price <b>${money(s.price)}</b>`];
+  if (s.rent) parts.push(`Rent ${money(s.rent[0])} (${money(2 * s.rent[0])} with the set) · houses ${s.rent.slice(1, 5).map(money).join(' / ')} · hotel ${money(s.rent[5])}`);
+  if (s.type === 'station') parts.push('Rent £25 / £50 / £100 / £200 for 1-4 stations');
+  if (s.type === 'utility') parts.push('Rent 4× the dice, 10× with both');
+  if (s.house_cost) parts.push(`Houses ${money(s.house_cost)} each`);
+  if (s.mortgage) parts.push(`Mortgage ${money(s.mortgage)}`);
+  const grp = s.group && B.groups.find(gr => gr.name === s.group);
+  const rest = grp ? grp.squares : B.squares.filter(x => x.type === s.type && x.type !== 'street').map(x => x.i);
+  const others = rest.filter(x => x !== sq).map(x => { const o = state.owner[ownIdx[x]]; return `${nm(x)}: ${o >= 0 ? whose(o) : 'bank'}`; });
+  if (others.length) parts.push(`The rest: ${others.join(', ')}`);
+  return `<div class="deedline">${parts.map(x => `<span>${x}</span>`).join('')}</div>`;
+}
+async function coachBuy(k) {  // the coach's view of a property you're deciding on, when it's ready
+  for (let i = 0; i < 120; i++) {
+    const box = document.getElementById('coachLine');
+    if (!box) return;
+    const v = await getValue(k, 0);
+    if (v) {
+      const vd = verdict(v);
+      box.innerHTML = `Coach: worth about <b>${money(v.value)}</b> to you (± ${money(1.96 * (v.value_se || 0))}) · `
+        + `<b style="color:${vd.colour}">${vd.text}</b><br>Your chance of winning: ${pct(v.p_own)} if you buy it, ${pct(v.p_other)} if not.`;
+      return;
+    }
+    await idle(500);
+  }
+}
+function assetTable(assets, manage) {
+  if (!assets.length) return '<div class="muted" style="margin-top:8px">You don\'t own any property yet.</div>';
+  const rows = assets.slice().sort((a, b) => a.sq - b.sq).map(a => {
+    const lv = a.level, status = a.mortgaged ? 'mortgaged' : lv === 5 ? 'hotel' : lv ? `${lv} house${lv > 1 ? 's' : ''}` : '';
+    const acts = [];
+    if (manage && a.build) acts.push(`<button data-act="build" data-sq="${a.sq}">+ ${lv === 4 ? 'Hotel' : 'House'} ${money(a.house_cost)}</button>`);
+    if (a.sell) acts.push(`<button data-act="sell" data-sq="${a.sq}">Sell ${lv === 5 ? 'hotel' : 'house'} +${money(a.house_cost / 2)}</button>`);
+    if (a.mortgage) acts.push(`<button data-act="mortgage" data-sq="${a.sq}">Mortgage +${money(a.mortgage_value)}</button>`);
+    if (manage && a.unmortgage) acts.push(`<button data-act="unmortgage" data-sq="${a.sq}">Pay off ${money(a.unmortgage_cost)}</button>`);
+    return `<tr><td>${sqName(a.sq)}</td><td class="muted">${status}</td><td class="acts">${acts.join('') || '<span class="muted">—</span>'}</td></tr>`;
+  });
+  return `<table>${rows.join('')}</table>`;
+}
+function tradeBuilder(q) {
+  const tr = q.trading || {};
+  if (tr.closed) return `<div class="muted" style="margin-top:8px">${esc(tr.closed)}</div>`;
+  const who_ = (tr.players || []).map(p => `<button data-act="to" data-p="${p}" class="${tradeDraft && tradeDraft.to === p ? 'on' : ''}">${pieceSVG(p, 16)}${PNAME[p]}</button>`).join('');
+  let html = `<div class="row"><span class="muted">Trade with</span><span class="choice">${who_}</span></div>`;
+  if (!tradeDraft) return html + '<div class="muted" style="margin-top:6px">Pick a player to put an offer together. They answer the way they answer each other.</div>';
+  const t = new Set(tr.tradable || []), d = tradeDraft;
+  const props = owner => B.ownable.filter((sq, k) => state.owner[k] === owner && t.has(sq));
+  const box = (sq, side) => `<label class="prop"><input type="checkbox" data-side="${side}" value="${sq}"${d[side].includes(sq) ? ' checked' : ''}>${sqName(sq)}</label>`;
+  const mine = props(session.seat), theirs = props(d.to);
+  html += `<div class="cols"><div><h4>You give</h4>${mine.map(sq => box(sq, 'give')).join('') || '<span class="muted">nothing you can trade</span>'}</div>
+    <div><h4>You get</h4>${theirs.map(sq => box(sq, 'get')).join('') || '<span class="muted">nothing they can trade</span>'}</div></div>
+    <div class="row"><select id="cashDir"><option value="1"${d.cash >= 0 ? ' selected' : ''}>You pay them</option><option value="-1"${d.cash < 0 ? ' selected' : ''}>They pay you</option></select>
+      <input type="number" id="cashIn" min="0" step="10" value="${Math.abs(d.cash)}"> <span class="muted">(you have ${money(q.cash)}, they have ${money(state.cash[d.to])})</span></div>
+    <div class="row"><button data-act="propose">Offer it to ${PNAME[d.to]}</button><span class="muted">${q.proposals_left} offer${q.proposals_left === 1 ? '' : 's'} left this turn · properties in a colour group with buildings can't be traded</span></div>`;
+  return html;
+}
+function readDraft() {
+  const d = tradeDraft;
+  if (!d) return;
+  d.give = [...document.querySelectorAll('#ask input[data-side=give]:checked')].map(x => +x.value);
+  d.get = [...document.querySelectorAll('#ask input[data-side=get]:checked')].map(x => +x.value);
+  d.cash = Math.max(0, Math.round(+$('cashIn').value || 0)) * (+$('cashDir').value || 1);
+}
+function noteHtml(q) {
+  if (!q.note) return '';
+  if (q.note === 'accepted' || q.note === 'declined') {
+    const to = tradeDraft ? PNAME[tradeDraft.to] : 'They';
+    return `<div class="note ${q.note === 'accepted' ? 'good' : 'bad'}">${to} ${q.note === 'accepted' ? 'accepted your offer.' : 'said no.'}</div>`;
+  }
+  return `<div class="note bad">${esc(q.note)}</div>`;
+}
+const ASK = {
+  buy(q, done) {
+    showAsk(`<h3>Buy ${esc(B.squares[q.sq].name)}?</h3>${deedLine(q.sq)}
+      <div class="muted" style="margin-top:6px">You have ${money(q.cash)}. If you don't buy it, it's auctioned, and you can bid there too.</div>
+      ${analysisOn ? '<div class="coach" id="coachLine">Coach: working out what it\'s worth to you…</div>' : ''}
+      <div class="row"><button class="main" data-act="yes">Buy it for ${money(q.price)}</button><button data-act="no">Let it go to auction</button></div>`,
+    { yes: () => done(true), no: () => done(false) });
+    if (analysisOn && offer && offer.sq === q.sq && offer.k != null) coachBuy(offer.k);
+  },
+  bid(q, done) {
+    const s = B.squares[q.sq], max = q.cash;
+    const go = () => done(Math.max(0, Math.min(max, Math.floor(+$('bidIn').value || 0))));
+    showAsk(`<h3>Auction: ${esc(s.name)}</h3>${deedLine(q.sq)}
+      <div class="muted" style="margin-top:6px">Everyone says, in secret, the most they'd pay. The highest wins and pays £1 more than the next highest
+      (never more than they said). You have ${money(max)}.</div>
+      <div class="row"><input type="number" id="bidIn" min="0" max="${max}" step="5" value="0">
+        <button data-act="half">Half price</button><button data-act="full">Printed price</button><button data-act="all">All my cash</button></div>
+      <div class="row"><button class="main" data-act="bid">Place my bid</button><button data-act="none">No bid</button></div>`, {
+      half: () => { $('bidIn').value = Math.min(max, Math.floor(s.price / 2)); },
+      full: () => { $('bidIn').value = Math.min(max, s.price); },
+      all: () => { $('bidIn').value = max; },
+      bid: go, none: () => done(0) });
+    const box = $('bidIn');
+    box.onkeydown = e => { if (e.key === 'Enter') go(); };
+    box.focus(); box.select();
+  },
+  jail(q, done) {
+    const b = [];
+    if (q.options.includes('roll')) b.push('<button class="main" data-act="roll">Roll for doubles</button>');
+    if (q.options.includes('pay')) b.push(`<button data-act="pay">Pay ${money(q.fine)} and roll</button>`);
+    if (q.options.includes('card')) b.push('<button data-act="card">Use your Get Out of Jail Free card</button>');
+    showAsk(`<h3>You're in jail</h3><div class="muted">Try ${q.tries + 1} of ${q.max_tries}. Doubles get you out for free; after a third miss you pay
+      ${money(q.fine)} and move. Paying or using a card lets you roll and move now.</div><div class="row">${b.join('')}</div>`,
+    { roll: () => done('roll'), pay: () => done('pay'), card: () => done('card') });
+  },
+  fine_or_chance(q, done) {
+    showAsk('<h3>Pay a £10 fine or take a Chance?</h3><div class="muted">A Chance card can be good or bad: about half of them cost you something.</div>'
+      + '<div class="row"><button class="main" data-act="fine">Pay £10</button><button data-act="chance">Take a Chance</button></div>',
+    { fine: () => done('fine'), chance: () => done('chance') });
+  },
+  bus(q, done) {
+    showAsk(`<h3>Bus!</h3><div class="muted">Move by one die or by both.</div><div class="row">${q.options.map(o =>
+      `<button data-act="go" data-steps="${o.steps}">Move ${o.steps}: ${sqName(o.sq)}</button>`).join('')}</div>`,
+    { go: b => done(+b.dataset.steps) });
+  },
+  triple(q, done) {
+    const opts = B.squares.map(s => { const k = ownIdx[s.i], o = k !== undefined ? state.owner[k] : -1;
+      return `<option value="${s.i}">${esc(s.name)}${o >= 0 ? ` (${whose(o)})` : k !== undefined ? ' (for sale)' : ''}</option>`; }).join('');
+    showAsk(`<h3>Triple! Go to any square</h3><div class="row"><select id="tripleSq">${opts}</select>
+      <button class="main" data-act="go">Go there</button></div>`, { go: () => done(+$('tripleSq').value) });
+    $('tripleSq').value = state.pos[session.seat];
+  },
+  trade_offer(q, done) {
+    const key = JSON.stringify([q.by, q.give, q.get, q.money]);
+    const cash = q.money > 0 ? (q.get.length ? ` and ${money(q.money)}` : money(q.money)) : '';
+    const pay = q.money < 0 ? ` and you pay ${money(-q.money)}` : '';
+    showAsk(`<h3>${pieceSVG(q.by, 24)}${PNAME[q.by]} offers you a trade</h3>
+      <table><tr><td class="muted">You give</td><td>${sqList(q.give)}${pay}</td></tr>
+        <tr><td class="muted">You get</td><td>${q.get.length || !cash ? sqList(q.get) : ''}${cash}</td></tr></table>
+      <label class="prop" style="margin-top:6px"><input type="checkbox" id="noMore"> Don't show me this offer again</label>
+      <div class="row"><button class="main" data-act="yes">Accept</button><button data-act="no">No thanks</button></div>`, {
+      yes: () => done(true), no: () => { if ($('noMore').checked) declined.add(key); done(false); } });
+  },
+  manage(q, done) {
+    const tab = manageTab;
+    const tabs = `<div class="tabs"><button class="${tab === 'props' ? 'on' : ''}" data-act="tabProps">Build and mortgage</button>
+      <button class="${tab === 'trade' ? 'on' : ''}" data-act="tabTrade">Trade</button></div>`;
+    showAsk(`<h3>Your turn: anything before you finish?</h3><div class="muted">You have ${money(q.cash)}.</div>${noteHtml(q)}${tabs}
+      ${tab === 'props' ? assetTable(q.assets, true) : tradeBuilder(q)}
+      <div class="row"><button class="main" data-act="done">End my turn</button></div>`, {
+      tabProps: () => { manageTab = 'props'; ASK.manage({ ...q, note: '' }, done); },
+      tabTrade: () => { readDraft(); manageTab = 'trade'; ASK.manage({ ...q, note: '' }, done); },
+      done: () => { manageTab = 'props'; tradeDraft = null; done({ act: 'done' }); },
+      build: b => done({ act: 'build', sq: +b.dataset.sq }), sell: b => done({ act: 'sell', sq: +b.dataset.sq }),
+      mortgage: b => done({ act: 'mortgage', sq: +b.dataset.sq }), unmortgage: b => done({ act: 'unmortgage', sq: +b.dataset.sq }),
+      to: b => { readDraft(); tradeDraft = { to: +b.dataset.p, give: [], get: [], cash: 0 }; ASK.manage({ ...q, note: '' }, done); },
+      propose: () => { readDraft(); done({ act: 'trade', to: tradeDraft.to, give: tradeDraft.give, get: tradeDraft.get, cash: tradeDraft.cash }); },
+    });
+  },
+  raise(q, done) {
+    showAsk(`<h3>You owe ${money(q.target)}: find ${money(q.target - q.cash)} more</h3>
+      <div class="muted">Sell buildings (for half what they cost) or mortgage properties until you have enough. If you can't, you're bankrupt.</div>
+      ${noteHtml(q)}${assetTable(q.assets, false)}
+      <div class="row"><button class="main" data-act="auto">Raise it for me</button>
+        <button data-act="quit">${giveUp ? 'Really give up? Click again' : 'Give up (go bankrupt)'}</button></div>`, {
+      auto: () => { giveUp = false; done({ act: 'auto' }); },
+      quit: () => { if (giveUp) { giveUp = false; done({ act: 'done' }); } else { giveUp = true; ASK.raise(q, done); } },
+      sell: b => done({ act: 'sell', sq: +b.dataset.sq }), mortgage: b => done({ act: 'mortgage', sq: +b.dataset.sq }),
+    });
+  },
+};
+function askQuestion(q) {
+  setDeed(false);  // the panel says it all; the deed would only show through
+  return new Promise(resolve => {
+    const finish = v => { askCancel = null; hideAsk(); resolve(v); };
+    askCancel = () => finish(null);
+    (ASK[q.kind] || ((x, d) => showAsk(`<h3>${esc(x.kind)}?</h3><div class="row"><button data-act="ok">OK</button></div>`, { ok: () => d(null) })))(q, finish);
+  });
+}
+async function askSetup(last) {
+  let opts = {};
+  try { opts = await (await fetch('/api/play/options')).json(); } catch (e) { /* the simple bots are always there */ }
+  return new Promise(resolve => {
+    const st = { mode: 'standard', players: 4, opponents: null, seat: 'first', coach: false, ...(last || {}) };
+    const render = () => {
+      const avail = k => k === 'simple' || ((opts[st.mode] || {})[k] || []).includes(st.players);
+      if (!st.opponents || !avail(st.opponents)) st.opponents = ['v05', 'v03', 'simple'].find(avail);
+      const choice = (key, items) => `<div class="choice">${items.map(([v, label, ok = true]) => `<button data-act="set" data-k="${key}"
+        data-v="${v}" class="${String(st[key]) === String(v) ? 'on' : ''}"${ok ? '' : ' disabled title="not made yet"'}>${label}</button>`).join('')}</div>`;
+      showAsk(`<h3>Play against the meta agents</h3>
+        <div class="muted">You take one seat and the meta agents play the rest. You make every decision a player makes: buying, bidding,
+        jail, building, mortgages and trades.</div>
+        <table>
+          <tr><td>Rules</td><td>${choice('mode', [['standard', 'Official'], ['championship', 'Championship (Speed Die, time limit)']])}</td></tr>
+          <tr><td>Players</td><td>${choice('players', [2, 3, 4, 5, 6].map(n => [n, n]))}</td></tr>
+          <tr><td>Against</td><td>${choice('opponents', [['v05', 'Hardened agents (v0.5)', avail('v05')], ['v03', 'v0.3 agents', avail('v03')],
+            ['simple', 'Simple bots']])}</td></tr>
+          <tr><td>You go</td><td>${choice('seat', [['first', 'First'], ['random', 'Random']])}</td></tr>
+          <tr><td>Coach</td><td>${choice('coach', [[false, 'Off (a fair test)'], [true, 'On: win chances and what a property is worth to you']])}</td></tr>
+        </table>
+        <div class="row"><button class="main" data-act="start">Start the game</button></div>`, {
+        set: b => { const k = b.dataset.k, v = b.dataset.v; st[k] = k === 'players' ? +v : k === 'coach' ? v === 'true' : v; render(); },
+        start: () => resolve({ ...st }) });
+    };
+    render();
+  });
+}
+function logProposal(ev, turnNo) {
+  const part = (ps, m) => [...ps.map(nm), ...(m > 0 ? [money(m)] : [])].join(' + ') || 'nothing';
+  logEvent(`${who(ev.a)} offers ${who(ev.b)} ${part(ev.a_gives, ev.money)} for ${part(ev.b_gives, -ev.money)}: `
+    + (ev.accepted ? 'accepted' : 'turned down'), ev.a, turnNo);
+  if (!ev.accepted) banner('OFFER TURNED DOWN', `${PNAME[ev.b]} says no`, PCOL[ev.b]);
+}
+function finishLive(r) {
+  if (r.error) { banner('SOMETHING WENT WRONG', 'the details are in the play-by-play'); logEvent(`<pre>${esc(r.error)}</pre>`); return; }
+  const res = r.result;
+  if (!res) return;
+  game.log.result = res;
+  const turns = game.log.turns, final = turns.length ? turns[turns.length - 1].state : game.log.start;
+  const winner = res.capped && game.scoring === 'loss' ? null : res.winner;
+  applyState({ ...final, winner });
+  atState = furthest = oddsWanted = turns.length;
+  if (winner == null) banner('TIME LIMIT', 'nobody wins a stopped game');
+  else banner(winner === session.seat ? 'YOU WIN!' : `${PNAME[winner].toUpperCase()} WINS`, winner === session.seat ? 'well played' : game.players[winner].label, PCOL[winner]);
+  logEvent(winner == null ? 'The game hits the time limit' : `${who(winner)} wins after ${res.turns} turns`, winner);
+  renderChart();
+}
+function placeOf(res, seat) {  // your finishing position: by when you went out, or by net worth if you lasted
+  const n = res.net_worth.length, out = res.elimination_order.indexOf(seat);
+  if (out >= 0) return n - out;
+  const alive = [...Array(n).keys()].filter(p => !res.elimination_order.includes(p));
+  return 1 + alive.filter(p => p !== seat && res.net_worth[p] > res.net_worth[seat]).length;
+}
+function askAfter(r) {
+  return new Promise(resolve => {
+    const res = r.result, seat = session.seat;
+    const head = !res ? 'Game over' : res.winner === seat && !(res.capped && game.scoring === 'loss') ? 'You beat the meta agents!'
+      : `You finished ${['1st', '2nd', '3rd', '4th', '5th', '6th'][placeOf(res, seat) - 1]} of ${game.n_players}`;
+    showAsk(`<h3>${head}</h3><div class="muted">${res ? `${res.turns} turns · your net worth at the end ${money(res.net_worth[seat])}` : ''}</div>
+      <div class="row"><button class="main" data-act="again">Play again</button></div>`, { again: () => { hideAsk(); resolve(); } });
+    askCancel = () => { hideAsk(); resolve(); };
+  });
+}
+async function liveGame(info) {
+  session = info;
+  game = { ...info, log: { start: info.start, turns: [], result: null } };
+  skipping = false; nextNow = false; odds = []; oddsAsked = new Set(); shownTurn = 0; oddsWanted = 0;
+  atState = 0; furthest = 0; seekTo = null; playTo = null; midTurn = false; reviewed = false; hoverTurn = null; tpCache = null;
+  offer = null; values = {}; decisions = []; setDeed(false); declined.clear(); manageTab = 'props'; tradeDraft = null; giveUp = false;
+  $('decision').innerHTML = '<div class="sub">With the coach on, this shows what each property is worth to whoever lands on it.</div>';
+  $('decisions').innerHTML = '';
+  $('events').replaceChildren();
+  ['lastChance', 'lastChest'].forEach(id => { $(id).querySelector('.tx').textContent = '—'; $(id).querySelector('.by').textContent = ''; });
+  $('gameTitle').textContent = 'You against the meta agents';
+  $('about').innerHTML = `You are the ${who(info.seat)}; the others are ${esc(info.players.find(p => p.role !== 'you').label.toLowerCase())}s.`;
+  $('gameMeta').textContent = `${info.n_players} players · ${info.rules} · seed ${info.seed}`;
+  makeTokens(info.n_players);
+  hud.kind.textContent = 'YOU AGAINST THE META AGENTS';
+  applyState({ ...info.start, winner: null });
+  setRound(0); renderChart();
+  banner(`YOU ARE THE ${PNAME[info.seat].toUpperCase()}`, `${info.n_players} players · ${info.rules}`, PCOL[info.seat]);
+  showDice(1, 1);
+  await sleep(1200);
+  let since = 0, t = 0;
+  while (!nextNow) {
+    let r;
+    try { r = await (await fetch(`/api/play/poll?id=${encodeURIComponent(info.id)}&since=${since}`)).json(); }
+    catch (e) { banner('LOST THE CONNECTION', 'is make play still running?'); await idle(1500); continue; }
+    if (!r.events) { banner('GAME OVER', r.error || ''); return; }
+    for (const ev of r.events) {
+      if (nextNow) return;
+      since++;
+      if (ev.e === 'turn_end') {
+        game.log.turns.push({ p: ev.p, events: [], state: ev.state });
+        t = ev.turn; applyState(ev.state); atState = furthest = oddsWanted = t; setRound(t);
+        if (!skipping) { renderChart(); await sleep(Math.max(0, 200 / speed)); }
+        continue;
+      }
+      if (ev.e === 'proposal') { logProposal(ev, t + 1); continue; }
+      if (ev.e === 'roll') lastRoll = ev.d;
+      if (!skipping) await playEvent(ev, t + 1);
+      else if (ev.cash) state.cash = ev.cash;
+    }
+    if (r.over) { skipping = false; finishLive(r); await askAfter(r); return; }
+    const q = r.question;
+    if (!q || q.at > since) continue;
+    let value = false;
+    if (!(q.kind === 'trade_offer' && declined.has(JSON.stringify([q.by, q.give, q.get, q.money])))) {
+      if (skipping) { skipping = false; applyState(q.state); }  // skipping stops at your next decision
+      value = await askQuestion(q);
+    }
+    if (nextNow) return;
+    try {
+      await fetch('/api/play/answer', { method: 'POST', body: JSON.stringify({ id: info.id, qid: q.id, value }) });
+    } catch (e) { /* the next poll reports a lost connection */ }
+  }
+}
+async function playLoop() {
+  const peek = $('peek'), ask = $('ask');
+  peek.onpointerdown = () => ask.classList.add('peek');
+  peek.onpointerup = peek.onpointerleave = () => ask.classList.remove('peek');
+  let last = { coach: URLP.has('coach') };
+  $('gameTitle').textContent = 'You against the meta agents';
+  $('about').textContent = 'Pick the rules, the table size and who you play, then start.';
+  while (true) {
+    nextNow = false; skipping = false;
+    banner('YOU AGAINST THE META AGENTS', 'pick a game to start');
+    const st = await askSetup(last); last = st;
+    hideAsk();
+    analysisOn = st.coach; showCoach();
+    let info;
+    try {
+      info = await (await fetch('/api/play/new', { method: 'POST', body: JSON.stringify({
+        mode: st.mode, players: st.players, opponents: st.opponents, seat: st.seat === 'first' ? 0 : 'random' }) })).json();
+    } catch (e) { info = { error: String(e.message || e) }; }
+    if (info.error) { banner('COULD NOT START A GAME', info.error); await idle(2500); continue; }
+    await liveGame(info);
+  }
+}
+let showCoach = () => {};
 
 // ------------------------------------------------------------------ start
 async function main() {
@@ -1597,6 +1984,8 @@ async function main() {
     });
     return;
   }
+  if (PLAY && !URLP.get('speed')) speed = 2;  // the bots' turns go by a little faster when you're playing
+  if (PLAY && !URLP.has('coach')) analysisOn = false;  // the coach starts off: a fair test
   buildToolbar();
   // the chart: hover reads it, click or drag goes back (or ahead) to that turn
   const chart = $('chart');
@@ -1642,6 +2031,7 @@ async function main() {
   pollStatus();
   requestAnimationFrame(tickCounter);
   oddsLoop();
+  if (PLAY) { playLoop(); return; }
   while (true) {
     let g;
     try {
