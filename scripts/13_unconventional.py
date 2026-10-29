@@ -37,8 +37,9 @@ from meta_common import EVAL_GAMES, MODES, PLAYER_COUNTS, TAB, rules_for
 from run_config import scaled
 from monopoly_meta import watch
 from monopoly_meta.meta import BALANCED, evaluate, evolve, paired_ratio
-from monopoly_meta.unconventional import (DESCRIPTORS, TACTIC_NAMES, TACTICS, league, nash_mixture, pick_finalists,
-                                          random_genome_ext, search, tactics_on, validate, vary, with_tactics)
+from monopoly_meta.unconventional import (DESCRIPTORS, TACTIC_NAMES, TACTICS, league, league_picks, nash_mixture,
+                                          pick_finalists, random_genome_ext, search, tactics_on, validate, vary,
+                                          with_tactics)
 
 log = partial(print, flush=True)
 SMOKE = bool(os.environ.get("MM_SMOKE"))
@@ -119,29 +120,6 @@ def tactics_arm(mode: str, n: int, meta: dict, rules, s0: int) -> dict:
     return row
 
 
-def league_picks(meta: dict, rows: list[dict]) -> dict:
-    """The meta agent, the simple bot, the top three finds, and the best find for each tactic and for
-    none; at most LEAGUE_SIZE, each genome once."""
-    picks = {"meta agent": with_tactics(meta), "simple bot": with_tactics(BALANCED)}
-    ranked = sorted(rows, key=lambda r: -r["ratio"])
-    for i, r in enumerate(ranked[:3], 1):
-        picks[f"find {i}"] = r["genome"]
-    for k in TACTICS:
-        r = next((r for r in ranked if k in r["tactics"]), None)
-        if r is not None:
-            picks[f"best {TACTIC_NAMES[k]}"] = r["genome"]
-    r = next((r for r in ranked if not r["tactics"]), None)
-    if r is not None:
-        picks["best without tactics"] = r["genome"]
-    out, seen = {}, set()
-    for name, gnm in picks.items():
-        key = json.dumps(gnm, sort_keys=True)
-        if key not in seen and len(out) < LEAGUE_SIZE:
-            seen.add(key)
-            out[name] = gnm
-    return out
-
-
 def run(mode: str, n: int, metas: dict) -> None:
     done = OUT / f"{mode}_{n}p.json"
     if done.exists():
@@ -174,7 +152,7 @@ def run(mode: str, n: int, metas: dict) -> None:
     for r in sorted(rows, key=lambda r: -r["ratio"])[:5]:
         log(f"  [{n}p] find {r['ratio']:.3f}x the meta [{r['ci_low']:.3f}, {r['ci_high']:.3f}] "
             f"(search said {r['search_fitness']:.3f}x): {label(r['genome'])}")
-    picks = league_picks(meta, rows)
+    picks = league_picks(meta, rows, LEAGUE_SIZE)
     watch.context.update(candidate="Challenger", opponents="League member",
                          about=f"League ({mode} rules, {n} players): every pairing of the finalists")
     m = league(picks, n, rules, seed=s0 + 9_000 + 100 * n, games=LEAGUE_GAMES, log=log)

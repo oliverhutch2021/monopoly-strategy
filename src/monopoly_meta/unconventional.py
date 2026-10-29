@@ -397,6 +397,29 @@ def validate(finalists: list[dict], meta: dict, n_players: int, rules: Rules, *,
     return rows
 
 
+def league_picks(meta: dict, rows: list[dict], size: int = 10) -> dict:
+    """The league's members: the meta agent, the simple bot, the top three finds (validated rows), and the
+    best find for each tactic and for none; at most `size`, each genome once."""
+    picks = {"meta agent": with_tactics(meta), "simple bot": with_tactics(BALANCED)}
+    ranked = sorted(rows, key=lambda r: -r["ratio"])
+    for i, r in enumerate(ranked[:3], 1):
+        picks[f"find {i}"] = r["genome"]
+    for k in TACTICS:
+        r = next((r for r in ranked if k in r["tactics"]), None)
+        if r is not None:
+            picks[f"best {TACTIC_NAMES[k]}"] = r["genome"]
+    r = next((r for r in ranked if not r["tactics"]), None)
+    if r is not None:
+        picks["best without tactics"] = r["genome"]
+    out, seen = {}, set()
+    for name, gnm in picks.items():
+        key = json.dumps(gnm, sort_keys=True)
+        if key not in seen and len(out) < size:
+            seen.add(key)
+            out[name] = gnm
+    return out
+
+
 def league(strategies: dict[str, dict], n_players: int, rules: Rules, *, seed: int, games: int,
            workers: int | None = None, log=print) -> np.ndarray:
     """M[a, b]: win credit of one `a` at a table of `b`s, divided by a `b`'s own credit there (paired:

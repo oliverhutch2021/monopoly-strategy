@@ -37,6 +37,7 @@ PY = sys.executable
 # A step is (name, argv) or (name, argv, env): env adds variables for that step, e.g. a results folder and a
 # sample-size multiplier (scripts/run_config.py). Steps run in order; finished ones are skipped on a rerun.
 V04 = {"MM_RESULTS": "results/v04", "MM_SCALE": "10"}
+V05 = {"MM_RESULTS": "results/v05", "MM_SCALE": "10"}
 
 JOBS: dict[str, list[tuple]] = {
     # Finish v0.3 on the untouched engine (see RUNNING.md, step 2). Order matters: the
@@ -68,6 +69,14 @@ JOBS: dict[str, list[tuple]] = {
         (f"{n}p-{mode}-control", ["scripts/12_exploitability.py", "--mode", mode, n], V04),
         (f"{n}p-{mode}-new-moves", ["scripts/13_unconventional.py", "--mode", mode, n], V04))]
     + [("summary", ["scripts/13_unconventional.py", "--summary"], V04)],
+    # v0.5: harden the meta agents against the new moves (scripts/14_harden.py), then repeat v0.4's two searches
+    # against the new agents. Hardening runs for every table size first (4 players first), so a stopped run still
+    # has the new agents; the rechecks follow. Reads v0.4's results from results/v04, writes results/v05.
+    "v05": [(f"{n}p-{mode}-harden", ["scripts/14_harden.py", "--mode", mode, n], V05)
+            for n in ("4", "3", "5", "2", "6") for mode in ("standard", "championship")]
+    + [(f"{n}p-{mode}-recheck", ["scripts/14_harden.py", "--mode", mode, "--recheck", n], V05)
+       for n in ("4", "3", "5", "2", "6") for mode in ("standard", "championship")]
+    + [("summary", ["scripts/14_harden.py", "--summary"], V05)],
     # On hold: every v0.3 study at 10x the samples. Most of these are measured with the meta agent at the table,
     # so they wait until the unconventional-strategy search has settled which agent that is (and will likely
     # run on the Rust engine, in minutes). Steps already done by "exploit" are skipped.

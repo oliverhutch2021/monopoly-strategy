@@ -174,13 +174,15 @@ def evolve(n_players: int, generations: int = 12, pop_size: int = 8, games: int 
            seed: int = 0, hof_size: int = 6, init: list[dict] | None = None,
            opponents: list[dict] | None = None, workers: int | None = None,
            rules: Rules | None = None, hof_init: list[dict] | None = None, log=print,
-           mutator=mutate, sampler=random_genome) -> EvolutionResult:
+           mutator=mutate, sampler=random_genome, sparring: list[dict] | None = None) -> EvolutionResult:
     """(mu + lambda) evolution strategy with self-play fitness.
 
     If `opponents` is given, candidates are scored against that fixed table instead of
     against the population (used to train a best-response challenger). `mutator(genome, rng)` and
     `sampler(rng)` replace the variation operators (v0.4 uses ones that can switch tactics on); the
-    defaults are v0.3's and use the random numbers exactly as before.
+    defaults are v0.3's and use the random numbers exactly as before. `sparring` (v0.5's hardening)
+    adds strategies to the self-play opponent pool for the whole run: the hall of fame turns over,
+    these stay. Left out, the pool is exactly as before.
     """
     rng = random.Random(seed)
     population = [dict(g) for g in (init or [])]
@@ -199,7 +201,7 @@ def evolve(n_players: int, generations: int = 12, pop_size: int = 8, games: int 
         if opponents is not None:
             pool, fixed = opponents, True
         else:
-            pool, fixed = population + hof, False
+            pool, fixed = population + hof + [dict(g) for g in (sparring or [])], False
         fit = evaluate(candidates, pool, n_players, games, seed=seed * 1000 + gen,
                        rules=rules, workers=workers, fixed_opponents=fixed)
         order = np.argsort(-fit)

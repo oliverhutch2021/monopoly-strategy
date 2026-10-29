@@ -7,7 +7,7 @@ trade, auction bid and building decision is worth, in win-probability and in pou
 Phase 0  Rules engine + exact Markov chain + ROI + bots         <- done (v0.1)
 Phase 1  Rollout evaluator + trade price curves                 <- done; 2-6 players (v0.2)
 Phase 5a Meta agents by evolutionary self-play, 2-6 players     <- done (v0.2)
-Phase 5c Unconventional strategies: new moves + MAP-Elites      <- v0.4, running
+Phase 5c Unconventional strategies: new moves + MAP-Elites      <- v0.4 done; hardening (v0.5) next
 Phase 2  Data pipeline: millions of simulated positions         -> Parquet / DuckDB
 Phase 3  Learned value function  P(win | state)                 -> LightGBM + SHAP, calibrated vs rollouts
 Phase 4  Instant valuations: trades, auctions, builds, cash     -> indifference prices in £
@@ -24,8 +24,16 @@ Phase 6  Showcase: web dashboard, consulting deck, notebooks + report
   budget and on the same games (`scripts/12_exploitability.py`, `scripts/13_unconventional.py`).
 - MAP-Elites over eight behaviour descriptors, so strong strategies of every style survive; the best
   finds re-measured on fresh games; a league of them with its Nash mixture.
-- Next: if a tactic beats the meta agents, put it in the opponent pool and harden the meta agents
-  against it (v0.2's refinement loop), and report the v0.4 agents.
+- Result (`results/v04/tables/unconventional/summary.md`): every v0.3 meta agent can be beaten, by
+  1.2-1.9x; the housing lock is in 66 of the 85 finds that beat it, auction sniping in 56. Many finds are
+  counter-strategies: a table made only of one stalls or hands its neglected colour groups to whoever joins,
+  so homogeneous-table leagues overstate how easily they are invaded.
+- v0.5, hardening (`src/monopoly_meta/harden.py`, `scripts/14_harden.py`): best-response iteration (a small
+  PSRO) from each v0.3 agent, new moves allowed, at mixed tables with every known exploit in the opponent
+  pool; each round's agent is the one the pool exploits least, and a quick MAP-Elites search against it adds
+  fresh exploits to the pool. Then v0.4's two searches are repeated against the new agents with the same
+  budgets and seeds, for a like-for-like before and after. Also: which new moves do the work in v0.4's finds
+  (one switched off at a time).
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the

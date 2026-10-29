@@ -87,6 +87,29 @@ counting cards, charging the leader more, and playing the clock near the time li
 It writes to `results/v04`. Championship games at 5 and 6 players often run to the time limit, so those
 two sizes take about half the time. Leave it overnight; `make watch` shows the games it's trying.
 
+## Step 5: harden the meta agents (about 7 hours)
+
+```
+make sync && make v05
+```
+
+Step 4 found that every meta agent can be beaten by 1.2-1.9x, mostly with the new moves. This step makes
+new meta agents that know those moves and are hard to exploit with them. It reads what Step 4 found from
+`results/v04` and writes to `results/v05`. First, for every table size under both rule sets (4 players
+first), it:
+
+1. switches the new moves off one at a time in Step 4's strongest finds, to see which ones do the work;
+2. hardens the meta agent in up to four rounds. Each round evolves agents at mixed tables (each other,
+   plus everything Step 4 found that beat the old agent), keeps the one those exploits beat by the least,
+   then runs a quick MAP-Elites search against it. Any new exploit joins the opponents for the next round;
+3. checks the new agent on fresh games: Step 4's exploits against it and against the old agent, and the new
+   and old agents at each other's tables.
+
+Then, for every size again, it repeats Step 4's two searches against the new agents, with Step 4's
+budgets and seeds, so the before and after numbers compare like for like. The new agents are saved in
+`results/v05/tables/meta_agents_<mode>.json`; `results/v05/tables/hardened/summary.md` sums it all up.
+If you stop it, `make v05` carries on where it was.
+
 ## Watching a run
 
 Open a second Ubuntu window while a job runs and type:
