@@ -39,6 +39,7 @@ WATCH = ROOT / ".sync" / "watch"
 LOGS = ROOT / ".sync" / "logs"
 PAGE = ROOT / "watch" / "index.html"
 PIECES = ROOT / "watch" / "pieces"  # the players' pieces (scripts/cut_pieces.py)
+ARTWORK = ROOT / "watch" / "board"  # the board's artwork (the classic-colour board kit; see its README)
 THEME = ROOT / "dashboard" / "theme.css"
 
 GROUP_COLOURS = {  # the dashboard's board colours (dashboard/theme.src.css)
@@ -335,6 +336,9 @@ class Handler(BaseHTTPRequestHandler):
             elif url.path.startswith("/pieces/") and re.fullmatch(r"[a-z-]+\.png", url.path[8:]) \
                     and (PIECES / url.path[8:]).exists():
                 self.send((PIECES / url.path[8:]).read_bytes(), "image/png", cache=True)
+            elif url.path.startswith("/board/") and re.fullmatch(r"[a-z-]+\.svg", url.path[7:]) \
+                    and (ARTWORK / url.path[7:]).exists():
+                self.send((ARTWORK / url.path[7:]).read_bytes(), "image/svg+xml", cache=True)
             elif url.path == "/api/board":
                 self.send(board())
             elif url.path == "/api/status":

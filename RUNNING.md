@@ -137,6 +137,9 @@ replays that exact game with the same code. With no job running it shows demo ga
   one turn at a time and Space pauses. The numbered turning points under the chart are the biggest swings in
   the win chances, each with the turn that caused it: click one to watch that turn again. While you look
   back at a paused game the viewer fills in the gaps in the chart (the same cost as above), then stops.
+- **The board** is your classic-colour board kit (`watch/board`: Go to Jail's padlock, Free Parking's blue P).
+  Owners' tabs, houses and hotels, mortgages and the pieces are drawn over it where the kit's `manifest.json`
+  puts them, and the jail's bars go over anyone inside. Add `?board=drawn` to the address for the earlier board.
 - If the page doesn't open, go to http://localhost:8765 yourself. If Windows can't reach it, try
   `make watch HOST=0.0.0.0`.
 

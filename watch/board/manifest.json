@@ -1,0 +1,1464 @@
+{
+  "viewBox": [
+    -40,
+    -40,
+    1080,
+    1080
+  ],
+  "playing_field": [
+    0,
+    0,
+    1000,
+    1000
+  ],
+  "cells": [
+    {
+      "index": 0,
+      "bounds": [
+        866,
+        866,
+        134,
+        134
+      ],
+      "name": "",
+      "price": ""
+    },
+    {
+      "index": 1,
+      "bounds": [
+        784.6666666666666,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "OLD KENT ROAD",
+      "price": "\u00a360",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "bounds": [
+        703.3333333333334,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "COMMUNITY CHEST",
+      "price": ""
+    },
+    {
+      "index": 3,
+      "bounds": [
+        622.0,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "WHITECHAPEL ROAD",
+      "price": "\u00a360",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "bounds": [
+        540.6666666666667,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "INCOME TAX",
+      "price": "PAY \u00a3200"
+    },
+    {
+      "index": 5,
+      "bounds": [
+        459.33333333333337,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "KINGS CROSS STATION",
+      "price": "\u00a3200"
+    },
+    {
+      "index": 6,
+      "bounds": [
+        378.0,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "THE ANGEL ISLINGTON",
+      "price": "\u00a3100",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "bounds": [
+        296.66666666666674,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "CHANCE",
+      "price": ""
+    },
+    {
+      "index": 8,
+      "bounds": [
+        215.33333333333337,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "EUSTON ROAD",
+      "price": "\u00a3100",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "bounds": [
+        134.0,
+        866,
+        81.33333333333333,
+        134
+      ],
+      "name": "PENTONVILLE ROAD",
+      "price": "\u00a3120",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "bounds": [
+        0,
+        866,
+        134,
+        134
+      ],
+      "name": "JUST VISITING",
+      "price": ""
+    },
+    {
+      "index": 11,
+      "bounds": [
+        0,
+        784.6666666666666,
+        134,
+        81.33333333333333
+      ],
+      "name": "PALL MALL",
+      "price": "\u00a3140",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "bounds": [
+        0,
+        703.3333333333334,
+        134,
+        81.33333333333333
+      ],
+      "name": "ELECTRIC COMPANY",
+      "price": "\u00a3150"
+    },
+    {
+      "index": 13,
+      "bounds": [
+        0,
+        622.0,
+        134,
+        81.33333333333333
+      ],
+      "name": "WHITEHALL",
+      "price": "\u00a3140",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "bounds": [
+        0,
+        540.6666666666667,
+        134,
+        81.33333333333333
+      ],
+      "name": "NORTHUMBERLAND AVENUE",
+      "price": "\u00a3160",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "bounds": [
+        0,
+        459.33333333333337,
+        134,
+        81.33333333333333
+      ],
+      "name": "MARYLEBONE STATION",
+      "price": "\u00a3200"
+    },
+    {
+      "index": 16,
+      "bounds": [
+        0,
+        378.0,
+        134,
+        81.33333333333333
+      ],
+      "name": "BOW STREET",
+      "price": "\u00a3180",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 17,
+      "bounds": [
+        0,
+        296.66666666666674,
+        134,
+        81.33333333333333
+      ],
+      "name": "COMMUNITY CHEST",
+      "price": ""
+    },
+    {
+      "index": 18,
+      "bounds": [
+        0,
+        215.33333333333337,
+        134,
+        81.33333333333333
+      ],
+      "name": "MARLBOROUGH STREET",
+      "price": "\u00a3180",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 19,
+      "bounds": [
+        0,
+        134.0,
+        134,
+        81.33333333333333
+      ],
+      "name": "VINE STREET",
+      "price": "\u00a3200",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 20,
+      "bounds": [
+        0,
+        0,
+        134,
+        134
+      ],
+      "name": "",
+      "price": ""
+    },
+    {
+      "index": 21,
+      "bounds": [
+        134.0,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "STRAND",
+      "price": "\u00a3220",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 22,
+      "bounds": [
+        215.33333333333331,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "CHANCE",
+      "price": ""
+    },
+    {
+      "index": 23,
+      "bounds": [
+        296.66666666666663,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "FLEET STREET",
+      "price": "\u00a3220",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 24,
+      "bounds": [
+        378.0,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "TRAFALGAR SQUARE",
+      "price": "\u00a3240",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 25,
+      "bounds": [
+        459.3333333333333,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "FENCHURCH ST STATION",
+      "price": "\u00a3200"
+    },
+    {
+      "index": 26,
+      "bounds": [
+        540.6666666666666,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "LEICESTER SQUARE",
+      "price": "\u00a3260",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 27,
+      "bounds": [
+        622.0,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "COVENTRY STREET",
+      "price": "\u00a3260",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 28,
+      "bounds": [
+        703.3333333333333,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "WATER WORKS",
+      "price": "\u00a3150"
+    },
+    {
+      "index": 29,
+      "bounds": [
+        784.6666666666666,
+        0,
+        81.33333333333333,
+        134
+      ],
+      "name": "PICCADILLY",
+      "price": "\u00a3280",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            10.25,
+            123
+          ],
+          [
+            18.75,
+            123
+          ],
+          [
+            27.25,
+            123
+          ],
+          [
+            35.75,
+            123
+          ]
+        ],
+        "max_house_size": [
+          7.5,
+          10
+        ],
+        "hotel_centre": [
+          23.0,
+          123
+        ],
+        "max_hotel_size": [
+          30,
+          10
+        ]
+      },
+      "token_area": {
+        "centre": [
+          40.667,
+          78
+        ],
+        "max_size": [
+          35,
+          45
+        ]
+      }
+    },
+    {
+      "index": 30,
+      "bounds": [
+        866,
+        0,
+        134,
+        134
+      ],
+      "name": "",
+      "price": ""
+    },
+    {
+      "index": 31,
+      "bounds": [
+        866,
+        134.0,
+        134,
+        81.33333333333333
+      ],
+      "name": "REGENT STREET",
+      "price": "\u00a3300",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 32,
+      "bounds": [
+        866,
+        215.33333333333331,
+        134,
+        81.33333333333333
+      ],
+      "name": "OXFORD STREET",
+      "price": "\u00a3300",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 33,
+      "bounds": [
+        866,
+        296.66666666666663,
+        134,
+        81.33333333333333
+      ],
+      "name": "COMMUNITY CHEST",
+      "price": ""
+    },
+    {
+      "index": 34,
+      "bounds": [
+        866,
+        378.0,
+        134,
+        81.33333333333333
+      ],
+      "name": "BOND STREET",
+      "price": "\u00a3320",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 35,
+      "bounds": [
+        866,
+        459.3333333333333,
+        134,
+        81.33333333333333
+      ],
+      "name": "LIVERPOOL STREET STATION",
+      "price": "\u00a3200"
+    },
+    {
+      "index": 36,
+      "bounds": [
+        866,
+        540.6666666666666,
+        134,
+        81.33333333333333
+      ],
+      "name": "CHANCE",
+      "price": ""
+    },
+    {
+      "index": 37,
+      "bounds": [
+        866,
+        622.0,
+        134,
+        81.33333333333333
+      ],
+      "name": "PARK LANE",
+      "price": "\u00a3350",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    },
+    {
+      "index": 38,
+      "bounds": [
+        866,
+        703.3333333333333,
+        134,
+        81.33333333333333
+      ],
+      "name": "SUPER TAX",
+      "price": "PAY \u00a3100"
+    },
+    {
+      "index": 39,
+      "bounds": [
+        866,
+        784.6666666666666,
+        134,
+        81.33333333333333
+      ],
+      "name": "MAYFAIR",
+      "price": "\u00a3400",
+      "buildings": {
+        "coordinate_space": "cell-local; add cell bounds x/y for board coordinates",
+        "house_centres": [
+          [
+            16.0,
+            70.333
+          ],
+          [
+            28.0,
+            70.333
+          ],
+          [
+            40.0,
+            70.333
+          ],
+          [
+            52.0,
+            70.333
+          ]
+        ],
+        "max_house_size": [
+          9,
+          12
+        ],
+        "hotel_centre": [
+          34.0,
+          70.333
+        ],
+        "max_hotel_size": [
+          42,
+          12
+        ]
+      },
+      "token_area": {
+        "centre": [
+          67.0,
+          46
+        ],
+        "max_size": [
+          42,
+          22
+        ]
+      }
+    }
+  ],
+  "building_instructions": "Render 0\u20134 houses at house_centres. For a hotel, replace all houses with one hotel at hotel_centre. The four outlined pads are placeholders, not buildings. Coordinates use the existing 1000-unit playing field.",
+  "building_assets": {
+    "house": "icons/house.svg",
+    "hotel": "icons/hotel.svg",
+    "scaling": "Contain within max size, preserve aspect ratio; PNG alternatives provided."
+  },
+  "card_decks": [
+    {
+      "name": "community-chest",
+      "centre": [
+        260,
+        260
+      ],
+      "size": [
+        150,
+        94
+      ],
+      "rotation_degrees": -45
+    },
+    {
+      "name": "chance",
+      "centre": [
+        740,
+        740
+      ],
+      "size": [
+        150,
+        94
+      ],
+      "rotation_degrees": -45
+    }
+  ],
+  "clear_centre": {
+    "bounds": [
+      350,
+      350,
+      300,
+      300
+    ],
+    "description": "No static artwork in this square; live card UI can also use the surrounding open centre."
+  },
+  "jail": {
+    "coordinate_space": "cell-local; Jail cell origin is [0,866]",
+    "background": "icons/corner-jail-background.svg",
+    "foreground": "icons/jail-bars.svg",
+    "token_area": [
+      45.2,
+      5,
+      83,
+      60
+    ],
+    "token_centre": [
+      87.1,
+      42
+    ],
+    "draw_order": [
+      "background",
+      "player tokens",
+      "foreground bars"
+    ],
+    "notes": "No character is included. Complete corner-jail.svg contains background and bars. If using the complete board image, draw tokens then jail-bars.svg on top."
+  }
+}
