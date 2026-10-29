@@ -38,6 +38,7 @@ PY = sys.executable
 # sample-size multiplier (scripts/run_config.py). Steps run in order; finished ones are skipped on a rerun.
 V04 = {"MM_RESULTS": "results/v04", "MM_SCALE": "10"}
 V05 = {"MM_RESULTS": "results/v05", "MM_SCALE": "10"}
+FINAL = {"MM_RESULTS": "results/final", "MM_SCALE": "10"}
 
 JOBS: dict[str, list[tuple]] = {
     # Finish v0.3 on the untouched engine (see RUNNING.md, step 2). Order matters: the
@@ -77,28 +78,27 @@ JOBS: dict[str, list[tuple]] = {
     + [(f"{n}p-{mode}-recheck", ["scripts/14_harden.py", "--mode", mode, "--recheck", n], V05)
        for n in ("4", "3", "5", "2", "6") for mode in ("standard", "championship")]
     + [("summary", ["scripts/14_harden.py", "--summary"], V05)],
-    # On hold: every v0.3 study at 10x the samples. Most of these are measured with the meta agent at the table,
-    # so they wait until the unconventional-strategy search has settled which agent that is (and will likely
-    # run on the Rust engine, in minutes). Steps already done by "exploit" are skipped.
+    # Run 6, deep: every study at 10x the samples, played by the final meta agents (the ones v0.5 kept). Written to
+    # results/final from a copy of results/tables (deep_prepare), with the final agents and their strongest known
+    # challengers put in (final_agents). The studies about the agents come first, so a stopped run has those.
     "deep": [
-        ("prepare", ["scripts/deep_prepare.py"], V04),
-        ("tournaments", ["scripts/03_tournament.py"], V04),
-        ("championship-basics", ["scripts/07_championship_basics.py"], V04),
-        ("validate-standard", ["scripts/05b_refine_meta.py", "--mode", "standard", "--revalidate"], V04),
-        ("validate-championship", ["scripts/05b_refine_meta.py", "--mode", "championship", "--revalidate"], V04),
-        ("exploitability-standard", ["scripts/12_exploitability.py", "--mode", "standard"], V04),
-        ("exploitability-championship", ["scripts/12_exploitability.py", "--mode", "championship"], V04),
-        ("meta-vs-simple-standard", ["scripts/09_meta_vs_simple.py", "--mode", "standard"], V04),
-        ("meta-vs-simple-championship", ["scripts/09_meta_vs_simple.py", "--mode", "championship"], V04),
-        ("vine-street-simple", ["scripts/04_trade_curve.py"], V04),
-        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], V04),
-        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], V04),
-        ("property-trades-simple", ["scripts/10_property_trades.py", "--bots", "simple"], V04),
-        ("property-trades-meta", ["scripts/10_property_trades.py", "--bots", "meta"], V04),
+        ("prepare", ["scripts/deep_prepare.py"], FINAL),
+        ("final-agents", ["scripts/final_agents.py"], FINAL),
+        ("validate-standard", ["scripts/05b_refine_meta.py", "--mode", "standard", "--revalidate"], FINAL),
+        ("validate-championship", ["scripts/05b_refine_meta.py", "--mode", "championship", "--revalidate"], FINAL),
+        ("meta-vs-simple-standard", ["scripts/09_meta_vs_simple.py", "--mode", "standard"], FINAL),
+        ("meta-vs-simple-championship", ["scripts/09_meta_vs_simple.py", "--mode", "championship"], FINAL),
+        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], FINAL),
+        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], FINAL),
+        ("property-trades-meta", ["scripts/10_property_trades.py", "--bots", "meta"], FINAL),
         ("property-trades-championship", ["scripts/10_property_trades.py", "--bots", "championship"],
-         {**V04, "MM_SCALE": "5"}),
-        ("dashboard-data", ["scripts/08_dashboard_data.py"], V04),
-        ("figures", ["scripts/make_figures.py"], V04),
+         {**FINAL, "MM_SCALE": "5"}),
+        ("vine-street-simple", ["scripts/04_trade_curve.py"], FINAL),
+        ("property-trades-simple", ["scripts/10_property_trades.py", "--bots", "simple"], FINAL),
+        ("tournaments", ["scripts/03_tournament.py"], FINAL),
+        ("championship-basics", ["scripts/07_championship_basics.py"], FINAL),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
+        ("figures", ["scripts/make_figures.py"], FINAL),
     ],
     # A two-minute end-to-end check of this runner (sync, steps, stamp, commit, bundle, DONE note).
     "smoke": [

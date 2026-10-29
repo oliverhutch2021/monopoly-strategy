@@ -87,7 +87,7 @@ counting cards, charging the leader more, and playing the clock near the time li
 It writes to `results/v04`. Championship games at 5 and 6 players often run to the time limit, so those
 two sizes take about half the time. Leave it overnight; `make watch` shows the games it's trying.
 
-## Step 5: harden the meta agents (about 7 hours)
+## Step 5: harden the meta agents (about 8 hours)
 
 ```
 make sync && make v05
@@ -110,6 +110,23 @@ budgets and seeds, so the before and after numbers compare like for like. A new 
 only where its worst measured exploit is smaller; elsewhere the old agent stays. The agents kept are saved in
 `results/v05/tables/meta_agents_<mode>.json`; `results/v05/tables/hardened/summary.md` sums it all up.
 If you stop it, `make v05` carries on where it was.
+
+## Step 6: the deep run (about 8 hours)
+
+```
+make sync && make deep
+```
+
+Every study from v0.3 again, at 10 times the samples, now played by the final meta agents: the ones Step 5
+kept (the hardened agent where it was less exploitable, the v0.3 agent elsewhere). It writes to
+`results/final`, starting from a copy of `results/tables`, and runs in this order, so a stopped run has the
+most important parts:
+
+1. the final agents checked again: their strongest known challenger, single-setting changes, and how they do
+   against the simple bots;
+2. the Vine Street trade and all 28 property trades under meta-agent play (championship rules at 5 times);
+3. the simple-bot studies: trade curves, tournaments and championship basics;
+4. the dashboard's data and the figures.
 
 ## Watching a run
 

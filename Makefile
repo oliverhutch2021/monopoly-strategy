@@ -13,7 +13,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test golden doctor sync status watch play v03 exploit v04 v05 smoke
+.PHONY: help setup test golden doctor sync status watch play v03 exploit v04 v05 deep smoke
 
 help:  ## List the commands
 	@grep -hE '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 14
@@ -56,6 +56,9 @@ v04:  ## Run 4: unconventional strategies, with run 3 as its control (about 6 ho
 
 v05:  ## Run 5: harden the meta agents against the new moves, then re-measure them (about 7 hours; resumable)
 	$(PY) scripts/jobs.py run v05 $(JOB_FLAGS)
+
+deep:  ## Run 6: every study at 10x the samples with the final meta agents (about 8 hours; resumable)
+	$(PY) scripts/jobs.py run deep $(JOB_FLAGS)
 
 smoke:  ## Two-minute check that the job runner works end to end
 	$(PY) scripts/jobs.py run smoke $(JOB_FLAGS)

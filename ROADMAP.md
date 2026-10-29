@@ -7,7 +7,7 @@ trade, auction bid and building decision is worth, in win-probability and in pou
 Phase 0  Rules engine + exact Markov chain + ROI + bots         <- done (v0.1)
 Phase 1  Rollout evaluator + trade price curves                 <- done; 2-6 players (v0.2)
 Phase 5a Meta agents by evolutionary self-play, 2-6 players     <- done (v0.2)
-Phase 5c Unconventional strategies: new moves + MAP-Elites      <- v0.4 done; hardening (v0.5) next
+Phase 5c Unconventional strategies: new moves + MAP-Elites      <- done (v0.4, hardened in v0.5)
 Phase 2  Data pipeline: millions of simulated positions         -> Parquet / DuckDB
 Phase 3  Learned value function  P(win | state)                 -> LightGBM + SHAP, calibrated vs rollouts
 Phase 4  Instant valuations: trades, auctions, builds, cash     -> indifference prices in £
