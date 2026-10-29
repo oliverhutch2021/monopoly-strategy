@@ -51,7 +51,13 @@ header .where { color: #b9c8bd; font-size: 13px; }
 .card h2 small { font-family: var(--body); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 11.5px; }
 .counter { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
 .sub { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.35; }
-.steps { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.stepline { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.stepline b { color: var(--ink); font-weight: 600; }
+.stepbar { height: 5px; border-radius: 3px; background: #ece6d6; overflow: hidden; margin-top: 5px; }
+.stepbar i { display: block; height: 100%; width: 0; background: var(--cash); transition: width .6s ease; }
+/* every step of the job, in a short box that scrolls, so the cards below keep their place */
+.steps { position: relative; display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; max-height: 54px;
+  overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
 .step { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #ece6d6; color: var(--muted); }
 .step.done { background: #d8eedf; color: #23633e; }
 .step.now { background: var(--ink); color: #fff; }
@@ -166,6 +172,8 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
       <h2>Your PC</h2>
       <div class="counter" id="games">0</div>
       <div class="sub" id="gamesSub">games simulated in this job</div>
+      <div class="stepline" id="stepLine"></div>
+      <div class="stepbar"><i id="stepBar"></i></div>
       <div class="steps" id="steps"></div>
       <div class="sub" id="jobName"></div>
     </section>
@@ -992,6 +1000,10 @@ function bandOf(sq) {
   const colour = sq.type === 'street' ? sq.colour : sq.type === 'station' ? '#3b3833' : '#6f7d85';
   return { colour, light: ['yellow', 'light_blue'].includes(sq.group) };
 }
+function setDeed(on) {  // the title deed covers the middle of the board, so the banner hides under it meanwhile
+  hud.deed.setAttribute('opacity', on ? 1 : 0);
+  hud.banner.setAttribute('opacity', on ? 0 : 1); hud.sub.setAttribute('opacity', on ? 0 : 1);
+}
 function showDeed(o) {
   const g = hud.deed, v = o.value, sq = B.squares[o.sq], band = bandOf(sq), X = 302, Y = 336, Wd = 396, H = 330;
   g.replaceChildren();
@@ -1025,7 +1037,7 @@ function showDeed(o) {
       X + Wd / 2, Y + 300, 12.5, '#6d665a', 'hud-small');
     t(`${v.n} paired playouts · ${v.cpu_seconds}s of one thread`, X + Wd / 2, Y + 318, 10.5, '#a39b8b', 'hud-small');
   }
-  g.setAttribute('opacity', 1);
+  setDeed(true);
 }
 async function decide(o, bought, auctionEv = null) {
   o.decided = true; o.bought = bought; o.auction = auctionEv;
@@ -1041,7 +1053,7 @@ async function decide(o, bought, auctionEv = null) {
       .textContent = bought ? 'BOUGHT' : 'PASSED';
     await sleep(dur(900));
   }
-  hud.deed.setAttribute('opacity', 0);
+  setDeed(false);
 }
 function logDecision(o) {
   const v = o.value, vd = v ? verdict(v) : null;
@@ -1238,7 +1250,7 @@ async function playGame(g) {
   game = g; skipping = false; nextNow = false; odds = []; oddsAsked = new Set(); shownTurn = 0; oddsWanted = 0;
   atState = 0; furthest = 0; seekTo = null; playTo = null; midTurn = false; reviewed = false; hoverTurn = null; tpCache = null;
   restoreSpeed();
-  offer = null; values = {}; decisions = []; hud.deed.setAttribute('opacity', 0);
+  offer = null; values = {}; decisions = []; setDeed(false);
   $('decision').innerHTML = '<div class="sub">When someone lands on an unowned property, this shows what it is worth to them right now.</div>';
   $('decisions').innerHTML = '';
   if (analysisOn && g.decisions) getValue(0, 0);  // start working on the first decisions straight away
@@ -1353,7 +1365,7 @@ async function jumpTo(target) {
   decisions = decisions.filter(o => o.turn <= from);
   offer = null; spree = null;
   Object.keys(runs).forEach(key => { delete runs[key]; });
-  hud.deed.setAttribute('opacity', 0); hud.card.setAttribute('opacity', 0);
+  setDeed(false); hud.card.setAttribute('opacity', 0);
   $('events').replaceChildren();
   restoreCards(from);
   applyState({ ...stateAt(from), winner: null });
@@ -1430,17 +1442,30 @@ function renderStatus() {
   $('where').textContent = status ? `viewer on ${status.host}` : '';
   $('live').classList.toggle('live', !!live);
   $('liveText').textContent = live ? 'LIVE' : !j ? 'no job running' : j.state === 'finished' ? 'job finished' : j.state === 'failed' ? 'job failed' : 'job stopped';
-  const steps = $('steps'); steps.replaceChildren();
-  (j ? j.steps : []).forEach(s => {
-    const c = document.createElement('span'), now = live && s.name === j.step;
-    c.className = 'step' + (s.done ? ' done' : now ? ' now' : '');
-    c.textContent = (s.done ? '✓ ' : now ? '▶ ' : '') + s.name;
-    steps.appendChild(c);
-  });
+  renderSteps(j, live);
   $('gamesSub').textContent = j ? `games simulated in this job${j.rate ? ` · about ${Math.round(j.rate).toLocaleString('en-GB')} a second` : ''}` : 'games simulated';
   $('jobName').textContent = j ? `Job ${j.name}` + (j.started ? ` · ${live ? 'running for' : 'started'} ${fmtDur(status.now - Date.parse(j.started) / 1000)}${live ? '' : ' ago'}` : '')
     : 'Start a job in Ubuntu (for example make exploit) and it shows up here.';
   $('joblog').textContent = j && j.log.length ? j.log.join('\n') : 'waiting for a job…';
+}
+let stepsHTML = '', stepNow = -1;
+function renderSteps(j, live) {
+  // where the job is: "Step 3 of 22", a bar, and every step in a short scrolling box
+  const all = j ? j.steps : [], done = all.filter(s => s.done).length;
+  const cur = live ? all.findIndex(s => s.name === j.step) : -1;
+  $('stepLine').innerHTML = !all.length ? '' : cur >= 0
+    ? `<span>Step ${cur + 1} of ${all.length}: <b>${esc(j.step)}</b></span><span>${done} done</span>`
+    : `<span>${done} of ${all.length} steps done</span>`;
+  $('stepBar').style.width = all.length ? `${(100 * done / all.length).toFixed(1)}%` : '0';
+  const html = all.map((s, i) => `<span class="step${s.done ? ' done' : i === cur ? ' now' : ''}">`
+    + `${s.done ? '✓ ' : i === cur ? '▶ ' : ''}${esc(s.name)}</span>`).join('');
+  const box = $('steps');
+  if (html !== stepsHTML) { box.innerHTML = html; stepsHTML = html; }  // redrawn only on change: your scrolling stays put
+  if (cur !== stepNow) {  // a new step: bring it into view inside the box (never scrolls the page)
+    stepNow = cur;
+    const chip = box.children[Math.max(cur, 0)];
+    if (chip) box.scrollTop = Math.max(0, chip.offsetTop - 4);
+  }
 }
 function tickCounter() {
   const j = status && status.job;
