@@ -34,6 +34,13 @@ Phase 6  Showcase: web dashboard, consulting deck, notebooks + report
   fresh exploits to the pool. Then v0.4's two searches are repeated against the new agents with the same
   budgets and seeds, for a like-for-like before and after. Also: which new moves do the work in v0.4's finds
   (one switched off at a time).
+- Result (`results/v05/tables/hardened/summary.md`): hardening made six of the ten agents harder to exploit,
+  most clearly at 2 and 4 players (the official 2-player agent from 1.91x to 1.15x). It went in circles at 3
+  and 6 players under official rules and 5 and 6 under championship rules, so those keep their v0.3 agents.
+  Borrowing to build and the housing lock carry the new moves' edge; most of the others are passengers.
+- Next: the deep run re-measures every study at 10x the samples with the final agents (`make deep`,
+  `results/final`). A fix for the four cycling settings would train against a weighted mixture of the
+  strongest opponents (PSRO proper) rather than a uniform pool.
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the

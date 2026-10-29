@@ -15,11 +15,11 @@ Every result covers **2 to 6 players**, the largest table that official champion
 scoring allows. Strategies are tested against **meta agents found by self-play**, not only
 against hand-written bots.
 
-> **Work in progress (v0.3).** The engine, the analyses and the dashboard are done and tested. The
-> meta-agent sections below still describe an earlier version (stalled games scored as draws); they
-> will be rewritten once the current runs finish: official rules with stalled games scored as a loss
-> for everyone, plus an official championship mode with the Speed Die. Next comes a Rust engine and
-> learned value models ([ROADMAP.md](ROADMAP.md)).
+> **Status (v0.5).** The engine, the analyses and the meta agents are done and tested, including v0.4's search
+> for unconventional strategies and v0.5's hardening against them. A live viewer replays games from running jobs
+> (`make watch`), and you can play the meta agents yourself (`make play`). The deep run is re-measuring every study
+> at 10 times the samples with the final agents (`results/final`); its tables will replace the remaining
+> v0.3-era figures. Next come a Rust engine and learned value models ([ROADMAP.md](ROADMAP.md)).
 
 ---
 
@@ -112,92 +112,101 @@ most at 2 players (56.5 rounds instead of 63).
 
 ### Against meta agents (self-play)
 
-The simple bots are a weak benchmark, so I also evolved a **meta agent for each table
-size**:
+The simple bots are a weak benchmark, so every table size has a **meta agent found by self-play**, under two
+rule sets:
 
-- **The bot.** About 20 tunable settings: cash buffers, auction limits, the premium for
-  completing or blocking a set, building caps, jail policy, trade offer and ask prices, and
-  a buying weight for each colour group.
-- **Evolution.** Candidates play thousands of games against the current population and a
-  hall of fame of past champions. The winners are kept and mutated, for 12 generations.
-- **Hardening.** A fresh challenger is trained to beat the meta agent. Whenever it wins by
-  5% or more, it joins the opponent pool permanently and evolution continues. This is a
-  small version of the double-oracle / PSRO method used for game-playing AI.
-- **Time limit.** Games stop after 150 rounds, and a stopped game counts as a draw between
-  the players still in it.
+- **Official rules,** with a 150-round limit. A game stopped by the limit counts as a loss for everyone, so
+  stalling never pays.
+- **Championship rules** (Hasbro's 2009 tournament rules): the Speed Die, no trades once two players are left,
+  an auction nobody bids in goes to the richest player for £1, and finishing-position points at the limit.
 
-| | 2 players | 3 | 4 | 5 | 6 |
-|---|---|---|---|---|---|
-| Best challenger before hardening | 1.00× | 1.08× | 1.03× | **2.19×** | **2.52×** |
-| Best challenger after hardening | **1.02×** | **1.04×** | **1.00×** | **1.01×** | **1.00×** |
-| Meta agent vs simple bots | 1.19× | 1.18× | 0.86× | 0.93× | 1.13× |
-| Simple bot vs meta agents | 0.77× | 0.65× | 0.75× | 0.91× | 0.72× |
+Each agent is a heuristic bot with about 20 settings: cash buffers, auction limits, set and blocking premiums,
+building caps, jail policy, trade prices and a buying weight per colour group. It is evolved by self-play, then
+hardened against best responses, a small version of the double-oracle / PSRO method used for game-playing AI.
 
-(Win rate ÷ fair share, 4,000 games each; 95% CIs are about ±0.03 at 2 players and about
-±0.07 at 6. The "before" row is the hardening stage's own measurement. The first pass
-measured the same matchup on a different random seed and got 1.03× at 3 players and 2.25×
-at 5, a reminder of the noise at this sample size.)
+**8. Every v0.3 meta agent can be beaten, by 1.2 to 1.9 times its fair share.** v0.4 gave the bot eight
+optional moves people rarely make:
 
-**8. After hardening, no challenger in this bot design can beat the meta agents.** The
-best challenger reaches 1.00–1.04× its fair share at every table size, all within
-noise.
+- forcing an auction when every rival is short of cash;
+- hoarding houses so rivals can't build;
+- borrowing against lone properties to build;
+- sitting in jail by the numbers;
+- dodging dangerous squares with the Speed Die;
+- counting cards;
+- charging the leader more;
+- playing the clock.
 
-**9. The best strategy against strong players isn't always best against weak ones.** The
-4- and 5-player meta agents lose slightly to the simple bots (0.86× and 0.93×), even
-though the simple bot loses to them (0.75× and 0.91×). Win rates aren't transitive, so a
-strategy only means something relative to who it's played against. That's why this
-project reports both.
+Two searches then looked for strategies that beat the meta agents. A best-response search ran with and without
+the new moves, on the same budget. A MAP-Elites search kept the best strategy of each style rather than one
+winner. The strongest MAP-Elites finds, re-measured on 10,000 fresh games:
 
-**10. What the meta agents agree on** (single changes to the meta agent, each played
-against copies of it):
+| Players | Official rules | Championship rules |
+|---|---|---|
+| 2 | 1.88× | 1.58× |
+| 3 | 1.48× | 1.89× |
+| 4 | 1.71× | 1.65× |
+| 5 | 1.44× | 1.40× |
+| 6 | 1.52× | 1.21× |
 
-- **Trade at 3–4 players.** Removing trading leaves the meta agent with **0.48×** its fair
-  share at 3 players and **0.27×** at 4. At 2 players it doesn't matter (1.01×): two-player
-  trades are zero-sum, and the 2-player meta never proposes one.
-- **Don't sit on cash.** Keeping £200 more in reserve costs 15–19% of wins at 2 and 4
-  players. All five meta agents keep a building reserve of £137 or less.
-- **Build to hotels.** Stopping at four houses costs 6% of wins at 3 players and 16% at 4.
-- **Bid above face value at bigger tables.** The 4–6 player agents bid up to 132–145% of
-  a property's price at auction.
-- **Small decisions are small.** Changing the jail policy, the "£10 fine or take a Chance"
-  choice or adding a three-house cap moves win rates by at most 9%, and most of those
-  changes aren't significant.
+(Win credit ÷ the meta agent's own credit in that seat, on the same games; 95% intervals about ±0.03 to ±0.06.
+Details: [results/v04/tables/unconventional/summary.md](results/v04/tables/unconventional/summary.md).)
 
-**11. With 5–6 players, self-play settles into a trade embargo.** The first-pass 5- and
-6-player agents would sell a set-completing piece if paid their asking price (about 3×
-face value), and a challenger learned to exploit that. It paid the asking price for the
-pieces it needed, never sold anything back, and won **2.2–2.5×** its fair share. Hardening fixed this the only way this bot design
-allows: the final agents **accept no trades at all**. With nobody accepting, about 80% of
-games between meta agents run to the time limit as draws. No single player can do better
-by changing strategy, so the embargo is stable.
+**9. Two new moves do most of the work: borrowing to build and the housing lock.** Each move was switched off in
+turn in v0.4's strongest finds, on 6,000 paired games each:
 
-Under the embargo, selling Vine Street to complete someone's set ends the stalemate in the
-buyer's favour, and **no price compensates the seller**. The rollouts with simple bots show
-that mutually beneficial deals do exist at 5–6 players. The agents switch acceptance off
-only because their rule-of-thumb acceptance can't tell a fair deal from an exploitative
-one. A value-model trader that accepts only deals inside the real deal zone is the next
-step on the roadmap.
+| Move | Strategies using it | Switching it off costs 0.05× or more | Average change |
+|---|---|---|---|
+| Borrowing to build | 25 | 13 | −0.107× |
+| Housing lock | 30 | 13 | −0.057× |
+| Auction sniping | 28 | 5 | −0.026× |
+| Card counting | 23 | 6 | −0.026× |
+| Dodging | 16 | 1 | −0.011× |
+| Taxing the leader | 10 | 0 | −0.003× |
+| Jail by the numbers | 6 | 0 | −0.001× |
+| Playing the clock | 13 | 0 | 0.000× |
 
-A side note on scoring: an earlier version used championship-style scoring, where the
-richest player wins when time runs out. Under that rule, 5-player self-play learned to
-refuse every trade and coast to the time limit (77% of its games; see `stall_check.csv` in the archive). The archived agents
-are in `results/tables/archive_networth_cap/`.
+The housing lock means stopping at four houses while the bank is short and a rival still needs houses for a set.
+It is the classic housing-shortage play, and the search found it with no hints. The other moves mostly ride along.
+At 4 players, the strongest finds keep most of their edge with every new move off (1.45–1.56×). The v0.3
+agents were beatable mainly through ordinary settings: what to buy and how fast to build.
 
-![Meta validation](results/figures/meta_validation.png)
-![Meta ablations](results/figures/meta_ablations.png)
+**10. Many finds are counter-strategies, not a new meta.** A table made only of one find often collapses: the
+finds hoard cash and skip whole colour groups, so whoever joins collects the auctions and those sets. At 5 and
+6 players under championship rules, a single meta agent joining such a table wins 87–97% of games. So a league
+of single-strategy tables overstates how easy each strategy is to beat, and v0.5 hardens at mixed tables instead.
 
-**The meta agents, in their own settings** (only settings that measurably matter are worth
-reading closely; the rest drift freely during evolution):
+**11. Hardening with the new moves (v0.5) fixed six of the ten agents, most clearly at 2 and 4 players.** Each
+agent was hardened in up to four rounds:
 
-| | 2 players | 3 | 4 | 5 | 6 |
-|---|---|---|---|---|---|
-| Cash kept after buying / after building | £0 / £63 | £345 / £43 | £109 / £137 | £0 / £70 | £19 / £64 |
-| Auction limit (× face value) | 1.20 | 0.85 | 1.32 | 1.42 | 1.45 |
-| Proposes trades / accepts trades | no / yes | yes / yes | yes / yes | yes / **no** | yes / **no** |
-| Cash offered / asked for a set-completing piece (× face) | 1.95 / 1.29 | 1.52 / 1.00 | 2.56 / 2.27 | 3.74 / 2.93 | 3.19 / 2.53 |
-| Builds evenly up to | 4 houses first | 3 houses first | hotels | hotels | hotels |
-| Jail | roll for doubles | roll for doubles | leave early, stay late | leave early, stay late | leave early, stay late |
+- evolution at mixed tables that include every exploit found so far;
+- keeping the candidate those exploits beat by the least;
+- a fresh MAP-Elites search for new exploits of it.
 
+v0.4's two searches then ran again against the new agent, with the same budgets and seeds. The new agent replaced
+the old one only where its worst measured exploit was smaller:
+
+| Players | Official: worst exploit, v0.3 → v0.5 | Kept | Championship: worst exploit, v0.3 → v0.5 | Kept |
+|---|---|---|---|---|
+| 2 | 1.91× → **1.15×** | v0.5 | 1.58× → **1.04×** | v0.5 |
+| 3 | 1.49× → 1.58× | v0.3 | 1.90× → **1.53×** | v0.5 |
+| 4 | 1.71× → **1.29×** | v0.5 | 1.66× → **1.31×** | v0.5 |
+| 5 | 1.51× → **1.14×** | v0.5 | 1.44× → 1.56× | v0.3 |
+| 6 | 1.52× → 5.26× | v0.3 | 1.27× → 1.75× | v0.3 |
+
+The new 2-player agents dominate the old ones. One v0.5 agent at a table of v0.3 agents scores 1.93× (official)
+and 1.56× (championship); one v0.3 agent at a table of v0.5 agents scores only 0.43× and 0.39×. The new agents
+also took up the moves that beat their predecessors. The official 2-player agent snipes auctions, locks houses
+and borrows to build. The championship 4-player agent locks houses while 22 or fewer are left in the bank, and
+borrows to build. (Details: [results/v05/tables/hardened/summary.md](results/v05/tables/hardened/summary.md).)
+
+**12. In the other four settings, hardening goes in circles.** These are 3 and 6 players under official rules,
+and 5 and 6 under championship rules. Each round's agent patched the last round's holes and opened new ones, and
+fresh searches beat it by more than they beat the old agent. At 6 players under official rules, the rounds made
+things much worse (5.26×). These four settings keep their v0.3 agents. Training against a
+weighted mixture of the strongest opponents, rather than a uniform pool, is the candidate fix.
+
+The final agents' checks, single-setting changes and settings are being re-measured at 10 times the samples (the
+deep run, `results/final`).
 
 ---
 
@@ -209,7 +218,11 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
                                      ├► policies.py (parameterised bots)
                                      ├► tournament.py (seat-rotated games, Wilson CIs)
                                      ├► rollout.py (paired rollouts, trade price curves)
-                                     └► meta.py (evolutionary self-play, exploitability, hardening)
+                                     ├► meta.py (evolutionary self-play, exploitability, hardening)
+                                     ├► unconventional.py (eight new moves, MAP-Elites, leagues)
+                                     ├► harden.py (best-response iteration against known exploits)
+                                     ├► replay.py + watch/ (live viewer of a running job's games)
+                                     └► human.py (play the meta agents yourself)
 ```
 
 - **Rules**: classic UK board and cards, with auctions, mortgages, even building, the
@@ -220,7 +233,7 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
   setting. When cards are drawn with replacement (the chain's assumption), every square
   matches to within **0.5%**. Real fixed decks shift a few card-destination squares by up
   to 1.8% while someone is holding a Get Out of Jail Free card.
-- **Tests**: 71 `pytest` tests:
+- **Tests**: 153 `pytest` tests:
   - rule-by-rule checks with scripted dice;
   - invariant checks after every turn of 160 full games under four rule sets (house
     supply, even building, deck integrity, no negative cash);
@@ -228,6 +241,7 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
   - common-random-number reproducibility and dice-alignment checks;
   - scenario and zero-sum checks at every table size;
   - meta-search checks (mutation bounds, paired evaluation, evolution, hardening);
+  - the new moves, MAP-Elites, resumable hardening, and playing a whole game as a person;
   - regression tests for the defects an independent code review found.
 - **Speed**: about 2–4 ms per full game in pure Python, depending on table size.
 
@@ -246,6 +260,14 @@ python scripts/06_meta_trade_curve.py    # re-value the trade under meta play (~
 python scripts/make_figures.py           # all charts -> results/figures
 ```
 
+The long searches (v0.4's unconventional strategies, v0.5's hardening, the deep run) are jobs for a 16-thread
+PC: resumable, low priority, each one a `make` command ([RUNNING.md](RUNNING.md)). Two commands open a browser:
+
+```bash
+make watch    # a board replaying the running job's games, move by move, with live win chances
+make play     # you against the meta agents: every decision a player makes, with an optional coach
+```
+
 ```python
 from monopoly_meta import Game
 from monopoly_meta.policies import make_bot
@@ -257,24 +279,32 @@ print(result.winner, result.turns)
 ## Limitations
 
 - The meta agents are the best strategies found **within the heuristic bot design**:
-  about 20 parameters covering buying, bidding, building, jail and trading. They are not
-  provably optimal play. The roadmap's value-model agents remove that limit.
+  about 20 settings covering buying, bidding, building, jail and trading, plus v0.4's eight
+  optional moves. They are not provably optimal play. The roadmap's value-model agents
+  remove that limit.
+- Four meta agents are still v0.3's, because hardening went in circles there: 3 and 6
+  players under official rules, 5 and 6 under championship rules. The strongest exploits
+  found against them reach 1.27–1.52× a fair share.
 - Bot trading uses simple rules (set-completing swaps, and cash offers at a multiple of
   face value). Richer negotiation comes with the value model.
-- Meta-agent games stop after 150 rounds, and a stopped game counts as a draw between the
-  players still in it. At 5–6 players most games between meta agents end this way (the
-  trade embargo above).
+- Meta-agent games stop after 150 rounds. Under official rules a stopped game is a loss
+  for everyone; under championship rules it is scored by finishing position.
 - The rollout valuer is exact but slow (about 1 minute per price curve). The learned value
   model in Phase 3 makes it instant.
 
 ## Repository
 
 ```
-src/monopoly_meta/   engine, Markov chain, ROI, bots, tournaments, rollouts, meta search
+src/monopoly_meta/   engine, Markov chain, ROI, bots, tournaments, rollouts, meta search,
+                     unconventional strategies, hardening, replays, play mode
 src/monopoly_meta/data/uk_classic.json   board, rents and cards (with sources)
-scripts/             reproducible pipeline 01 → 06, figures
-results/tables       every number quoted above, as CSV/JSON (meta/ holds per-table-size checkpoints)
-results/figures      every chart above
+scripts/             reproducible pipeline 01 → 14, figures, the PC job runner and the viewer's server
+results/tables       v0.3's numbers, as CSV/JSON (meta_<mode>/ holds per-table-size checkpoints)
+results/v04          v0.4: exploitability and unconventional strategies (tables/unconventional/summary.md)
+results/v05          v0.5: hardening and the meta agents kept (tables/hardened/summary.md)
+results/final        the deep run: every study at 10x the samples with the final agents
+results/figures      the charts above
+watch/               the viewer and play mode (one page), with the board's artwork
 tests/               unit, invariant, statistical and regression tests
 ```
 
