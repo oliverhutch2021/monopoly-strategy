@@ -1,0 +1,2723 @@
+{
+ "mode": "standard",
+ "n_players": 3,
+ "v03": {
+  "reserve": 223.02618370161377,
+  "build_reserve": 33.69633277110379,
+  "bid_frac": 0.7348313355094634,
+  "set_bonus": 1.038758769055728,
+  "block_bonus": 1.6958775255165466,
+  "offer_mult": 1.0,
+  "ask_mult": 1.0,
+  "w_brown": 0.28591616735042,
+  "w_light_blue": 0.9897071524387973,
+  "w_pink": 0.7932694782502381,
+  "w_orange": 1.4388075513829806,
+  "w_red": 1.208311904462819,
+  "w_yellow": 0.8632414108500726,
+  "w_green": 0.28087438221661526,
+  "w_dark_blue": 1.8984561604483405,
+  "w_stations": 2.0,
+  "w_utilities": 0.28802407746387404,
+  "build_cap": 5,
+  "max_level": 5,
+  "jail": "long",
+  "take_chance": true,
+  "trades": true,
+  "accept_trades": true,
+  "snipe": 0.0,
+  "lock": 0,
+  "leverage": 0.0,
+  "jail_exposure": 0.0,
+  "dodge": 0.0,
+  "count_cards": false,
+  "leader_tax": 1.0,
+  "endgame_rounds": 0,
+  "endgame_reserve": 0.0
+ },
+ "v05": {
+  "reserve": 395.5655329178853,
+  "build_reserve": 16.80168171762837,
+  "bid_frac": 2.0,
+  "set_bonus": 2.496949691248947,
+  "block_bonus": 2.2424866229835665,
+  "offer_mult": 1.486339156177012,
+  "ask_mult": 1.396436214444908,
+  "w_brown": 0.37289458234200135,
+  "w_light_blue": 1.5039470633007088,
+  "w_pink": 0.673011773683613,
+  "w_orange": 0.6429696521990808,
+  "w_red": 0.4796641590171173,
+  "w_yellow": 0.2476347190971419,
+  "w_green": 0.26281128520478614,
+  "w_dark_blue": 0.8869672538887023,
+  "w_stations": 0.238393293038351,
+  "w_utilities": 0.2658313638527988,
+  "build_cap": 5,
+  "max_level": 4,
+  "jail": "long",
+  "take_chance": true,
+  "trades": true,
+  "accept_trades": true,
+  "snipe": 0.9854349701087348,
+  "lock": 24,
+  "leverage": 0.9189640998797306,
+  "jail_exposure": 0.0,
+  "dodge": 0.0,
+  "count_cards": false,
+  "leader_tax": 1.688529643052383,
+  "endgame_rounds": 0,
+  "endgame_reserve": 566.5638046019628
+ },
+ "v05_tactics": "auction sniping, housing lock, borrowing to build, taxing the leader",
+ "before": {
+  "tactics_arm": 1.25410329769613,
+  "tactics_arm_ci": [
+   1.235576413310845,
+   1.2724292142787295
+  ],
+  "best_find": 1.4806892453951277,
+  "best_find_ci": [
+   1.4400153211509845,
+   1.5225499483339882
+  ],
+  "best_find_tactics": "auction sniping, borrowing to build, card counting, taxing the leader"
+ },
+ "pool": [
+  "v0.3 meta agent",
+  "simple bot",
+  "v0.4 find 1",
+  "v0.4 find 2",
+  "v0.4 find 3",
+  "v0.4 new-moves challenger",
+  "v0.4 old-moves challenger",
+  "v0.4 league: best playing the clock"
+ ],
+ "hardening": {
+  "selected_round": 4,
+  "rounds": [
+   {
+    "round": 0,
+    "fitness": 1.0859999999999999,
+    "worst_known": 1.4745762711864405,
+    "worst_known_name": "v0.4 league: best playing the clock",
+    "self_capped": 0.0215,
+    "worst_new": 1.57,
+    "new_tactics": "auction sniping, housing lock, borrowing to build, jail by the numbers, dodging, card counting",
+    "exploitability": 1.57,
+    "pool_size": 8,
+    "tactics": "housing lock"
+   },
+   {
+    "round": 1,
+    "fitness": 1.0995,
+    "worst_known": 1.5128205128205126,
+    "worst_known_name": "round 1 exploit 3",
+    "self_capped": 0.0925,
+    "worst_new": 1.6883408071748878,
+    "new_tactics": "borrowing to build, dodging, card counting, playing the clock",
+    "exploitability": 1.6883408071748878,
+    "pool_size": 11,
+    "tactics": "housing lock, borrowing to build, playing the clock"
+   },
+   {
+    "round": 2,
+    "fitness": 1.1355,
+    "worst_known": 1.5615835777126101,
+    "worst_known_name": "round 2 exploit 1",
+    "self_capped": 0.041,
+    "worst_new": 1.5224191866527632,
+    "new_tactics": "dodging, card counting, taxing the leader",
+    "exploitability": 1.5615835777126101,
+    "pool_size": 14,
+    "tactics": "housing lock, borrowing to build, taxing the leader, playing the clock"
+   },
+   {
+    "round": 3,
+    "fitness": 1.1880000000000002,
+    "worst_known": 1.3353658536585367,
+    "worst_known_name": "round 3 exploit 1",
+    "self_capped": 0.0245,
+    "worst_new": 1.2515463917525773,
+    "new_tactics": "auction sniping, housing lock, borrowing to build, playing the clock",
+    "exploitability": 1.3353658536585367,
+    "pool_size": 17,
+    "tactics": "auction sniping, housing lock, borrowing to build, taxing the leader"
+   }
+  ],
+  "final": [
+   {
+    "agent": "start",
+    "worst": 1.546165884194053,
+    "worst_name": "v0.4 find 2",
+    "self_capped": 0.0015
+   },
+   {
+    "agent": "round 1",
+    "worst": 1.8276450511945392,
+    "worst_name": "round 1 exploit 1",
+    "self_capped": 0.018
+   },
+   {
+    "agent": "round 2",
+    "worst": 1.6998284734133788,
+    "worst_name": "round 4 exploit 3",
+    "self_capped": 0.0975
+   },
+   {
+    "agent": "round 3",
+    "worst": 1.7516891891891893,
+    "worst_name": "round 4 exploit 1",
+    "self_capped": 0.0385
+   },
+   {
+    "agent": "round 4",
+    "worst": 1.4034188034188035,
+    "worst_name": "round 2 exploit 1",
+    "self_capped": 0.0265
+   }
+  ],
+  "final_pool": [
+   "v0.3 meta agent",
+   "simple bot",
+   "v0.4 find 1",
+   "v0.4 find 2",
+   "v0.4 find 3",
+   "v0.4 new-moves challenger",
+   "v0.4 old-moves challenger",
+   "v0.4 league: best playing the clock",
+   "round 1 exploit 1",
+   "round 1 exploit 2",
+   "round 1 exploit 3",
+   "round 2 exploit 1",
+   "round 2 exploit 2",
+   "round 2 exploit 3",
+   "round 3 exploit 1",
+   "round 3 exploit 2",
+   "round 3 exploit 3",
+   "round 4 exploit 1",
+   "round 4 exploit 2",
+   "round 4 exploit 3"
+  ]
+ },
+ "known_before": [
+  {
+   "name": "v0.4 find 1",
+   "ratio": 1.4826470588235294,
+   "ci_low": 1.4412921475617861,
+   "ci_high": 1.5259041170642043,
+   "credit": 1.5123,
+   "meta_credit": 1.02,
+   "capped": 0.0004,
+   "meta_capped": 0.0006,
+   "tactics": "auction sniping, borrowing to build, card counting, taxing the leader"
+  },
+  {
+   "name": "v0.4 find 2",
+   "ratio": 1.4879411764705883,
+   "ci_low": 1.4467642136857157,
+   "ci_high": 1.5287094468708875,
+   "credit": 1.5177,
+   "meta_credit": 1.02,
+   "capped": 0.0005,
+   "meta_capped": 0.0006,
+   "tactics": "auction sniping, card counting, taxing the leader"
+  },
+  {
+   "name": "v0.4 find 3",
+   "ratio": 1.4626470588235294,
+   "ci_low": 1.422559334009665,
+   "ci_high": 1.5044350245678526,
+   "credit": 1.4919,
+   "meta_credit": 1.02,
+   "capped": 0.0026,
+   "meta_capped": 0.0006,
+   "tactics": "auction sniping, card counting, taxing the leader"
+  },
+  {
+   "name": "v0.4 new-moves challenger",
+   "ratio": 1.2520588235294117,
+   "ci_low": 1.2178324176739828,
+   "ci_high": 1.289277050561889,
+   "credit": 1.2771,
+   "meta_credit": 1.02,
+   "capped": 0.0017,
+   "meta_capped": 0.0006,
+   "tactics": "auction sniping, housing lock, borrowing to build"
+  },
+  {
+   "name": "v0.4 old-moves challenger",
+   "ratio": 1.1611764705882353,
+   "ci_low": 1.1251316944688325,
+   "ci_high": 1.1962831238549743,
+   "credit": 1.1844,
+   "meta_credit": 1.02,
+   "capped": 0.0011,
+   "meta_capped": 0.0006,
+   "tactics": "no new moves"
+  },
+  {
+   "name": "v0.4 league: best playing the clock",
+   "ratio": 1.3920588235294116,
+   "ci_low": 1.350940306136154,
+   "ci_high": 1.435012710213216,
+   "credit": 1.4199,
+   "meta_credit": 1.02,
+   "capped": 0.0022,
+   "meta_capped": 0.0006,
+   "tactics": "auction sniping, housing lock, borrowing to build, dodging, playing the clock"
+  }
+ ],
+ "known_after": [
+  {
+   "name": "v0.4 find 1",
+   "ratio": 1.111829944547135,
+   "ci_low": 1.0736117617518204,
+   "ci_high": 1.1528619730306329,
+   "credit": 1.0827,
+   "meta_credit": 0.9738,
+   "capped": 0.0039,
+   "meta_capped": 0.0241,
+   "tactics": "auction sniping, borrowing to build, card counting, taxing the leader"
+  },
+  {
+   "name": "v0.4 find 2",
+   "ratio": 1.1666666666666667,
+   "ci_low": 1.1281409229699344,
+   "ci_high": 1.207865476019012,
+   "credit": 1.1361,
+   "meta_credit": 0.9738,
+   "capped": 0.0042,
+   "meta_capped": 0.0241,
+   "tactics": "auction sniping, card counting, taxing the leader"
+  },
+  {
+   "name": "v0.4 find 3",
+   "ratio": 1.1561922365988908,
+   "ci_low": 1.1186429051260853,
+   "ci_high": 1.1954026646765734,
+   "credit": 1.1259,
+   "meta_credit": 0.9738,
+   "capped": 0.018,
+   "meta_capped": 0.0241,
+   "tactics": "auction sniping, card counting, taxing the leader"
+  },
+  {
+   "name": "v0.4 new-moves challenger",
+   "ratio": 0.5859519408502772,
+   "ci_low": 0.5608910756832378,
+   "ci_high": 0.6119229471410471,
+   "credit": 0.5706,
+   "meta_credit": 0.9738,
+   "capped": 0.0129,
+   "meta_capped": 0.0241,
+   "tactics": "auction sniping, housing lock, borrowing to build"
+  },
+  {
+   "name": "v0.4 old-moves challenger",
+   "ratio": 0.9654959950708565,
+   "ci_low": 0.929616749497564,
+   "ci_high": 1.0040740219454922,
+   "credit": 0.9402,
+   "meta_credit": 0.9738,
+   "capped": 0.0064,
+   "meta_capped": 0.0241,
+   "tactics": "no new moves"
+  },
+  {
+   "name": "v0.4 league: best playing the clock",
+   "ratio": 0.9140480591497228,
+   "ci_low": 0.8802163937297,
+   "ci_high": 0.9492774576294222,
+   "credit": 0.8901,
+   "meta_credit": 0.9738,
+   "capped": 0.0098,
+   "meta_capped": 0.0241,
+   "tactics": "auction sniping, housing lock, borrowing to build, dodging, playing the clock"
+  }
+ ],
+ "new_in_old": {
+  "name": "v0.5 meta agent",
+  "ratio": 1.2988852063874659,
+  "ci_low": 1.262539048927796,
+  "ci_high": 1.3399895511650097,
+  "credit": 1.2933,
+  "meta_credit": 0.9957,
+  "capped": 0.0033,
+  "meta_capped": 0.0008,
+  "tactics": "auction sniping, housing lock, borrowing to build, taxing the leader"
+ },
+ "old_in_new": {
+  "name": "v0.3 meta agent",
+  "ratio": 1.1365733620424485,
+  "ci_low": 1.0979547655604975,
+  "ci_high": 1.177597210590426,
+  "credit": 1.1085,
+  "meta_credit": 0.9753,
+  "capped": 0.0101,
+  "meta_capped": 0.0253,
+  "tactics": "no new moves"
+ },
+ "vs_simple": [
+  {
+   "name": "v0.5 meta agent",
+   "ratio": 1.4512416717141126,
+   "ci_low": 1.4078601232800052,
+   "ci_high": 1.4979799815021633,
+   "credit": 1.4376,
+   "meta_credit": 0.9906,
+   "capped": 0.0041,
+   "meta_capped": 0.0031,
+   "tactics": "auction sniping, housing lock, borrowing to build, taxing the leader"
+  },
+  {
+   "name": "v0.3 meta agent",
+   "ratio": 1.2004845548152634,
+   "ci_low": 1.1621959830898272,
+   "ci_high": 1.2405769092873846,
+   "credit": 1.1892,
+   "meta_credit": 0.9906,
+   "capped": 0.0041,
+   "meta_capped": 0.0031,
+   "tactics": "no new moves"
+  }
+ ],
+ "seconds": 1241,
+ "recheck": {
+  "tactics_arm": {
+   "ratio": 1.4515905947441217,
+   "ci_low": 1.4290601500765596,
+   "ci_high": 1.473311108739882,
+   "start": "simple bot",
+   "tactics": "auction sniping, housing lock, borrowing to build, dodging, taxing the leader",
+   "challenger": {
+    "reserve": 569.1350584248398,
+    "build_reserve": 0.0,
+    "bid_frac": 1.9049821271465448,
+    "set_bonus": 1.0,
+    "block_bonus": 1.7132856502813123,
+    "offer_mult": 1.9186395534646126,
+    "ask_mult": 2.210781704938176,
+    "w_brown": 1.06904677472152,
+    "w_light_blue": 0.519725082291885,
+    "w_pink": 1.7190064984349864,
+    "w_orange": 0.9709326839262201,
+    "w_red": 0.4054436895294907,
+    "w_yellow": 0.4398117831149798,
+    "w_green": 0.009469274314308024,
+    "w_dark_blue": 0.5649927379941826,
+    "w_stations": 0.33519566471582374,
+    "w_utilities": 1.0234750720407217,
+    "build_cap": 5,
+    "max_level": 5,
+    "jail": "long",
+    "take_chance": false,
+    "trades": true,
+    "accept_trades": false,
+    "snipe": 0.5503310237803863,
+    "lock": 15,
+    "leverage": 0.4860357798976253,
+    "jail_exposure": 0.0,
+    "dodge": 2.918939434375145,
+    "count_cards": false,
+    "leader_tax": 1.7838061152618339,
+    "endgame_rounds": 0,
+    "endgame_reserve": 688.8031843756979
+   },
+   "games": 40000,
+   "v04_challenger": {
+    "ratio": 0.5860611648993392,
+    "ci_low": 0.5732902739216579,
+    "ci_high": 0.5992768674513425
+   }
+  },
+  "search": {
+   "evals": 7000,
+   "filled": 109,
+   "history": [
+    {
+     "iteration": 0,
+     "evals": 384,
+     "filled": 86,
+     "best": 1.141509433962264,
+     "mean": 0.6461167178587099,
+     "best_plain": 0.8679245283018868,
+     "with_tactics": 83
+    },
+    {
+     "iteration": 1,
+     "evals": 416,
+     "filled": 87,
+     "best": 1.141509433962264,
+     "mean": 0.655877250054218,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 85
+    },
+    {
+     "iteration": 2,
+     "evals": 448,
+     "filled": 87,
+     "best": 1.141509433962264,
+     "mean": 0.6667208848405985,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 85
+    },
+    {
+     "iteration": 3,
+     "evals": 480,
+     "filled": 87,
+     "best": 1.141509433962264,
+     "mean": 0.685209282151377,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 85
+    },
+    {
+     "iteration": 4,
+     "evals": 512,
+     "filled": 88,
+     "best": 1.2358490566037736,
+     "mean": 0.6942002572898799,
+     "best_plain": 0.6745283018867924,
+     "with_tactics": 85
+    },
+    {
+     "iteration": 5,
+     "evals": 544,
+     "filled": 89,
+     "best": 1.320754716981132,
+     "mean": 0.715073139707441,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 87
+    },
+    {
+     "iteration": 6,
+     "evals": 576,
+     "filled": 89,
+     "best": 1.320754716981132,
+     "mean": 0.7254080983676064,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 87
+    },
+    {
+     "iteration": 7,
+     "evals": 608,
+     "filled": 89,
+     "best": 1.320754716981132,
+     "mean": 0.7300720797116812,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 87
+    },
+    {
+     "iteration": 8,
+     "evals": 640,
+     "filled": 90,
+     "best": 1.320754716981132,
+     "mean": 0.7533018867924527,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 87
+    },
+    {
+     "iteration": 9,
+     "evals": 672,
+     "filled": 90,
+     "best": 1.320754716981132,
+     "mean": 0.7585953878406708,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 87
+    },
+    {
+     "iteration": 10,
+     "evals": 704,
+     "filled": 92,
+     "best": 1.320754716981132,
+     "mean": 0.7613822805578342,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 89
+    },
+    {
+     "iteration": 11,
+     "evals": 736,
+     "filled": 93,
+     "best": 1.320754716981132,
+     "mean": 0.7718096977074457,
+     "best_plain": 0.4622641509433962,
+     "with_tactics": 90
+    },
+    {
+     "iteration": 12,
+     "evals": 768,
+     "filled": 94,
+     "best": 1.320754716981132,
+     "mean": 0.7720794861501404,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 92
+    },
+    {
+     "iteration": 13,
+     "evals": 800,
+     "filled": 94,
+     "best": 1.320754716981132,
+     "mean": 0.7813127258129264,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 92
+    },
+    {
+     "iteration": 14,
+     "evals": 832,
+     "filled": 96,
+     "best": 1.320754716981132,
+     "mean": 0.7841489779874213,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 94
+    },
+    {
+     "iteration": 15,
+     "evals": 864,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.7969732704402515,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 16,
+     "evals": 896,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.8050805817610062,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 17,
+     "evals": 928,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.8110259433962264,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 18,
+     "evals": 960,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.8224253144654088,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 19,
+     "evals": 992,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.8303360849056604,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 20,
+     "evals": 1024,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.8369202044025158,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 21,
+     "evals": 1056,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.8411949685534591,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 22,
+     "evals": 1088,
+     "filled": 96,
+     "best": 1.3349056603773584,
+     "mean": 0.843504323899371,
+     "best_plain": 0.45283018867924524,
+     "with_tactics": 95
+    },
+    {
+     "iteration": 23,
+     "evals": 1120,
+     "filled": 97,
+     "best": 1.3349056603773584,
+     "mean": 0.8453121960708032,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 24,
+     "evals": 1152,
+     "filled": 97,
+     "best": 1.3349056603773584,
+     "mean": 0.8486675744018672,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 25,
+     "evals": 1184,
+     "filled": 97,
+     "best": 1.3349056603773584,
+     "mean": 0.8521202100758607,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 26,
+     "evals": 1216,
+     "filled": 97,
+     "best": 1.3962264150943395,
+     "mean": 0.8569344485508655,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 27,
+     "evals": 1248,
+     "filled": 97,
+     "best": 1.3962264150943395,
+     "mean": 0.8619432017117293,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 28,
+     "evals": 1280,
+     "filled": 97,
+     "best": 1.3962264150943395,
+     "mean": 0.8725928807624976,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 29,
+     "evals": 1312,
+     "filled": 97,
+     "best": 1.3962264150943395,
+     "mean": 0.8745866562925501,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 30,
+     "evals": 1344,
+     "filled": 97,
+     "best": 1.3962264150943395,
+     "mean": 0.8807624975685664,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 31,
+     "evals": 1376,
+     "filled": 97,
+     "best": 1.4386792452830186,
+     "mean": 0.8886403423458471,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 32,
+     "evals": 1408,
+     "filled": 97,
+     "best": 1.4386792452830186,
+     "mean": 0.894038124878428,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 33,
+     "evals": 1440,
+     "filled": 97,
+     "best": 1.4386792452830186,
+     "mean": 0.9008461388834856,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 34,
+     "evals": 1472,
+     "filled": 97,
+     "best": 1.4386792452830186,
+     "mean": 0.9048823186150554,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 35,
+     "evals": 1504,
+     "filled": 97,
+     "best": 1.4386792452830186,
+     "mean": 0.9059035207158139,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 36,
+     "evals": 1536,
+     "filled": 97,
+     "best": 1.4386792452830186,
+     "mean": 0.9078486675744017,
+     "best_plain": null,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 37,
+     "evals": 1568,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.907248748556026,
+     "best_plain": null,
+     "with_tactics": 98
+    },
+    {
+     "iteration": 38,
+     "evals": 1600,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.9118213323065074,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 39,
+     "evals": 1632,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.9133615710435118,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 40,
+     "evals": 1664,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.9174528301886792,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 41,
+     "evals": 1696,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.9209664998074701,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 42,
+     "evals": 1728,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.9229880631497882,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 43,
+     "evals": 1760,
+     "filled": 98,
+     "best": 1.4386792452830186,
+     "mean": 0.9255872160184828,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 97
+    },
+    {
+     "iteration": 44,
+     "evals": 1792,
+     "filled": 100,
+     "best": 1.4386792452830186,
+     "mean": 0.9313207547169812,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 99
+    },
+    {
+     "iteration": 45,
+     "evals": 1824,
+     "filled": 100,
+     "best": 1.4386792452830186,
+     "mean": 0.9369339622641509,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 99
+    },
+    {
+     "iteration": 46,
+     "evals": 1856,
+     "filled": 100,
+     "best": 1.4386792452830186,
+     "mean": 0.9383962264150941,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 99
+    },
+    {
+     "iteration": 47,
+     "evals": 1888,
+     "filled": 101,
+     "best": 1.4386792452830186,
+     "mean": 0.9365309172426676,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 100
+    },
+    {
+     "iteration": 48,
+     "evals": 1920,
+     "filled": 101,
+     "best": 1.4386792452830186,
+     "mean": 0.942228656827947,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 100
+    },
+    {
+     "iteration": 49,
+     "evals": 1952,
+     "filled": 102,
+     "best": 1.4386792452830186,
+     "mean": 0.9413152053274141,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 101
+    },
+    {
+     "iteration": 50,
+     "evals": 1984,
+     "filled": 102,
+     "best": 1.4386792452830186,
+     "mean": 0.9424250832408435,
+     "best_plain": 0.8113207547169811,
+     "with_tactics": 101
+    },
+    {
+     "iteration": 51,
+     "evals": 2016,
+     "filled": 102,
+     "best": 1.4386792452830186,
+     "mean": 0.94811320754717,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 101
+    },
+    {
+     "iteration": 52,
+     "evals": 2048,
+     "filled": 102,
+     "best": 1.4386792452830186,
+     "mean": 0.9558823529411765,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 101
+    },
+    {
+     "iteration": 53,
+     "evals": 2080,
+     "filled": 102,
+     "best": 1.4528301886792452,
+     "mean": 0.9562523122456531,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 101
+    },
+    {
+     "iteration": 54,
+     "evals": 2112,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9590126396775968,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 55,
+     "evals": 2144,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9639128045429566,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 56,
+     "evals": 2176,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9660652134090493,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 57,
+     "evals": 2208,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9700036636746656,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 58,
+     "evals": 2240,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9713775416742992,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 59,
+     "evals": 2272,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9773310130060452,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 60,
+     "evals": 2304,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9800787690053123,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 61,
+     "evals": 2336,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9832386884044696,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 62,
+     "evals": 2368,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9858948525370946,
+     "best_plain": 0.8160377358490566,
+     "with_tactics": 102
+    },
+    {
+     "iteration": 63,
+     "evals": 2400,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9882304451364717,
+     "best_plain": null,
+     "with_tactics": 103
+    },
+    {
+     "iteration": 64,
+     "evals": 2432,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9892837516028576,
+     "best_plain": null,
+     "with_tactics": 103
+    },
+    {
+     "iteration": 65,
+     "evals": 2464,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.989833302802711,
+     "best_plain": null,
+     "with_tactics": 103
+    },
+    {
+     "iteration": 66,
+     "evals": 2496,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9943671002015019,
+     "best_plain": null,
+     "with_tactics": 103
+    },
+    {
+     "iteration": 67,
+     "evals": 2528,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9962905294009891,
+     "best_plain": null,
+     "with_tactics": 103
+    },
+    {
+     "iteration": 68,
+     "evals": 2560,
+     "filled": 103,
+     "best": 1.4528301886792452,
+     "mean": 0.9972980399340537,
+     "best_plain": null,
+     "with_tactics": 103
+    },
+    {
+     "iteration": 69,
+     "evals": 2592,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0004989114658924,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 70,
+     "evals": 2624,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0036284470246732,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 71,
+     "evals": 2656,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0048076923076923,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 72,
+     "evals": 2688,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.005760159651669,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 73,
+     "evals": 2720,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0081640058055152,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 74,
+     "evals": 2752,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0124727866473149,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 75,
+     "evals": 2784,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0129716981132075,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 76,
+     "evals": 2816,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0164640783744556,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 77,
+     "evals": 2848,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0187318577648765,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 78,
+     "evals": 2880,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0196843251088532,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 79,
+     "evals": 2912,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.019865747460087,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 80,
+     "evals": 2944,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0238116835994193,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 81,
+     "evals": 2976,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0241291727140782,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 82,
+     "evals": 3008,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0253537735849056,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 83,
+     "evals": 3040,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0279843976777938,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 84,
+     "evals": 3072,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0299800435413642,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 85,
+     "evals": 3104,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0316582002902757,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 86,
+     "evals": 3136,
+     "filled": 104,
+     "best": 1.4528301886792452,
+     "mean": 1.0329281567489115,
+     "best_plain": null,
+     "with_tactics": 104
+    },
+    {
+     "iteration": 87,
+     "evals": 3168,
+     "filled": 105,
+     "best": 1.4528301886792452,
+     "mean": 1.0316711590296497,
+     "best_plain": null,
+     "with_tactics": 105
+    },
+    {
+     "iteration": 88,
+     "evals": 3200,
+     "filled": 105,
+     "best": 1.4528301886792452,
+     "mean": 1.033872416891285,
+     "best_plain": null,
+     "with_tactics": 105
+    },
+    {
+     "iteration": 89,
+     "evals": 3232,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0337308650765398,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 90,
+     "evals": 3264,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0340868636525455,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 91,
+     "evals": 3296,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0347098611605554,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 92,
+     "evals": 3328,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0368458526165896,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 93,
+     "evals": 3360,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0391598433606266,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 94,
+     "evals": 3392,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0395158419366324,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 95,
+     "evals": 3424,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.040672837308651,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 96,
+     "evals": 3456,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.043565325738697,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 97,
+     "evals": 3488,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0456568173727305,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 98,
+     "evals": 3520,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0475258098967606,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 99,
+     "evals": 3552,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.048059807760769,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 100,
+     "evals": 3584,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0533997864008544,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 101,
+     "evals": 3616,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0554467782128871,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 102,
+     "evals": 3648,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0569152723389106,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 103,
+     "evals": 3680,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0599857600569598,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 104,
+     "evals": 3712,
+     "filled": 106,
+     "best": 1.4622641509433962,
+     "mean": 1.0618547525809896,
+     "best_plain": null,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 105,
+     "evals": 3744,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0624669370481397,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 106,
+     "evals": 3776,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0644507141597601,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 107,
+     "evals": 3808,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.065156057132781,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 108,
+     "evals": 3840,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0662581555281256,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 109,
+     "evals": 3872,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.068462352318815,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 110,
+     "evals": 3904,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0691236113560219,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 111,
+     "evals": 3936,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0697407864574149,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 112,
+     "evals": 3968,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.070137541879739,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 113,
+     "evals": 4000,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0702697936871803,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 114,
+     "evals": 4032,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0766178804443662,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 115,
+     "evals": 4064,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0769705519308763,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 116,
+     "evals": 4096,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0776318109680834,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 117,
+     "evals": 4128,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0776758949038971,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 118,
+     "evals": 4160,
+     "filled": 107,
+     "best": 1.4622641509433962,
+     "mean": 1.0776758949038971,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 119,
+     "evals": 4192,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0838476459178277,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 120,
+     "evals": 4224,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.084597072826662,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 121,
+     "evals": 4256,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0850819961206137,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 122,
+     "evals": 4288,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0851701639922413,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 123,
+     "evals": 4320,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0853905836713102,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 124,
+     "evals": 4352,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.090460236289896,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 125,
+     "evals": 4384,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.091077411391289,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 126,
+     "evals": 4416,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0924880973373303,
+     "best_plain": 1.212264150943396,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 127,
+     "evals": 4448,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0930611885029096,
+     "best_plain": 1.212264150943396,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 128,
+     "evals": 4480,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0939428672191853,
+     "best_plain": 1.212264150943396,
+     "with_tactics": 106
+    },
+    {
+     "iteration": 129,
+     "evals": 4512,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0940751190266267,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 130,
+     "evals": 4544,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0941632868982543,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 131,
+     "evals": 4576,
+     "filled": 107,
+     "best": 1.4669811320754715,
+     "mean": 1.0941632868982543,
+     "best_plain": null,
+     "with_tactics": 107
+    },
+    {
+     "iteration": 132,
+     "evals": 4608,
+     "filled": 108,
+     "best": 1.4669811320754715,
+     "mean": 1.0930293501048218,
+     "best_plain": null,
+     "with_tactics": 108
+    },
+    {
+     "iteration": 133,
+     "evals": 4640,
+     "filled": 108,
+     "best": 1.4669811320754715,
+     "mean": 1.0931167016072676,
+     "best_plain": null,
+     "with_tactics": 108
+    },
+    {
+     "iteration": 134,
+     "evals": 4672,
+     "filled": 108,
+     "best": 1.4669811320754715,
+     "mean": 1.0941649196366177,
+     "best_plain": null,
+     "with_tactics": 108
+    },
+    {
+     "iteration": 135,
+     "evals": 4704,
+     "filled": 108,
+     "best": 1.4669811320754715,
+     "mean": 1.0941649196366177,
+     "best_plain": null,
+     "with_tactics": 108
+    },
+    {
+     "iteration": 136,
+     "evals": 4736,
+     "filled": 108,
+     "best": 1.4669811320754715,
+     "mean": 1.0944706498951782,
+     "best_plain": null,
+     "with_tactics": 108
+    },
+    {
+     "iteration": 137,
+     "evals": 4768,
+     "filled": 108,
+     "best": 1.4669811320754715,
+     "mean": 1.0963050314465408,
+     "best_plain": null,
+     "with_tactics": 108
+    },
+    {
+     "iteration": 138,
+     "evals": 4800,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0923056949974035,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 139,
+     "evals": 4832,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0923056949974035,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 140,
+     "evals": 4864,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0923056949974035,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 141,
+     "evals": 4896,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0935173965726157,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 142,
+     "evals": 4928,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.095508049160464,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 143,
+     "evals": 4960,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0955513242167216,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 144,
+     "evals": 4992,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0956811493854943,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 145,
+     "evals": 5024,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0968063008481912,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 146,
+     "evals": 5056,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.097325601523282,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 147,
+     "evals": 5088,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0974554266920546,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 148,
+     "evals": 5120,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.0976285269170851,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 149,
+     "evals": 5152,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.099965379954994,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 150,
+     "evals": 5184,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.100268305348797,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 151,
+     "evals": 5216,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1006145057988577,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 152,
+     "evals": 5248,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1009607062489182,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 153,
+     "evals": 5280,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1026917084992212,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 154,
+     "evals": 5312,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1026917084992212,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 155,
+     "evals": 5344,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1028215336679938,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 156,
+     "evals": 5376,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1037735849056605,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 157,
+     "evals": 5408,
+     "filled": 109,
+     "best": 1.4669811320754715,
+     "mean": 1.1058075125497664,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 158,
+     "evals": 5440,
+     "filled": 109,
+     "best": 1.4811320754716981,
+     "mean": 1.106759563787433,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 159,
+     "evals": 5472,
+     "filled": 109,
+     "best": 1.4811320754716981,
+     "mean": 1.1090531417690843,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 160,
+     "evals": 5504,
+     "filled": 109,
+     "best": 1.4811320754716981,
+     "mean": 1.1110005193006751,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 161,
+     "evals": 5536,
+     "filled": 109,
+     "best": 1.528301886792453,
+     "mean": 1.1137268478449023,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 162,
+     "evals": 5568,
+     "filled": 109,
+     "best": 1.528301886792453,
+     "mean": 1.1145057988575386,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 163,
+     "evals": 5600,
+     "filled": 109,
+     "best": 1.528301886792453,
+     "mean": 1.1155011251514628,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 164,
+     "evals": 5632,
+     "filled": 109,
+     "best": 1.528301886792453,
+     "mean": 1.1161069759390687,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 165,
+     "evals": 5664,
+     "filled": 109,
+     "best": 1.528301886792453,
+     "mean": 1.1169724770642202,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 166,
+     "evals": 5696,
+     "filled": 109,
+     "best": 1.528301886792453,
+     "mean": 1.1173619525705383,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 167,
+     "evals": 5728,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1182707287519473,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 168,
+     "evals": 5760,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1194824303271593,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 169,
+     "evals": 5792,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.120434481564826,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 170,
+     "evals": 5824,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.122165483815129,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 171,
+     "evals": 5856,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1230309849402804,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 172,
+     "evals": 5888,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1247187121343258,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 173,
+     "evals": 5920,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1249350874156134,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 174,
+     "evals": 5952,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.126406439328371,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 175,
+     "evals": 5984,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.126839189890947,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 176,
+     "evals": 6016,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1283105418037043,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 177,
+     "evals": 6048,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1293491431538862,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 178,
+     "evals": 6080,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1293491431538862,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 179,
+     "evals": 6112,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1303444694478102,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 180,
+     "evals": 6144,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1303444694478102,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 181,
+     "evals": 6176,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1310368703479317,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 182,
+     "evals": 6208,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1310368703479317,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 183,
+     "evals": 6240,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1310368703479317,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 184,
+     "evals": 6272,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1315128959667649,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 185,
+     "evals": 6304,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1316427211355375,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 186,
+     "evals": 6336,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1324649472044315,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 187,
+     "evals": 6368,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1326813224857193,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 188,
+     "evals": 6400,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1326813224857193,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 189,
+     "evals": 6432,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1340661242859618,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 190,
+     "evals": 6464,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1344988748485372,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 191,
+     "evals": 6496,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1368790029427038,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 192,
+     "evals": 6528,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1372252033927646,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 193,
+     "evals": 6560,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1390860308118402,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 194,
+     "evals": 6592,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1394322312619007,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 195,
+     "evals": 6624,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1412497836247188,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 196,
+     "evals": 6656,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1412930586809764,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 197,
+     "evals": 6688,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1432837112688246,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 198,
+     "evals": 6720,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1433269863250821,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 199,
+     "evals": 6752,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.143846287000173,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 200,
+     "evals": 6784,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1442357625064914,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 201,
+     "evals": 6816,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.145793664531764,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 202,
+     "evals": 6848,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1461398649818244,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 203,
+     "evals": 6880,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1462264150943398,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 204,
+     "evals": 6912,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1469620910507183,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 205,
+     "evals": 6944,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1474813917258093,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 206,
+     "evals": 6976,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1480439674571576,
+     "best_plain": null,
+     "with_tactics": 109
+    },
+    {
+     "iteration": 207,
+     "evals": 7000,
+     "filled": 109,
+     "best": 1.5377358490566035,
+     "mean": 1.1480439674571576,
+     "best_plain": null,
+     "with_tactics": 109
+    }
+   ]
+  },
+  "finalists": [
+   {
+    "search_fitness": 1.5377358490566035,
+    "ratio": 1.5832056389825315,
+    "ci_low": 1.5343629444348788,
+    "ci_high": 1.6364254273593395,
+    "credit": 1.5498,
+    "meta_credit": 0.9789,
+    "capped": 0.0083,
+    "tactics": [
+     "snipe",
+     "lock",
+     "leverage",
+     "jail_exposure",
+     "count_cards",
+     "leader_tax",
+     "endgame_rounds"
+    ],
+    "genome": {
+     "reserve": 462.92984637971745,
+     "build_reserve": 0.0,
+     "bid_frac": 2.0,
+     "set_bonus": 2.905734391926036,
+     "block_bonus": 2.2798352128114416,
+     "offer_mult": 1.138703283086737,
+     "ask_mult": 1.2014069190676764,
+     "w_brown": 0.3045203646473269,
+     "w_light_blue": 1.4135583611104785,
+     "w_pink": 0.5371198106514401,
+     "w_orange": 0.6161200687519762,
+     "w_red": 0.3495092216534973,
+     "w_yellow": 0.30459768478231897,
+     "w_green": 0.2566337779225862,
+     "w_dark_blue": 0.5254811232745863,
+     "w_stations": 0.30963712910220026,
+     "w_utilities": 0.20023512209883126,
+     "build_cap": 4,
+     "max_level": 4,
+     "jail": "long",
+     "take_chance": true,
+     "trades": false,
+     "accept_trades": true,
+     "snipe": 1.0,
+     "lock": 19,
+     "leverage": 0.9571402697695375,
+     "jail_exposure": 34.54270306222948,
+     "dodge": 0.0,
+     "count_cards": true,
+     "leader_tax": 2.7269919580188247,
+     "endgame_rounds": 30,
+     "endgame_reserve": 547.4230259143576
+    },
+    "label": "auction sniping, housing lock, borrowing to build, jail by the numbers, card counting, taxing the leader, playing the clock"
+   },
+   {
+    "search_fitness": 1.5141509433962264,
+    "ratio": 1.5470425988354275,
+    "ci_low": 1.49938898148212,
+    "ci_high": 1.5953519730676624,
+    "credit": 1.5144,
+    "meta_credit": 0.9789,
+    "capped": 0.0089,
+    "tactics": [
+     "snipe",
+     "lock",
+     "leverage",
+     "jail_exposure",
+     "count_cards",
+     "leader_tax",
+     "endgame_rounds"
+    ],
+    "genome": {
+     "reserve": 455.97677211100745,
+     "build_reserve": 0.0,
+     "bid_frac": 1.7770725677748718,
+     "set_bonus": 2.905734391926036,
+     "block_bonus": 2.2798352128114416,
+     "offer_mult": 1.138703283086737,
+     "ask_mult": 1.2014069190676764,
+     "w_brown": 0.14963913140182306,
+     "w_light_blue": 1.127880452312104,
+     "w_pink": 0.5371198106514401,
+     "w_orange": 0.9510361631983972,
+     "w_red": 0.3495092216534973,
+     "w_yellow": 0.30459768478231897,
+     "w_green": 0.2566337779225862,
+     "w_dark_blue": 0.44446521439570885,
+     "w_stations": 0.30963712910220026,
+     "w_utilities": 0.20023512209883126,
+     "build_cap": 4,
+     "max_level": 4,
+     "jail": "long",
+     "take_chance": true,
+     "trades": false,
+     "accept_trades": true,
+     "snipe": 0.8512039651558357,
+     "lock": 19,
+     "leverage": 0.8532980916270029,
+     "jail_exposure": 34.54270306222948,
+     "dodge": 0.0,
+     "count_cards": true,
+     "leader_tax": 2.4394794683877787,
+     "endgame_rounds": 30,
+     "endgame_reserve": 636.8294633785248
+    },
+    "label": "auction sniping, housing lock, borrowing to build, jail by the numbers, card counting, taxing the leader, playing the clock"
+   },
+   {
+    "search_fitness": 1.509433962264151,
+    "ratio": 1.5455102666258045,
+    "ci_low": 1.4995464361926074,
+    "ci_high": 1.5967665355979073,
+    "credit": 1.5129,
+    "meta_credit": 0.9789,
+    "capped": 0.0075,
+    "tactics": [
+     "snipe",
+     "lock",
+     "leverage",
+     "jail_exposure",
+     "count_cards",
+     "leader_tax",
+     "endgame_rounds"
+    ],
+    "genome": {
+     "reserve": 418.15659520864324,
+     "build_reserve": 12.531712803806727,
+     "bid_frac": 2.0,
+     "set_bonus": 2.905734391926036,
+     "block_bonus": 2.2798352128114416,
+     "offer_mult": 1.138703283086737,
+     "ask_mult": 1.2014069190676764,
+     "w_brown": 0.3045203646473269,
+     "w_light_blue": 1.4135583611104785,
+     "w_pink": 0.5371198106514401,
+     "w_orange": 0.6161200687519762,
+     "w_red": 0.3495092216534973,
+     "w_yellow": 0.30459768478231897,
+     "w_green": 0.2566337779225862,
+     "w_dark_blue": 0.5254811232745863,
+     "w_stations": 0.30963712910220026,
+     "w_utilities": 0.34310304064056085,
+     "build_cap": 4,
+     "max_level": 4,
+     "jail": "long",
+     "take_chance": true,
+     "trades": false,
+     "accept_trades": true,
+     "snipe": 1.0,
+     "lock": 19,
+     "leverage": 0.9237790428388252,
+     "jail_exposure": 34.54270306222948,
+     "dodge": 0.0,
+     "count_cards": true,
+     "leader_tax": 2.7269919580188247,
+     "endgame_rounds": 27,
+     "endgame_reserve": 547.4230259143576
+    },
+    "label": "auction sniping, housing lock, borrowing to build, jail by the numbers, card counting, taxing the leader, playing the clock"
+   },
+   {
+    "search_fitness": 1.4669811320754715,
+    "ratio": 1.49800796812749,
+    "ci_low": 1.4506846402276525,
+    "ci_high": 1.5434994989109614,
+    "credit": 1.4664,
+    "meta_credit": 0.9789,
+    "capped": 0.0081,
+    "tactics": [
+     "snipe",
+     "lock",
+     "dodge",
+     "leader_tax",
+     "endgame_rounds"
+    ],
+    "genome": {
+     "reserve": 467.9924236754367,
+     "build_reserve": 0.0,
+     "bid_frac": 1.4177896524587963,
+     "set_bonus": 1.0,
+     "block_bonus": 2.900270815398092,
+     "offer_mult": 1.7673978499622394,
+     "ask_mult": 1.0,
+     "w_brown": 0.8782405258802587,
+     "w_light_blue": 1.5349710951893534,
+     "w_pink": 0.7496567485622404,
+     "w_orange": 0.6933418056862933,
+     "w_red": 0.31434244209733986,
+     "w_yellow": 0.414886414764532,
+     "w_green": 0.09063500137720887,
+     "w_dark_blue": 0.4813055915633204,
+     "w_stations": 0.378383527008021,
+     "w_utilities": 0.3377477344289105,
+     "build_cap": 5,
+     "max_level": 5,
+     "jail": "adaptive",
+     "take_chance": true,
+     "trades": true,
+     "accept_trades": true,
+     "snipe": 0.9570339762462154,
+     "lock": 16,
+     "leverage": 0.0,
+     "jail_exposure": 0.0,
+     "dodge": 1.8491819332158963,
+     "count_cards": false,
+     "leader_tax": 2.142928640533945,
+     "endgame_rounds": 25,
+     "endgame_reserve": 716.8154308875423
+    },
+    "label": "auction sniping, housing lock, dodging, taxing the leader, playing the clock"
+   },
+   {
+    "search_fitness": 1.490566037735849,
+    "ratio": 1.4820717131474104,
+    "ci_low": 1.4361787779443784,
+    "ci_high": 1.528428843766936,
+    "credit": 1.4508,
+    "meta_credit": 0.9789,
+    "capped": 0.0081,
+    "tactics": [
+     "lock",
+     "dodge",
+     "endgame_rounds"
+    ],
+    "genome": {
+     "reserve": 467.9924236754367,
+     "build_reserve": 17.52818074187422,
+     "bid_frac": 1.3711740069535332,
+     "set_bonus": 1.2315388883391032,
+     "block_bonus": 2.900270815398092,
+     "offer_mult": 1.7048669111552375,
+     "ask_mult": 1.0,
+     "w_brown": 0.7687383260524696,
+     "w_light_blue": 1.5349710951893534,
+     "w_pink": 0.7496567485622404,
+     "w_orange": 0.883097150357689,
+     "w_red": 0.31434244209733986,
+     "w_yellow": 0.414886414764532,
+     "w_green": 0.09063500137720887,
+     "w_dark_blue": 0.4813055915633204,
+     "w_stations": 0.5323596400296086,
+     "w_utilities": 0.3377477344289105,
+     "build_cap": 5,
+     "max_level": 5,
+     "jail": "adaptive",
+     "take_chance": true,
+     "trades": true,
+     "accept_trades": true,
+     "snipe": 0.0,
+     "lock": 14,
+     "leverage": 0.0,
+     "jail_exposure": 0.0,
+     "dodge": 1.8491819332158963,
+     "count_cards": false,
+     "leader_tax": 1.0,
+     "endgame_rounds": 25,
+     "endgame_reserve": 716.8154308875423
+    },
+    "label": "housing lock, dodging, playing the clock"
+   },
+   {
+    "search_fitness": 1.4622641509433962,
+    "ratio": 1.4685871897027276,
+    "ci_low": 1.4227849991994062,
+    "ci_high": 1.5148961766142721,
+    "credit": 1.4376,
+    "meta_credit": 0.9789,
+    "capped": 0.0085,
+    "tactics": [
+     "lock",
+     "dodge",
+     "endgame_rounds"
+    ],
+    "genome": {
+     "reserve": 471.14116672657326,
+     "build_reserve": 0.0,
+     "bid_frac": 1.3979128344242293,
+     "set_bonus": 1.5270010513951433,
+     "block_bonus": 3.0,
+     "offer_mult": 1.5404053473672759,
+     "ask_mult": 1.0,
+     "w_brown": 0.7163887656705735,
+     "w_light_blue": 1.6068873322358599,
+     "w_pink": 0.7096061789314221,
+     "w_orange": 0.8817005242196204,
+     "w_red": 0.15556254237797756,
+     "w_yellow": 0.384282697878908,
+     "w_green": 0.04934927374260781,
+     "w_dark_blue": 0.49833822139066264,
+     "w_stations": 0.4190780932966004,
+     "w_utilities": 0.14014499632744457,
+     "build_cap": 3,
+     "max_level": 5,
+     "jail": "adaptive",
+     "take_chance": true,
+     "trades": true,
+     "accept_trades": true,
+     "snipe": 0.0,
+     "lock": 14,
+     "leverage": 0.0,
+     "jail_exposure": 0.0,
+     "dodge": 2.186873996980763,
+     "count_cards": false,
+     "leader_tax": 1.0,
+     "endgame_rounds": 25,
+     "endgame_reserve": 716.8154308875423
+    },
+    "label": "housing lock, dodging, playing the clock"
+   },
+   {
+    "search_fitness": 1.4669811320754715,
+    "ratio": 1.41955255899479,
+    "ci_low": 1.3751760953924765,
+    "ci_high": 1.4636367181960008,
+    "credit": 1.3896,
+    "meta_credit": 0.9789,
+    "capped": 0.0102,
+    "tactics": [
+     "snipe",
+     "lock",
+     "leverage",
+     "leader_tax"
+    ],
+    "genome": {
+     "reserve": 383.1186714888792,
+     "build_reserve": 75.43476927566478,
+     "bid_frac": 1.9341485098945528,
+     "set_bonus": 3.308211694369376,
+     "block_bonus": 2.172284731924259,
+     "offer_mult": 1.4820564549693214,
+     "ask_mult": 1.3862228624037458,
+     "w_brown": 0.0,
+     "w_light_blue": 1.519791565365182,
+     "w_pink": 0.37595751448403314,
+     "w_orange": 0.7312614987361767,
+     "w_red": 0.38873780956007964,
+     "w_yellow": 0.30459768478231897,
+     "w_green": 0.2566337779225862,
+     "w_dark_blue": 0.7231134093769083,
+     "w_stations": 0.30963712910220026,
+     "w_utilities": 0.9919786010091027,
+     "build_cap": 5,
+     "max_level": 4,
+     "jail": "long",
+     "take_chance": true,
+     "trades": true,
+     "accept_trades": true,
+     "snipe": 1.0,
+     "lock": 24,
+     "leverage": 0.9189640998797306,
+     "jail_exposure": 0.0,
+     "dodge": 0.0,
+     "count_cards": false,
+     "leader_tax": 2.424980683034047,
+     "endgame_rounds": 0,
+     "endgame_reserve": 599.5152974881237
+    },
+    "label": "auction sniping, housing lock, borrowing to build, taxing the leader"
+   },
+   {
+    "search_fitness": 1.4811320754716981,
+    "ratio": 1.4171008274593933,
+    "ci_low": 1.3710102107986133,
+    "ci_high": 1.463370528141139,
+    "credit": 1.3872,
+    "meta_credit": 0.9789,
+    "capped": 0.0133,
+    "tactics": [
+     "snipe",
+     "lock",
+     "count_cards"
+    ],
+    "genome": {
+     "reserve": 305.34588763754414,
+     "build_reserve": 0.0,
+     "bid_frac": 1.8782866309654211,
+     "set_bonus": 2.6067297901907027,
+     "block_bonus": 2.1097892043845663,
+     "offer_mult": 1.061557502170498,
+     "ask_mult": 1.0037983214876338,
+     "w_brown": 0.20584569874241435,
+     "w_light_blue": 1.209655269156489,
+     "w_pink": 0.24458494389906643,
+     "w_orange": 0.8013645847678452,
+     "w_red": 0.443599780444644,
+     "w_yellow": 0.34108166340153545,
+     "w_green": 0.2737142007886535,
+     "w_dark_blue": 1.1485578763229447,
+     "w_stations": 0.3885167976414106,
+     "w_utilities": 0.16122884681293922,
+     "build_cap": 5,
+     "max_level": 4,
+     "jail": "adaptive",
+     "take_chance": true,
+     "trades": true,
+     "accept_trades": true,
+     "snipe": 0.7626770957955445,
+     "lock": 5,
+     "leverage": 0.0,
+     "jail_exposure": 0.0,
+     "dodge": 0.0,
+     "count_cards": true,
+     "leader_tax": 1.0,
+     "endgame_rounds": 0,
+     "endgame_reserve": 281.5668295238544
+    },
+    "label": "auction sniping, housing lock, card counting"
+   }
+  ],
+  "seconds": 2124
+ }
+}
