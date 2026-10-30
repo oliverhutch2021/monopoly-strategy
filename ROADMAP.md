@@ -7,7 +7,7 @@ trade, auction bid and building decision is worth, in win-probability and in pou
 Phase 0  Rules engine + exact Markov chain + ROI + bots         <- done (v0.1)
 Phase 1  Rollout evaluator + trade price curves                 <- done; 2-6 players (v0.2)
 Phase 5a Meta agents by evolutionary self-play, 2-6 players     <- done (v0.2)
-Phase 5c Unconventional strategies: new moves + MAP-Elites      <- done (v0.4, hardened in v0.5)
+Phase 5c Unconventional strategies: new moves + MAP-Elites      <- done (v0.4, hardened in v0.5, deep run)
 Phase 2  Data pipeline: millions of simulated positions         -> Parquet / DuckDB
 Phase 3  Learned value function  P(win | state)                 -> LightGBM + SHAP, calibrated vs rollouts
 Phase 4  Instant valuations: trades, auctions, builds, cash     -> indifference prices in £
@@ -38,9 +38,13 @@ Phase 6  Showcase: web dashboard, consulting deck, notebooks + report
   most clearly at 2 and 4 players (the official 2-player agent from 1.91x to 1.15x). It went in circles at 3
   and 6 players under official rules and 5 and 6 under championship rules, so those keep their v0.3 agents.
   Borrowing to build and the housing lock carry the new moves' edge; most of the others are passengers.
-- Next: the deep run re-measures every study at 10x the samples with the final agents (`make deep`,
-  `results/final`). A fix for the four cycling settings would train against a weighted mixture of the
-  strongest opponents (PSRO proper) rather than a uniform pool.
+- The deep run (`make deep`, `results/final`) re-measured every study at 10x the samples with the final agents.
+  The exploits hold (within about 0.05 of v0.5's numbers), and single changes find the last cheap gains: bidding
+  25% more beats six of the ten agents by 3-13%. At 5 players both agents lose to simple bots because they offer
+  meta-agent prices for set pieces. Against meta agents, sellers of a set-completing piece should ask £70-£171
+  more than against simple bots (4 players, official rules).
+- Next: a fix for the four cycling settings would train against a weighted mixture of the strongest opponents
+  (PSRO proper) rather than a uniform pool.
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the

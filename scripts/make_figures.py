@@ -9,8 +9,15 @@ from meta_common import ablations
 
 matplotlib.use("Agg")
 
-from run_config import FIGURES as FIG, TABLES as TAB  # noqa: E402
+from run_config import FIGURES as FIG, TABLES as TAB, scaled  # noqa: E402
 FIG.mkdir(parents=True, exist_ok=True)
+ROLLOUTS = scaled(2000)  # paired rollouts per price in 04_trade_curve.py and 06_meta_trade_curve.py
+
+
+def games(df) -> str:
+    """The sample size of a results table, from its games column ("10,000")."""
+    return f"{int(df.games.max()):,}"
+
 
 # reference palette (light mode) from the dataviz method
 SURFACE, INK, INK2, MUTED = "#fcfcfb", "#0b0b0b", "#52514e", "#898781"
@@ -47,7 +54,7 @@ VARIANT_LABEL = {
 
 
 def title(ax, main, sub):
-    ax.set_title(main, pad=26)
+    ax.set_title(main, pad=26 + 14 * sub.count("\n"))
     ax.text(0, 1.02, sub, transform=ax.transAxes, color=INK2, fontsize=9.5, va="bottom")
 
 
@@ -189,8 +196,7 @@ def fig_strategies(mode="standard"):
         s.set_visible(False)
     question = " under championship rules?" if champ else ", at every table size?"
     title(ax, "Which tweaks to the baseline bot win" + question,
-          f"Win rate ÷ fair share vs (n−1) baseline bots; {'6,000' if champ else '10,000'} games per cell; "
-          "* = not significant at 95%")
+          f"Win rate ÷ fair share vs (n−1) baseline bots; {games(sv)} games per cell; * = not significant at 95%")
     save(fig, "strategy_variants_championship.png" if champ else "strategy_variants.png")
 
 
@@ -198,11 +204,11 @@ def fig_deal_zone():
     """Seller's break-even and buyer's maximum for Vine Street, by player count and by who plays on."""
     rows = [("simple bots", TAB / "trade_curve_summary.csv", S3)]
     for mode, col in (("standard", "#6250d6"), ("championship", "#e87ba4")):
-        rows.append((f"meta, {mode}", TAB / f"meta_trade_summary_{mode}.csv", col))
+        rows.append((f"meta agents, {MODE_TITLE[mode].split(' (')[0]}", TAB / f"meta_trade_summary_{mode}.csv", col))
     rows = [(lab, pd.read_csv(f).query("buyer == 0") if "buyer" in pd.read_csv(f) else pd.read_csv(f), col)
             for lab, f, col in rows if f.exists()]
     offsets = np.linspace(-0.27, 0.27, len(rows)) if len(rows) > 1 else [0.0]
-    fig, ax = plt.subplots(figsize=(10.5, 6.8))
+    fig, ax = plt.subplots(figsize=(11, 6.8))
     seen = set()
     for (lab, s, col), dy in zip(rows, offsets):
         for _, r in s.sort_values("n_players").iterrows():
@@ -226,19 +232,19 @@ def fig_deal_zone():
                     ax.plot(v, y, "o", color=c, ms=7, markeredgecolor=SURFACE, markeredgewidth=1.6, zorder=3,
                             label=name if name not in seen else None)
                     seen.add(name)
-            ax.text(1265, y, txt, fontsize=7.5, color=INK2, va="center")
-            ax.text(390, y, lab, fontsize=7, color=MUTED, va="center", ha="right")
+            ax.text(1265, y, f"{lab}: {txt}", fontsize=7.5, color=INK2, va="center")
     counts = sorted(rows[0][1].n_players)
     ax.set_yticks(counts)
     ax.set_yticklabels([f"{n} players" for n in counts], color=INK)
     ax.set_ylim(max(counts) + 0.6, min(counts) - 0.6)
-    ax.set_xlim(250, 1750)
-    ax.set_xticks(range(400, 1201, 200))
+    ax.set_xlim(0, 1900)
+    ax.set_xticks(range(0, 1201, 200))
     ax.set_xlabel("Price for Vine Street (£)")
     ax.grid(axis="y", visible=False)
     ax.legend(loc="upper center", bbox_to_anchor=(0.45, -0.1), ncol=3, fontsize=8)
     title(ax, "Is there a price that suits both sides?",
-          "Orange-squeeze position; 2,000 paired rollouts per price; '+' = buyer would pay all £1,200 they have")
+          f"Orange-squeeze position; {ROLLOUTS:,} paired rollouts per price; "
+          "'+' = buyer would pay all £1,200 they have")
     save(fig, "deal_zone_by_players.png")
 
 
@@ -261,7 +267,7 @@ def fig_house_rules():
     ax.set_ylabel("Median game length (rounds)")
     ax.grid(axis="x", visible=False)
     ax.legend(loc="upper right", fontsize=9)
-    title(ax, "More players, shorter games (in rounds)", "Identical baseline bots; 6,000 games per point")
+    title(ax, "More players, shorter games (in rounds)", f"Identical baseline bots; {games(hr)} games per point")
     ax.set_ylim(bottom=0)
     save(fig, "game_length_by_players.png")
 
@@ -293,7 +299,8 @@ def fig_trade(n_players=4):
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=3, fontsize=8.5)
     ax.grid(axis="x", visible=False)
     title(ax, f"What is Vine Street worth, and to whom? ({n_players} players)",
-          "Orange-squeeze position, 2,000 paired rollouts per price (common random numbers); bands = 95% CI")
+          f"Orange-squeeze position, {ROLLOUTS:,} paired rollouts per price (common random numbers); "
+          "bands = 95% CI")
     save(fig, "trade_curve_vine_street.png")
 
     fig, ax = plt.subplots(figsize=(8, 4.4))
@@ -314,14 +321,19 @@ def fig_trade(n_players=4):
 
 
 def _diverging_heatmap(m, lo, hi, ax):
-    logm = np.log2(m.values)
-    lim = max(np.abs(logm).max(), 0.05)
+    """Ratios on a log scale, red below 1 and blue above; empty cells (NaN) are left blank with a dash."""
+    logm = np.ma.masked_invalid(np.log2(m.values.astype(float)))
+    lim = max(float(np.abs(logm).max()) if logm.count() else 0.0, 0.05)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         "div", ["#b8302f", "#e34948", "#f4b4b3", "#f0efec", "#9ec5f4", "#3987e5", "#184f95"])
+    cmap.set_bad(SURFACE)
     ax.imshow(logm, cmap=cmap, vmin=-lim, vmax=lim, aspect="auto")
     for i in range(m.shape[0]):
         for j in range(m.shape[1]):
             v = m.values[i, j]
+            if not np.isfinite(v):
+                ax.text(j, i, "—", ha="center", va="center", fontsize=9, color=MUTED)
+                continue
             sig = lo.values[i, j] > 1 or hi.values[i, j] < 1
             ax.text(j, i, f"{v:.2f}×" + ("" if sig else "*"), ha="center", va="center", fontsize=9,
                     color="#ffffff" if abs(logm[i, j]) > 0.6 * lim else INK)
@@ -359,7 +371,7 @@ def fig_meta_ablations(mode):
     _diverging_heatmap(piv["relative"], piv["rel_low"], piv["rel_high"], ax)
     title(ax, f"Deviating from the meta, {MODE_TITLE[mode]}",
           "One deviating player vs (n−1) meta agents, relative to a meta agent at the same table; "
-          "4,000 games per cell; * = not significant")
+          f"{games(ab)} games per cell;\n* = not significant; — = the agent already plays this way")
     save(fig, f"meta_ablations_{mode}.png")
 
 
@@ -381,8 +393,8 @@ def fig_meta_validation(mode):
     ax.set_ylabel("Win credit, relative")
     ax.grid(axis="x", visible=False)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3, fontsize=8.5)
-    title(ax, f"How strong are the meta agents? ({MODE_TITLE[mode]})",
-          "1.0 = level with the player it replaces, on the same 4,000 games; 95% bootstrap CIs")
+    title(ax, f"How strong are the meta agents? {MODE_TITLE[mode][0].upper()}{MODE_TITLE[mode][1:]}",
+          f"1.0 = level with the player it replaces, on the same {games(v)} games; 95% bootstrap CIs")
     save(fig, f"meta_validation_{mode}.png")
 
 

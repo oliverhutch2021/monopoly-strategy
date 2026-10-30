@@ -112,6 +112,21 @@ def test_keeping_the_better_agent():
     assert hd.keep_better(1.5, 1.5) == "old"  # a tie keeps what we had
 
 
+def test_the_final_agents_strongest_known_challenger():
+    import importlib
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    fa = importlib.import_module("final_agents")
+    searched = [(1.11, {"a": 1}, "MAP-Elites"), (1.05, {"b": 1}, "challenger search")]
+    assert fa.pick(searched, []) == (1.11, {"a": 1}, "MAP-Elites")
+    within_noise = [(1.15, {"c": 1}, "v0.4 find 1", 1.09)]  # stronger, but its interval reaches below 1.11
+    assert fa.pick(searched, within_noise) == (1.11, {"a": 1}, "MAP-Elites")
+    clear = within_noise + [(1.285, {"d": 1}, "v0.4 find 2", 1.242)]
+    assert fa.pick(searched, clear) == (1.285, {"d": 1}, "v0.4 find 2")
+    rows = [{"name": "v0.4 find 2", "ratio": 1.285, "ci_low": 1.242}, {"name": "unknown", "ratio": 9.0, "ci_low": 9.0}]
+    assert fa.known(rows, {"v0.4 find 2": {"d": 1}}) == [(1.285, {"d": 1}, "v0.5 checks: v0.4 find 2", 1.242)]
+
+
 def test_the_choice_after_the_recheck():
     import importlib
     import sys

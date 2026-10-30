@@ -128,6 +128,16 @@ most important parts:
 3. the simple-bot studies: trade curves, tournaments and championship basics;
 4. the dashboard's data and the figures.
 
+## Step 7: one last check (about 5 minutes)
+
+```
+make sync && make final-check
+```
+
+The deep run re-measured each final agent against the strongest challenger its searches had found. For the
+4-player agent under official rules, one of Step 4's exploits beats it by more (1.29× on 10,000 games in Step 5's
+checks). This re-measures that exploit on 40,000 games, then refreshes the dashboard data and the figures.
+
 ## Watching a run
 
 Open a second Ubuntu window while a job runs and type:

@@ -100,6 +100,15 @@ JOBS: dict[str, list[tuple]] = {
         ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
         ("figures", ["scripts/make_figures.py"], FINAL),
     ],
+    # After the deep run (about 5 minutes): final_agents now also weighs the exploits v0.5 measured against each
+    # agent, and one of them is clearly stronger than the searches' challenger for the 4-player official agent
+    # (v0.4's second find, 1.29x on 10,000 games). Re-measure that size on 40,000 games, then refresh the outputs.
+    "final-check": [
+        ("final-agents", ["scripts/final_agents.py"], FINAL),
+        ("validate-standard-4p", ["scripts/05b_refine_meta.py", "--mode", "standard", "--revalidate", "4"], FINAL),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
+        ("figures", ["scripts/make_figures.py"], FINAL),
+    ],
     # A two-minute end-to-end check of this runner (sync, steps, stamp, commit, bundle, DONE note).
     "smoke": [
         ("regression-digests", ["tests/golden.py"]),
