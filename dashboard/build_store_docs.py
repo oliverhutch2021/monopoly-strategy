@@ -20,43 +20,49 @@ D = {
                       "expected rent per round from every opponent, rounds to pay back, and extra rent per round "
                       "per £100 spent on each building level. Computed from the Markov chain."),
     "strategies": ("Strategy tweaks vs simple bots",
-                   "One tweaked bot against copies of the simple bot at 2 to 6 players, seats rotated: wins relative "
-                   "to a fair share with 95% Wilson intervals (10,000 games per cell under official rules, 6,000 "
-                   "under championship rules)."),
+                   "One tweaked bot against copies of the simple bot at 2 to 6 players, seats rotated: outright wins "
+                   "as a share of the games that finish, relative to a fair share, with 95% Wilson intervals (100,000 "
+                   "games per cell under official rules, 60,000 under championship rules)."),
     "seats": ("Win rate by seat",
-              "Identical simple bots in fixed seats at 2 to 6 players: win rate per seat with 95% intervals and "
-              "relative to a fair share (10,000 games per table size under official rules, 6,000 under "
-              "championship rules)."),
+              "Identical simple bots in fixed seats at 2 to 6 players: outright wins per seat as a share of the "
+              "games that finish, with 95% intervals and relative to a fair share (100,000 games per table size "
+              "under official rules, 60,000 under championship rules)."),
     "game_length": ("Game length by rule set",
                     "Median and 90th-percentile rounds per game with simple bots, by rule set and table size, and "
                     "the share of games stopped by the time limit."),
     "trade_curves": ("Vine Street price curves",
-                     "Change in win chance (percentage points, with standard errors) and in net worth 40 turns "
-                     "later for the buyer, the seller and everyone else when Vine Street is sold at each price, "
-                     "from 2,000 paired rollouts per price."),
+                     "Change in win chance (percentage points, with standard errors) and in net worth 40 "
+                     "player-turns later for the buyer, the seller and everyone else when Vine Street is sold at "
+                     "each price, from 20,000 paired rollouts per price."),
     "deal_zones": ("Vine Street deal zones",
                    "Seller's break-even price and buyer's maximum for the Vine Street sale, judged by win chance and "
-                   "by net worth, for each opponent type and table size."),
+                   "by net worth, for each opponent type and table size: every price range where both sides gain, "
+                   "and whether the rules allow the trade."),
     "meta_agents": ("Meta agent settings",
-                    "The settings evolution and hardening settled on for each rule set and table size."),
+                    "The settings of the final meta agents (v0.3's, or v0.5's hardened ones) for each rule set and "
+                    "table size."),
     "meta_checks": ("Meta agent strength checks",
-                    "Paired checks of each meta agent: against simple bots, a simple bot at a table of meta agents, "
-                    "and the best challenger trained against it, with 95% bootstrap intervals over 4,000 games."),
+                    "Paired checks of each final meta agent: against simple bots, a simple bot at a table of meta "
+                    "agents, and the strongest known challenger, with 95% bootstrap intervals over 40,000 games. "
+                    "Under championship rules the credit is finishing points ÷ 28."),
     "meta_ablations": ("Deviations from the meta",
-                       "One player changes one setting of the meta agent and plays against meta agents, on the same "
-                       "4,000 games as an unchanged meta agent: wins relative to it, with 95% intervals."),
+                       "One player changes one setting of the final meta agent and plays against meta agents, on the "
+                       "same 40,000 games as an unchanged meta agent: credit relative to it, with 95% intervals; "
+                       "no_effect marks a change that never altered a decision."),
     "property_trades": ("Every property's price curves",
                         "Change in win chance and net worth for buyer, seller and everyone else when each of the 28 "
-                        "properties is sold to the player it completes a set for, at 2 to 6 players: 1,000 paired "
-                        "rollouts per price (2,000 for Vine Street). From scripts/10_property_trades.py."),
+                        "properties is sold to the player it completes a set for, at 2 to 6 players: 10,000 paired "
+                        "rollouts per price (5,000 under championship rules, 20,000 for Vine Street). From "
+                        "scripts/10_property_trades.py."),
     "property_zones": ("Every property's deal zone",
-                       "For each property and table size: the seller's break-even price and the buyer's maximum, by "
-                       "win chance and by net worth, with rough standard errors and notes where a curve never "
-                       "crosses zero."),
+                       "For each property, opponent type and table size: the seller's break-even price and the "
+                       "buyer's maximum, by win chance and by net worth, with rough standard errors; every price "
+                       "range where both sides gain, whether the rules allow the trade, and notes where a curve "
+                       "isn't monotone or never crosses zero."),
     "meta_vs_simple": ("Meta agent vs simple bots",
-                       "The official-rules meta agent at a table of simple bots, alone and with one group of its "
-                       "settings copied from the simple bot: wins relative to a simple bot in the same seat, 3,000 "
-                       "paired games each, 95% bootstrap intervals. From scripts/09_meta_vs_simple.py."),
+                       "The official-rules final meta agent at a table of simple bots, alone and with one group of "
+                       "its settings copied from the simple bot: wins relative to a simple bot in the same seat, "
+                       "30,000 paired games each, 95% bootstrap intervals. From scripts/09_meta_vs_simple.py."),
     "moves": ("Where one throw takes you",
               "For every starting square: the chance of ending on each square after one throw of the dice (p_roll) "
               "and at the end of the turn, doubles rolled again (p_turn), cards and Go to Jail included, from the "
@@ -87,7 +93,9 @@ for ds, (title, desc) in D.items():
     if f"datasets/{ds}" in versions:
         w["if_version"] = versions[f"datasets/{ds}"]
     writes.append(w)
-for name in ["index.html", "theme.css", "board3d.js"]:  # the page and the files it links to
+FILES = sys.argv[sys.argv.index("--files") + 1].split(",") if "--files" in sys.argv else \
+    ["index.html", "theme.css", "board3d.js"]
+for name in FILES:  # the page and the files it links to
     (HERE / f"{name}.json").write_text(json.dumps({"text": (HERE / name).read_text()}))
     w = {"op": "set", "collection": "files", "doc_id": name, "file_path": str(HERE / f"{name}.json")}
     if f"files/{name}" in versions:

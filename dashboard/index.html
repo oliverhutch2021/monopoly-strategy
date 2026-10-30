@@ -203,7 +203,7 @@
     <div class="mm-card" id="property-trade-card">
       <span class="mm-kicker">Trading floor</span>
         <h2>What is a property worth to the player it completes a set for?</h2>
-      <p class="mm-note">Ten rounds in, the seller owns the chosen property and the buyer owns the rest of its group; everyone else holds unrelated properties. Each price was played out 1,000 times (2,000 for Vine Street), each sale paired with keeping the property on the same dice. The shaded band is the deal zone, where both sides gain.</p>
+      <p class="mm-note">Ten rounds in, the seller owns the chosen property and the buyer owns the rest of its group; everyone else holds unrelated properties. Each price was played out 10,000 times (5,000 under championship rules, 20,000 for Vine Street), each sale paired with keeping the property on the same dice. The shaded band is the deal zone, where both sides gain. Some bots do better after paying more, which says more about the bot than the property, and championship rules allow no trades heads-up: the tooltip says when.</p>
       <div class="mm-bar">
         <label class="mm-ctl mm-grow"><span class="mm-label">Property</span>
           <select data-draw="property-select" data-source="squares" aria-label="Property"></select>
@@ -212,6 +212,7 @@
           <select id="sel-popp" aria-label="Rest of the game played by">
             <option value="Simple bots">Simple bots</option>
             <option value="Meta agents, official rules">Meta agents, official rules</option>
+            <option value="Meta agents, championship rules">Meta agents, championship rules</option>
           </select>
         </label>
         <label class="mm-ctl mm-grow"><span class="mm-label">Price</span>
@@ -241,7 +242,7 @@
     <div class="mm-card" id="trade-card">
       <span class="mm-kicker">Vine Street</span>
         <h2>Vine Street in depth: who plays on, and who buys</h2>
-      <p class="mm-note">The same Vine Street sale with 2,000 rollouts per price, played out by simple bots or by meta agents under either rule set, and sold to a player who needs it or one who doesn't.</p>
+      <p class="mm-note">The same Vine Street sale with 20,000 rollouts per price, played out by simple bots or by meta agents under either rule set, and sold to a player who needs it or one who doesn't.</p>
       <div class="mm-bar">
         <label class="mm-ctl mm-grow"><span class="mm-label">Rest of the game played by</span>
           <select id="sel-opponents" aria-label="Rest of the game played by">
@@ -270,7 +271,7 @@
       <div class="mm-chart mm-tall" id="vine-trade-chart" data-draw="trade-chart" data-source="trade_curves deal_zones"></div>
       <p class="mm-note mm-trade-empty" hidden>No rollouts for this combination. A buyer who doesn't need Vine Street was only tested with simple bots, at 3 or more players.</p>
       <h3>Vine Street deal zones at every table size</h3>
-      <p class="mm-note">Seller's break-even and buyer's maximum, judged by win chance and by expected net worth. "+" means the buyer still gains at £1,200. Valuing in pounds underprices the set-completing property at every size.</p>
+      <p class="mm-note">Seller's break-even and buyer's maximum, judged by win chance and by expected net worth 40 player-turns later. "+" means the buyer still gains at £1,200. Valuing in pounds underprices the set-completing property at every size. Championship rules allow no trades once two players are left.</p>
       <div class="mm-tablewrap">
         <table class="mm-table" data-source="deal_zones" data-row-key="key">
           <thead><tr>
@@ -293,14 +294,14 @@
     <div class="mm-card" id="tweaks-card">
       <span class="mm-kicker">Strategy tweaks</span>
         <h2>Which tweaks to the simple bot win?</h2>
-      <p class="mm-note">One tweaked bot against copies of the simple bot, seats rotated, for the chosen rules. Cells show wins relative to a fair share (1.00), shaded one way above it and the other way below; an asterisk marks a result not significant at 95%.</p>
+      <p class="mm-note">One tweaked bot against copies of the simple bot, seats rotated, for the chosen rules. Cells show outright wins, as a share of the games that finish, relative to a fair share (1.00), shaded one way above it and the other way below; an asterisk marks a result not significant at 95%.</p>
       <div class="mm-chart" data-draw="tweaks" data-source="strategies"></div>
     </div>
     <div class="mm-grid">
       <div class="mm-card" id="seats-card">
         <span class="mm-kicker">Seat order</span>
         <h2>Does going first matter?</h2>
-        <p class="mm-note">Identical simple bots in fixed seats, for the chosen rules. Wins relative to a fair share, with 95% intervals.</p>
+        <p class="mm-note">Identical simple bots in fixed seats, for the chosen rules. Outright wins, as a share of the games that finish, relative to a fair share, with 95% intervals.</p>
         <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>First player</span><span><i style="background: var(--mm-c1)"></i>Last player</span></div>
         <div class="mm-chart" data-draw="seats" data-source="seats"></div>
       </div>
@@ -319,14 +320,14 @@
     <div class="mm-card" id="checks-card">
       <span class="mm-kicker">Champions' table</span>
         <h2>How strong are the meta agents?</h2>
-      <p class="mm-note">Meta agents were evolved by self-play, then hardened: challengers trained to beat them joined the opponent pool until none won by 5% or more, or self-play cycled and the least exploitable agent was kept. 1.0 means level with the player it replaces, on the same 4,000 games.</p>
+      <p class="mm-note">The final meta agents: evolved by self-play, then hardened against the best challengers found and eight unconventional moves, keeping whichever agent those challengers beat by the least. 1.0 means level with the player it replaces, on the same 40,000 games. A challenger is the strongest found so far, so its number is a lower bound on how far the agent can be beaten. Under championship rules the credit is finishing points ÷ 28, not a win share.</p>
       <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>Meta agent vs a simple bot, at a table of simple bots</span><span><i style="background: var(--mm-c1)"></i>Simple bot at a table of meta agents</span><span><i style="background: var(--mm-c2)"></i>Best challenger trained against the meta</span></div>
       <div class="mm-chart" data-draw="checks" data-source="meta_checks"></div>
     </div>
     <div class="mm-card" id="why-card">
       <span class="mm-kicker">Diagnosis</span>
         <h2>Why can a meta agent lose to simple bots?</h2>
-      <p class="mm-note">Official rules, at a table of simple bots: the meta agent, and the meta agent with one group of its settings copied from the simple bot, each against a simple bot in the same seat on the same 3,000 games. A change that lifts it (in colour) shows a setting tuned for meta opponents rather than simple ones. These games are separate from the chart above, so its numbers differ slightly.</p>
+      <p class="mm-note">Official rules, at a table of simple bots: the meta agent, and the meta agent with one group of its settings copied from the simple bot, each against a simple bot in the same seat on the same 30,000 games. A change that lifts it (in colour) shows a setting tuned for meta opponents rather than simple ones. These games are separate from the chart above, so its numbers differ slightly.</p>
       <p class="mm-callout" data-draw="why-take" data-source="meta_vs_simple" data-field="relative">—</p>
       <div class="mm-chart" data-draw="why" data-source="meta_vs_simple"></div>
     </div>
@@ -334,7 +335,7 @@
       <div class="mm-card" id="ablations-card">
         <span class="mm-kicker">Off the meta</span>
         <h2>Deviating from the meta</h2>
-        <p class="mm-note">One player changes one thing and plays against meta agents, on the same games as an unchanged meta agent. Bars left of 1.0 lose; faded bars are not significant. Changes the meta agent already makes are left out.</p>
+        <p class="mm-note">One player changes one thing and plays against meta agents, on the same games as an unchanged meta agent. Bars left of 1.0 lose; faded bars are not significant. Changes the meta agent already makes, or that never altered one of its decisions, are left out.</p>
         <div class="mm-chart mm-tall" data-draw="ablations" data-source="meta_ablations"></div>
       </div>
       <div class="mm-card" id="settings-card">
@@ -352,7 +353,7 @@
     <div class="mm-card" id="hardening-card">
       <span class="mm-kicker">Hardening</span>
         <h2>Hardening rounds</h2>
-      <p class="mm-note">Each round trains a challenger against the current meta agent. The ratio is the challenger's win credit over the meta agent's own at the same table; under 1.05 the meta stands.</p>
+      <p class="mm-note">The first hardening (v0.3): each round trains a challenger against the current meta agent. The ratio is the challenger's win credit over the meta agent's own at the same table; under 1.05 the meta stands.</p>
       <div class="mm-tablewrap">
         <table class="mm-table" data-source="hardening" data-row-key="key">
           <thead><tr><th data-field="round">Round</th><th class="num" data-field="challenger_vs_meta">Challenger ÷ meta</th><th class="num" data-field="meta_self_credit">Meta's own credit</th><th data-field="kept">Kept</th></tr></thead>
@@ -1016,6 +1017,7 @@ window.mm = (() => {
       const y0 = top + i * rowH, yc = narrow ? y0 + 24 : y0 + rowH / 2;
       const lo = r.seller_break_even === '' ? null : +r.seller_break_even, hi = r.buyer_maximum === '' ? null : +r.buyer_maximum;
       const cens = String(r.buyer_maximum_is_all_cash) === 'True', zone = String(r.deal_zone) === 'True';
+      const banned = String(r.allowed) === 'False';  // championship rules: no trades heads-up
       const row = svg.append('g').style('cursor', 'pointer').on('click', () => dash.setParams({ property: +r.square }));
       row.append('rect').attr('x', 0).attr('y', y0).attr('width', w).attr('height', rowH).attr('fill', +r.square === property ? 'var(--cds-chart-grid)' : 'transparent');
       const sw = narrow ? 8 : left - 18;
@@ -1025,7 +1027,7 @@ window.mm = (() => {
       } else {
         clip(row.append('text').attr('x', sw - 6).attr('y', yc).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(name(r)), sw - 8);
       }
-      if (lo != null && hi != null) {
+      if (lo != null && hi != null && !banned) {
         if (zone) row.append('rect').attr('x', x(lo)).attr('y', yc - 4).attr('width', Math.max(2, x(hi) - x(lo))).attr('height', 8).attr('rx', 4).attr('fill', 'var(--mm-c2)').attr('opacity', 0.45);
         else row.append('line').attr('x1', x(Math.min(lo, hi))).attr('x2', x(Math.max(lo, hi))).attr('y1', yc).attr('y2', yc).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-dasharray', '2 2');
       }
@@ -1034,14 +1036,20 @@ window.mm = (() => {
       const arrow = (v, colour) => row.append('path').attr('d', `M${x(v) - 2},${yc - 5}L${x(v) + 6},${yc}L${x(v) - 2},${yc + 5}Z`).attr('fill', colour);
       const dot = (v, colour, hollow) => row.append('circle').attr('cx', x(v)).attr('cy', yc).attr('r', 4.5).attr('fill', hollow ? 'var(--mm-card)' : colour)
         .attr('stroke', hollow ? colour : 'var(--mm-card)').attr('stroke-width', hollow ? 2 : 1.5);
-      if (lo != null) dot(lo, 'var(--mm-c1)', shaky);
-      else if (r.seller_note) arrow(1200, 'var(--mm-c1)');
-      if (hi != null) { if (cens) arrow(hi, 'var(--mm-c0)'); else dot(hi, 'var(--mm-c0)', false); } else if (r.buyer_note) dot(0, 'var(--mm-c0)', true);
+      if (!banned) {
+        if (lo != null) dot(lo, 'var(--mm-c1)', shaky);
+        else if (r.seller_note) arrow(1200, 'var(--mm-c1)');
+        if (hi != null) { if (cens) arrow(hi, 'var(--mm-c0)'); else dot(hi, 'var(--mm-c0)', false); } else if (r.buyer_note) dot(0, 'var(--mm-c0)', true);
+      }
+      const ranges = (v) => String(v || '').split('; ').filter(Boolean).map((x) => x.split('-').map((m) => money(+m)).join('–')).join(', ');
+      const verdict = banned ? 'Not allowed: no trades once two players are left'
+        : zone ? `Both gain at ${ranges(r.deal_ranges) || 'prices in between'}` : 'No price suits both';
+      const flaw = !banned && r.note ? [line(String(r.note).replace(/^not monotone:/, 'Not monotone:'))] : [];
       const fmt = (v, se) => (v == null ? 'none' : money(v) + (se && +se > 0 ? ` (±${money(+se)})` : ''));
       const sellerLine = r.seller_note && lo == null ? `Seller ${r.seller_note}` : r.seller_note ? `Seller ${r.seller_note}` : `Seller breaks even at ${fmt(lo, r.seller_break_even_se)}`;
       const buyerLine = r.buyer_note ? `Buyer ${r.buyer_note}` : `Buyer gains up to ${fmt(hi, cens ? null : r.buyer_maximum_se)}${cens ? '+' : ''}`;
       row.on('pointermove', (event) => t.show(event, [line(r.name, 'mm-tip-head'), line(sellerLine), line(buyerLine),
-        line(`Seller wins ${f1(+r.seller_win_pct_without)}% without the sale${shaky ? ', so its break-even is uncertain' : ''}`), line(zone ? 'Both gain in between' : 'No price suits both')]))
+        line(`Seller wins ${f1(+r.seller_win_pct_without)}% without the sale${shaky ? ', so its break-even is uncertain' : ''}`), line(verdict), ...flaw]))
         .on('pointerleave', () => t.hide());
     });
   });
@@ -1084,8 +1092,9 @@ window.mm = (() => {
     rows('deal_zones').filter((r) => r.opponents === opp && r.deal === deal).sort((a, b) => +a.n_players - +b.n_players).forEach((r) => {
       const tr = document.createElement('tr');
       tr.dataset.key = r.key;
-      const cens = String(r.buyer_maximum_is_all_cash) === 'True';
-      [String(+r.n_players), fmt(r.seller_break_even), fmt(r.buyer_maximum, cens), fmt(r.seller_break_even_networth), fmt(r.buyer_maximum_networth),
+      const cens = String(r.buyer_maximum_is_all_cash) === 'True', banned = String(r.allowed) === 'False';
+      [String(+r.n_players), banned ? 'not allowed' : fmt(r.seller_break_even), banned ? '—' : fmt(r.buyer_maximum, cens),
+        banned ? '—' : fmt(r.seller_break_even_networth), banned ? '—' : fmt(r.buyer_maximum_networth),
         f1(+r.buyer_win_pct_without) + '%', f1(+r.buyer_win_pct_if_free) + '%'].forEach((v, i) => {
         const td = document.createElement('td'); if (i) td.className = 'num'; td.textContent = v; tr.appendChild(td);
       });
@@ -1253,7 +1262,7 @@ window.mm = (() => {
     el.replaceChildren();
     if (!ok('meta_ablations')) return;
     const { n, rules } = P();
-    const data = rows('meta_ablations').filter((r) => r.rules === rules && +r.n_players === n && r.change !== 'Unchanged meta agent')
+    const data = rows('meta_ablations').filter((r) => r.rules === rules && +r.n_players === n && r.change !== 'Unchanged meta agent' && String(r.no_effect) !== 'True')
       .sort((a, b) => +b.relative - +a.relative);
     if (!data.length) return;
     intervals(el, data, (r) => r.change, (r) => `${f2(+r.relative)}× an unchanged meta agent (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`);
