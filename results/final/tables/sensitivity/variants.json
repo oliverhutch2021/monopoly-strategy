@@ -1,0 +1,72 @@
+{
+ "engine rules": {
+  "auctions": true,
+  "free_parking_jackpot": false,
+  "card_draw": "deck",
+  "max_turns": 4000,
+  "min_bid": 1,
+  "stalemate": "networth",
+  "speed_die": false,
+  "no_bid_to_richest": false,
+  "no_trades_heads_up": false,
+  "build_any_time": false,
+  "house_auctions": false,
+  "mortgaged_count_for_rent": false
+ },
+ "build any time": {
+  "auctions": true,
+  "free_parking_jackpot": false,
+  "card_draw": "deck",
+  "max_turns": 4000,
+  "min_bid": 1,
+  "stalemate": "networth",
+  "speed_die": false,
+  "no_bid_to_richest": false,
+  "no_trades_heads_up": false,
+  "build_any_time": true,
+  "house_auctions": false,
+  "mortgaged_count_for_rent": false
+ },
+ "house auctions": {
+  "auctions": true,
+  "free_parking_jackpot": false,
+  "card_draw": "deck",
+  "max_turns": 4000,
+  "min_bid": 1,
+  "stalemate": "networth",
+  "speed_die": false,
+  "no_bid_to_richest": false,
+  "no_trades_heads_up": false,
+  "build_any_time": false,
+  "house_auctions": true,
+  "mortgaged_count_for_rent": false
+ },
+ "any time + auctions": {
+  "auctions": true,
+  "free_parking_jackpot": false,
+  "card_draw": "deck",
+  "max_turns": 4000,
+  "min_bid": 1,
+  "stalemate": "networth",
+  "speed_die": false,
+  "no_bid_to_richest": false,
+  "no_trades_heads_up": false,
+  "build_any_time": true,
+  "house_auctions": true,
+  "mortgaged_count_for_rent": false
+ },
+ "mortgaged stations count": {
+  "auctions": true,
+  "free_parking_jackpot": false,
+  "card_draw": "deck",
+  "max_turns": 4000,
+  "min_bid": 1,
+  "stalemate": "networth",
+  "speed_die": false,
+  "no_bid_to_richest": false,
+  "no_trades_heads_up": false,
+  "build_any_time": false,
+  "house_auctions": false,
+  "mortgaged_count_for_rent": true
+ }
+}

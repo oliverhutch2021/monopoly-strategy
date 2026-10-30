@@ -1,0 +1,44 @@
+{
+ "job": "review",
+ "commit": "907aaebf092c341b965de1eb910e1cede023b246",
+ "started": "2026-10-30T14:23:20+00:00",
+ "finished": "2026-10-30T16:29:06+00:00",
+ "machine": {
+  "host": "TheBEAST",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_threads": 16,
+  "ram_gb": 15.2,
+  "python": "3.12.3",
+  "packages": {
+   "numpy": "2.5.4",
+   "scipy": "1.18.1",
+   "pandas": "3.1.0",
+   "matplotlib": "3.11.2",
+   "pillow": "13.0.0"
+  }
+ },
+ "steps": {
+  "trade-summaries": 4,
+  "tournaments": 2688,
+  "championship-basics": 867,
+  "vine-street-simple": 734,
+  "vine-street-meta-standard": 592,
+  "vine-street-meta-championship": 952,
+  "rule-sensitivity": 1691,
+  "dashboard-data": 12,
+  "figures": 5,
+  "readme-claims": 1
+ },
+ "commands": {
+  "trade-summaries": "MM_RESULTS=results/final MM_SCALE=10 python scripts/trade_summaries.py",
+  "tournaments": "MM_RESULTS=results/final MM_SCALE=10 python scripts/03_tournament.py",
+  "championship-basics": "MM_RESULTS=results/final MM_SCALE=10 python scripts/07_championship_basics.py",
+  "vine-street-simple": "MM_RESULTS=results/final MM_SCALE=10 python scripts/04_trade_curve.py",
+  "vine-street-meta-standard": "MM_RESULTS=results/final MM_SCALE=10 python scripts/06_meta_trade_curve.py --mode standard",
+  "vine-street-meta-championship": "MM_RESULTS=results/final MM_SCALE=10 python scripts/06_meta_trade_curve.py --mode championship",
+  "rule-sensitivity": "MM_RESULTS=results/final MM_SCALE=10 python scripts/15_rule_sensitivity.py",
+  "dashboard-data": "MM_RESULTS=results/final MM_SCALE=10 python scripts/08_dashboard_data.py",
+  "figures": "MM_RESULTS=results/final MM_SCALE=10 python scripts/make_figures.py",
+  "readme-claims": "MM_RESULTS=results/final MM_SCALE=10 python scripts/claims.py --quiet --no-fail --report results/final/readme_claims.txt"
+ }
+}
