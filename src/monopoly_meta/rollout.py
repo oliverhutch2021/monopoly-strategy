@@ -19,24 +19,50 @@ from .engine import Game, GameState, Rules
 from .policies import make_bot
 
 
+def play_recording(g: Game, horizon: int, own_turns: tuple = ()) -> tuple[list, np.ndarray, np.ndarray]:
+    """Play `g` to the end, looking at net worth on the way (looking changes nothing in the game).
+
+    Returns every player's net worth after `horizon` player-turns from now (or at the end, if the game ends
+    first); each player's net worth right after their own k-th turn from now, for each k in `own_turns`, as a
+    (players, len(own_turns)) array; and the number of their own turns each of those values was taken at. A
+    player who goes bankrupt before their k-th turn is recorded at 0 (net worth at the horizon of a bankrupt
+    player), and a player still in when the game ends first is recorded at the end. Own turns count the turns a
+    player actually takes, so eliminations don't stretch or shrink anyone's horizon, and both arms of a paired
+    comparison measure each player after the same number of their own turns."""
+    n, start = g.s.n_players, g.s.turn
+    at_horizon = None
+    taken = [0] * n
+    value = np.full((n, len(own_turns)), np.nan)
+    turns = np.zeros((n, len(own_turns)), dtype=int)
+    while not g.done:
+        if at_horizon is None and g.s.turn >= start + horizon:
+            at_horizon = [g.net_worth(p) for p in range(n)]
+        p = g.s.current
+        g.take_turn()
+        taken[p] += 1
+        for j, k in enumerate(own_turns):
+            if taken[p] == k:
+                value[p, j], turns[p, j] = g.net_worth(p), k
+    if at_horizon is None:
+        at_horizon = [g.net_worth(p) for p in range(n)]
+    for q in range(n):
+        for j in range(len(own_turns)):
+            if np.isnan(value[q, j]):  # out of the game, or the game ended first
+                value[q, j], turns[q, j] = g.net_worth(q), taken[q]
+    return at_horizon, value, turns
+
+
 def _rollouts(args):
-    state, bot_kinds, seeds, rules, frozen, horizon, marks = args
+    state, bot_kinds, seeds, rules, frozen, horizon, own_turns = args
     credit = np.zeros((len(seeds), state.n_players))
     worth = np.zeros((len(seeds), state.n_players))
-    later = np.zeros((len(seeds), state.n_players, len(marks)))  # net worth at each extra mark
+    later = np.zeros((len(seeds), state.n_players, len(own_turns)))  # net worth after k own turns
     capped = np.zeros(len(seeds), dtype=bool)
     for i, seed in enumerate(seeds):
         g = Game([make_bot(k) for k in bot_kinds], state=state, seed=seed, rules=rules,
                  reshuffle_decks=True, frozen_squares=frozen)
-        seen = {}
-        for mark in sorted({horizon, *marks}):  # pausing to look doesn't change the game
-            while not g.done and g.s.turn < state.turn + mark:
-                g.take_turn()
-            seen[mark] = [g.net_worth(p) for p in range(state.n_players)]
-        worth[i] = seen[horizon]
-        for k, mark in enumerate(marks):
-            later[i, :, k] = seen[mark]
-        r = g.play()
+        worth[i], later[i], _ = play_recording(g, horizon, own_turns)
+        r = g.result()
         credit[i] = [r.credit(p) for p in range(state.n_players)]
         capped[i] = r.capped
     return credit, worth, capped, later
@@ -44,20 +70,20 @@ def _rollouts(args):
 
 def rollout(state: GameState, bot_kinds: list[str], n: int, seed0: int = 0,
             rules: Rules | None = None, frozen=(), horizon: int = 40, workers: int | None = None,
-            marks: tuple = ()):
+            own_turns: tuple = ()):
     """Play `state` out n times.
 
     Returns (credit per rollout and player, net worth per player after `horizon` player-turns,
     whether each rollout hit the turn limit). Credit is what the rules score (GameResult.credit,
     utility_name): 1 for an outright win; a game stopped by the turn limit scores by Rules.stalemate,
-    e.g. a loss for everyone or championship points ÷ 28. With `marks` (player-turns from now), a fourth
-    array holds net worth at each mark: shape (n, players, len(marks)).
+    e.g. a loss for everyone or championship points ÷ 28. With `own_turns`, a fourth array holds each player's
+    net worth after k of their own turns, for each k (play_recording): shape (n, players, len(own_turns)).
     """
     rules = rules or Rules()
     workers = workers or os.cpu_count() or 1
     seeds = np.arange(seed0, seed0 + n)
     chunks = np.array_split(seeds, workers)
-    args = [(state, bot_kinds, c.tolist(), rules, tuple(frozen), horizon, tuple(marks)) for c in chunks if len(c)]
+    args = [(state, bot_kinds, c.tolist(), rules, tuple(frozen), horizon, tuple(own_turns)) for c in chunks if len(c)]
     t0 = watch.started(n)  # counted by the live viewer (rollouts start mid-game, so none is replayed)
     if workers == 1:
         parts = [_rollouts(a) for a in args]
@@ -65,7 +91,7 @@ def rollout(state: GameState, bot_kinds: list[str], n: int, seed0: int = 0,
         with ProcessPoolExecutor(workers) as ex:
             parts = list(ex.map(_rollouts, args))
     watch.finished(n, t0)
-    return tuple(np.concatenate([p[k] for p in parts]) for k in range(4 if marks else 3))
+    return tuple(np.concatenate([p[k] for p in parts]) for k in range(4 if own_turns else 3))
 
 
 def win_probabilities(state: GameState, bot_kinds: list[str], n: int, **kw) -> np.ndarray:
@@ -102,7 +128,7 @@ def utility_name(rules: Rules | None) -> str:
 def trade_price_curve(state: GameState, bot_kinds: list[str], seller: int, buyer: int, squares,
                       prices, n: int = 2000, seed0: int = 0, horizon: int = 40,
                       workers: int | None = None, rules: Rules | None = None,
-                      hypothetical: bool = False, networth_rounds: tuple = (), boot: int = 0) -> pd.DataFrame:
+                      hypothetical: bool = False, own_turns: tuple = (), boot: int = 0) -> pd.DataFrame:
     """Δ credit (and Δ net worth after `horizon` player-turns) for every player, at each price.
 
     Credit is what the rules score (utility_name): a share of wins, or championship points ÷ 28, which are not
@@ -116,9 +142,10 @@ def trade_price_curve(state: GameState, bot_kinds: list[str], seller: int, buyer
     A trade the rules forbid returns an empty curve, unless hypothetical=True: then it is applied as an
     intervention anyway (the continuation still uses `rules`) and the result's attrs["legal"] is False.
 
-    networth_rounds adds d_networth_r<k> columns: the change in net worth k rounds later (k turns of each player
-    alive now), the same horizon in own turns at every table size. boot > 0 resamples the rollouts, jointly across
-    prices and players, that many times and puts the spread of the deal's ends in attrs["deal_bootstrap"].
+    own_turns adds d_networth_own<k> columns: the change in each player's net worth after k of their own turns
+    (play_recording), the same horizon at every table size, whoever goes bankrupt. boot > 0 resamples the
+    rollouts, jointly across prices and players, that many times and puts the spread of the deal's ends in
+    attrs["deal_bootstrap"].
     """
     squares = tuple(squares)
     legal = trade_allowed(state, seller, buyer, squares, rules)
@@ -126,9 +153,8 @@ def trade_price_curve(state: GameState, bot_kinds: list[str], seller: int, buyer
         out = pd.DataFrame()
         out.attrs["legal"] = False
         return out
-    marks = tuple(k * sum(state.alive) for k in networth_rounds)
     base = rollout(state, bot_kinds, n, seed0=seed0, frozen=squares, horizon=horizon, workers=workers,
-                   rules=rules, marks=marks)
+                   rules=rules, own_turns=own_turns)
     base_w, base_nw, base_cap = base[:3]
     rows, paired = [], {}
     for price in prices:
@@ -136,7 +162,7 @@ def trade_price_curve(state: GameState, bot_kinds: list[str], seller: int, buyer
         if st is None:
             continue
         res = rollout(st, bot_kinds, n, seed0=seed0, frozen=squares, horizon=horizon, workers=workers,
-                      rules=rules, marks=marks)
+                      rules=rules, own_turns=own_turns)
         w, nw, cap = res[:3]
         if boot:
             paired[int(price)] = (w[:, buyer] - base_w[:, buyer], w[:, seller] - base_w[:, seller])
@@ -150,10 +176,10 @@ def trade_price_curve(state: GameState, bot_kinds: list[str], seller: int, buyer
                 "d_networth": d_nw.mean(), "d_networth_se": d_nw.std(ddof=1) / np.sqrt(n),
                 "capped_share_base": float(base_cap.mean()), "capped_share_trade": float(cap.mean()),
             }
-            for k, rounds in enumerate(networth_rounds):
+            for k, turns in enumerate(own_turns):
                 d = res[3][:, p, k] - base[3][:, p, k]
-                row[f"d_networth_r{rounds}"] = d.mean()
-                row[f"d_networth_r{rounds}_se"] = d.std(ddof=1) / np.sqrt(n)
+                row[f"d_networth_own{turns}"] = d.mean()
+                row[f"d_networth_own{turns}_se"] = d.std(ddof=1) / np.sqrt(n)
             rows.append(row)
     out = pd.DataFrame(rows)
     out.attrs["legal"] = legal
@@ -282,13 +308,13 @@ def deal_summary(curve: pd.DataFrame, seller: int, buyer: int, legal: bool = Tru
       legal                             False when the rules forbid the trade (e.g. championship rules heads-up):
                                         the curve is then a hypothetical intervention and deal_zone_exists is False
     The net-worth versions use the same ranges on the change in net worth, after the curve's horizon in
-    player-turns and, where the curve has them (d_networth_r<k>), after k of each player's own turns. Credit is
+    player-turns and, where the curve has them (d_networth_own<k>), after k of each player's own turns. Credit is
     whatever the rules score: a share of wins, or championship points ÷ 28 (see trade_price_curve)."""
     b = curve[curve.player == buyer].sort_values("price")
     s = curve[curve.player == seller].sort_values("price")
     x = b.price.to_numpy(float)
     out = {"legal": bool(legal)}
-    marks = [c for c in curve.columns if re.fullmatch(r"d_networth_r\d+", c)]
+    marks = [c for c in curve.columns if re.fullmatch(r"d_networth_own\d+", c)]
     for col, tag in [("d_win", "win"), ("d_networth", "networth")] + [(c, c[2:]) for c in marks]:
         bg, sg = gain_ranges(x, b[col]), gain_ranges(x, s[col])
         deal = intersect(bg, sg) if legal else []

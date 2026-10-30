@@ -156,6 +156,20 @@ simplifies that the housing findings might depend on. This job:
 5. refreshes the dashboard data and figures, and lists the README numbers the re-runs moved
    (`results/final/readme_claims.txt`).
 
+## Step 9: the updated review's fixes (about 75 minutes)
+
+```
+make sync && make review2
+```
+
+The second review found two defects in the new work. Net worth "after k of each player's own turns" was taken
+after k rounds of the starting table, which drifts once players go bankrupt; it is now taken at each player's own
+k-th turn. And in house auctions a bot could be charged more than its bid when it placed the house in a dearer
+group; each bid now names the house it is for. This job re-runs the Vine Street trade curves (same games) and the
+rule sensitivity (same seeds, with a before/after comparison and a fresh-seed confirmation of the housing-lock
+gain), adds every outcome side by side to the tournament tables (no new games), then refreshes the dashboard data,
+figures and the README check.
+
 ## Watching a run
 
 Open a second Ubuntu window while a job runs and type:

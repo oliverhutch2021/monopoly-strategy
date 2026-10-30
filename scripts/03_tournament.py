@@ -53,6 +53,7 @@ def strategy_variants(games=scaled(10000)):
             rate, lo, hi = outright_rate(k, decided)
             rows.append({"n_players": n, "variant": v, "games": games, "wins": k, "limit_wins": k_limit,
                          "decided": decided, "win_rate": rate, "ci_low": lo, "ci_high": hi, "fair_share": fair,
+                         "outright_share": k / games, "limit_share": k_limit / games,
                          "edge_pp": 100 * (rate - fair),
                          "relative": rate / fair, "rel_low": lo / fair, "rel_high": hi / fair,
                          "game_relative": (k + k_limit) / games / fair,

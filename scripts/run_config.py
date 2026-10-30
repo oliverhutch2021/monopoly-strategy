@@ -10,8 +10,10 @@ MM_SCALE    a multiplier on every measurement sample (games per cell, rollouts p
 
 Seeds don't change with the scale, so a deeper run's first games are v0.3's games: the samples nest.
 """
+import hashlib
 import json
 import os
+from dataclasses import asdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,10 +33,29 @@ def _key(path: Path) -> Path:
     return path.with_name(path.name + ".key.json")
 
 
+def code_hash(*extra) -> str:
+    """A digest of the code and data a result depends on: every module of the package, its edition data, the
+    scenarios and any `extra` files (e.g. the calling script). Put it in a checkpoint's inputs so that a change of
+    code or data recomputes the checkpoint, even when every parameter is the same."""
+    pkg = ROOT / "src" / "monopoly_meta"
+    files = sorted(pkg.rglob("*.py")) + sorted((pkg / "data").glob("*.json")) + [ROOT / "scripts" / "scenarios.py"]
+    h = hashlib.sha256()
+    for f in files + [Path(x) for x in extra]:
+        h.update(Path(f).resolve().relative_to(ROOT).as_posix().encode())
+        h.update(Path(f).read_bytes())
+    return h.hexdigest()[:16]
+
+
+def state_hash(state) -> str:
+    """A digest of a game state's contents: the scenario as built, not its name."""
+    return hashlib.sha256(json.dumps(asdict(state), sort_keys=True, default=str).encode()).hexdigest()[:16]
+
+
 def fresh(path: Path, inputs: dict) -> bool:
     """Does `path` hold a result computed from exactly `inputs`? A checkpoint counts only with a matching key file
     beside it (written by `stamp`), so a change of agents, rules, seeds or sample size recomputes it instead of
-    silently reusing it."""
+    silently reusing it; with code_hash and state_hash in the inputs, so does a change of code, data or
+    scenario."""
     want = json.dumps(inputs, sort_keys=True, default=str)
     return path.exists() and _key(path).exists() and _key(path).read_text() == want
 

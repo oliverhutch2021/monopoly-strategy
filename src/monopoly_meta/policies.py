@@ -46,16 +46,11 @@ class Policy:
         Rules.build_any_time is on."""
         pass
 
-    def house_bid(self, g, p) -> tuple[int, int]:
-        """(houses wanted right now, most it would pay for one) when houses are auctioned (Rules.house_auctions)."""
-        return 0, 0
-
-    def place_house(self, g, p) -> int | None:
-        """Where to put a house won at auction: the first square it may build a house on."""
-        for sq in g.ed.ownable:
-            if g.s.level[sq] < 4 and g.can_build(p, sq):
-                return sq
-        return None
+    def house_bid(self, g, p) -> tuple[int, int, int | None]:
+        """When houses are auctioned (Rules.house_auctions): (houses wanted right now, the most it would pay for
+        the next one, the square that house is for). The limit must cover that square's house price, and a won
+        house goes on that square, so a bid never pays for a dearer house than the one it was made for."""
+        return 0, 0, None
 
     def raise_cash(self, g, p, target) -> None:
         default_liquidation(g, p, target)
@@ -532,34 +527,38 @@ class HeuristicBot(Policy):
         cap = self.build_cap if self.build_cap < top and self._below_cap(g, p) else top
         return min(cap, 4)
 
-    def house_bid(self, g, p) -> tuple[int, int]:
+    def house_bid(self, g, p) -> tuple[int, int, int | None]:
         """How many houses it would build now if the bank had them all (up to its current cap, within its cash
-        and reserve), and the most it pays for one at auction: the house's price times (1 + bid_frac), its auction
-        appetite for property applied to houses."""
+        and reserve); where the next one would go (the affordable square that adds the most rent per pound, as when
+        building); and the most it pays for that house at auction: its price times (1 + bid_frac), its auction
+        appetite for property applied to houses, within its cash and reserve. The limit is never below the price of
+        the house it is for."""
         s, ed = g.s, g.ed
         budget = s.cash[p] - self._build_reserve(g)
         target = self._house_cap(g, p)
-        wanted, cheapest = 0, None
+        wanted, left = 0, budget
         for gi in ed.street_groups:
             sqs = ed.group_squares[gi]
             if not g.owns_group(p, gi) or any(s.mortgaged[x] for x in sqs):
                 continue
             hc = ed.house_cost[gi]
-            k = min(sum(max(0, target - s.level[x]) for x in sqs), max(0, int(budget // hc)))
+            k = min(sum(max(0, target - s.level[x]) for x in sqs), max(0, int(left // hc)))
             if k > 0:
                 wanted += k
-                budget -= k * hc
-                cheapest = hc if cheapest is None else min(cheapest, hc)
-        if not wanted:
-            return 0, 0
-        return wanted, int(min(cheapest * (1 + self.bid_frac), s.cash[p] - self._build_reserve(g)))
+                left -= k * hc
+        sq = self._next_house(g, p, budget) if wanted else None
+        if sq is None:
+            return 0, 0, None
+        cost = ed.house_cost[ed.group_of[sq]]
+        return wanted, int(min(cost * (1 + self.bid_frac), budget)), sq
 
-    def place_house(self, g, p) -> int | None:
-        """The house goes where it adds the most rent per pound, as when building, and never past its current cap."""
+    def _next_house(self, g, p, budget: float) -> int | None:
+        """The square its next house goes on: the most rent per pound among the squares below its current cap that
+        it may build on and can afford, as when building."""
         s, ed = g.s, g.ed
         cap = self._house_cap(g, p)
         options = [sq for gi in ed.street_groups for sq in ed.group_squares[gi]
-                   if s.level[sq] < cap and g.can_build(p, sq)]
+                   if s.level[sq] < cap and ed.house_cost[gi] <= budget and g.can_build(p, sq)]
         if not options:
             return None
         return max(options, key=lambda sq: (ed.rent[sq][s.level[sq] + 1] - ed.rent[sq][s.level[sq]])

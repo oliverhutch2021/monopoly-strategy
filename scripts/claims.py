@@ -126,7 +126,10 @@ class Claims:
         lo, hi = other.seller_min_price_win.min(), other.seller_min_price_win.max()
         self.text("4", "selling to a bystander", f"(break-even {span(lo, hi, '£')})")
         for k in (5, 10, 20):  # net worth after k of each player's own turns
-            gap = 1 - need[f"buyer_max_price_networth_r{k}"] / need.buyer_max_price_win
+            col = f"buyer_max_price_networth_own{k}"
+            if col not in need:  # tables from before the own-turn fix (d_networth_r<k>: k rounds of the start)
+                col = f"buyer_max_price_networth_r{k}"
+            gap = 1 - need[col] / need.buyer_max_price_win
             cells = [("≥" if need.buyer_max_censored[n] else "") + pct(gap[n]) for n in range(2, 7)]
             self.regex("3", f"net worth gap after {k} own turns", row(f"{k} own turns", *cells))
         half = (need.deal_low_ci_high - need.deal_low_ci_low) / 2, (need.deal_high_ci_high - need.deal_high_ci_low) / 2

@@ -85,8 +85,9 @@ def outright_rate(k: int, decided: int) -> tuple[float, float, float]:
 
 def win_rates(df: pd.DataFrame, by: str = "winner_bot", lineup: list[str] | None = None) -> pd.DataFrame:
     """Outright win rate per bot (or per seat), with 95% Wilson intervals: the share of the decided games won
-    outright, so 1/n is its fair share. Games stopped by the turn limit are counted apart (limit_wins: the richest
-    survivor), and game_win_rate is the share of all games in which the bot finished on top, by either route.
+    outright, so 1/n is its fair share. Beside it, so that no outcome is hidden: outright_share, the share of all
+    games won outright; limit_share, the share of all games stopped by the turn limit with this bot (or seat) on
+    top, the richest survivor (limit_wins); and game_win_rate, the two together.
 
     For bots that appear k times in the lineup the rate is per *bot instance*,
     so it is directly comparable with the 1/n 'fair share'.
@@ -103,11 +104,13 @@ def win_rates(df: pd.DataFrame, by: str = "winner_bot", lineup: list[str] | None
             rate, lo, hi = outright_rate(k, decided)
             out.append({"bot": bot, "copies": copies, "wins": k, "limit_wins": k_limit, "games": n,
                         "decided": decided, "win_rate": rate / copies, "ci_low": lo / copies,
-                        "ci_high": hi / copies, "game_win_rate": (k + k_limit) / (n * copies)})
+                        "ci_high": hi / copies, "outright_share": k / (n * copies),
+                        "limit_share": k_limit / (n * copies), "game_win_rate": (k + k_limit) / (n * copies)})
     else:
         for seat in sorted(df.winner_seat.unique()):
             k, k_limit = outcome_counts(df, "winner_seat", seat)
             rate, lo, hi = outright_rate(k, decided)
             out.append({"seat": seat, "wins": k, "limit_wins": k_limit, "games": n, "decided": decided,
-                        "win_rate": rate, "ci_low": lo, "ci_high": hi, "game_win_rate": (k + k_limit) / n})
+                        "win_rate": rate, "ci_low": lo, "ci_high": hi, "outright_share": k / n,
+                        "limit_share": k_limit / n, "game_win_rate": (k + k_limit) / n})
     return pd.DataFrame(out)

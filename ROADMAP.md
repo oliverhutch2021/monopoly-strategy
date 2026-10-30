@@ -77,13 +77,32 @@ sensitivity. No README number moved at its precision. Finding 3 changed: at equa
 worth and win chance doesn't grow with table size. The housing findings hold under every official building rule
 (finding 18), which also found a gain the official 4-player agent misses: the housing lock (+6%).
 
+A second review (82/100, of 970c390) found two defects in that new work, both confirmed before fixing:
+
+- **Own-turn horizons drifted.** "Net worth after k own turns" was taken after k rounds of the starting table,
+  so after a bankruptcy a player had had more turns than k (24 instead of 20 in the review's example), and the
+  trade and keep arms could differ. Each player's net worth is now taken at their own k-th turn
+  (`rollout.play_recording`), with a bankrupt player at 0 and a game that ends first at its end, in both arms.
+- **House auctions could charge more than a bid.** The bid was sized on the cheapest group but the house could go
+  on a dearer one, at a price above the bid. A bid now names its house (the next the bot would build that it can
+  afford), its limit covers that house's price, and the winner never pays more than its limit.
+
+And it asked for more, done with them: every outcome side by side in the tournament tables (outright wins among
+finished games and among all games, time-limit wins, the cap share); checkpoint keys that include hashes of the code,
+the edition data and the scenario state as built, not just its name; Bonferroni-adjusted intervals beside the 52
+rule comparisons; and a fresh-seed confirmation of the housing-lock gain. `make review2` re-runs findings 3 and 18
+on the same games and seeds and reports how each house-auction result moved.
+
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the
   eventual winner, finishing position and the turns remaining, keeping outright wins,
   time-limit wins and finishing points as separate targets.
 - **Positions from real games.** The trade findings rest on one hand-built position per
-  table size; re-price trades in positions sampled from these games, so the deal-zone
-  findings can be checked across the positions players actually meet.
+  table size, and each extra player there also adds properties and cash. Sample positions
+  from held-out games instead, stratified by cash, property ownership, development, game
+  phase and players remaining; price trades under several opponent populations, with
+  realistic continuation trading rather than a frozen property; and report the
+  distribution of values and of recommendation errors, not only average effects.
 - **Cover unusual states.** Inject random trades, auctions and cash shocks, so the model
   sees positions the bots wouldn't normally produce (sets completed early, cash-starved
   monopolies).
@@ -140,9 +159,14 @@ worth and win chance doesn't grow with table size. The housing findings hold und
   removes the limit of the heuristic bot family.
 - Expert iteration: play → retrain on the new games → repeat, until the valuations stop
   moving.
-- Train and test against mixtures of the strongest known opponents, weighted by how much
-  they exploit the agent, and report exploitability as a lower bound with the search
-  budget that found it.
+- Train and test against mixtures of the strongest known opponents (the known
+  challengers included), weighted by how much they exploit the agent, and report
+  exploitability as a lower bound with the search budget that found it. Repeat each search
+  with new seeds to measure how much its result varies, and confirm every selected
+  candidate on fresh seeds.
+- Retrain under the official building rules: the rule-sensitivity study (finding 18)
+  tested the existing agents under them, which is not the same as the best play there.
+  House-auction bidding is one heuristic today; search over it like any other setting.
 - Report win rates against the hand-written bots, with confidence intervals.
 
 ## Phase 6: showcase

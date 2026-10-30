@@ -14,16 +14,25 @@ study uses:
    (build_cap 3, the old "three-house cap" ablation, which still builds hotels), the housing lock switched off (or
    on, at 14 houses, for an agent without it) and the simple bot. A candidate that is the final agent itself (or
    repeats another) is left out and listed. At 4 players under official rules (the review's suggestion) and in the
-   settings whose agents use the lock (official 2 players, championship 4 players). In house auctions every bot
-   bids up to (1 + its property-auction limit) x the house's price, within its cash buffer, for houses it would
-   build anyway (policies.HeuristicBot.house_bid).
+   settings whose agents use the lock (official 2 players, championship 4 players). In house auctions each bot
+   bids for one named house, the next it would build (the affordable square that adds the most rent per pound,
+   within its building caps), up to (1 + its property-auction limit) x that house's price and within its cash
+   buffer; a won house goes on that square and costs at most the bid (policies.HeuristicBot.house_bid). That
+   bidding rule is one heuristic, not a searched policy.
 2. Whether a variant changes a candidate's edge: its ratio under the variant ÷ its ratio under the engine's rules,
    with a bootstrap that resamples the same games (seeds) in both, so the pairing across variants is kept.
+   Intervals are 95%, and also Bonferroni-adjusted for the number of such comparisons (a normal approximation on
+   the log scale, from the same bootstrap). Where an earlier run's candidates.csv exists, the summary lists how
+   each ratio moved (with an interval that treats the two runs as independent, which overstates the uncertainty
+   of a difference measured on the same seeds).
 3. How often the simplification binds: the share of games, between final agents, in which two or more players
    wanted more houses than the bank had, and the houses auctioned per game under the official rule.
 4. Seat order with simple bots at 4 and 6 players.
+5. A fresh-seed confirmation of the one change the comparisons found worth adopting: the official 4-player agent
+   with the housing lock, on games none of the above played.
 
-Outputs, under <results>/tables/sensitivity/: candidates.csv, housing.csv, seats.csv, summary.md, variants.json
+Outputs, under <results>/tables/sensitivity/: candidates.csv (and candidates_before.csv, the run it replaced),
+housing.csv, seats.csv, confirm.csv, summary.md, variants.json
 """
 import json
 import os
@@ -31,13 +40,15 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, replace
 
+from statistics import NormalDist
+
 import numpy as np
 import pandas as pd
 
 from meta_common import MODES, TAB, ckpt_dir, rules_for
 from run_config import scaled
 from monopoly_meta.engine import Game, Rules
-from monopoly_meta.meta import BALANCED, evaluate, to_spec
+from monopoly_meta.meta import BALANCED, evaluate, paired_ratio, to_spec
 from monopoly_meta.policies import make_bot
 from monopoly_meta.tournament import run_games, win_rates
 
@@ -52,6 +63,8 @@ GAMES = scaled(2000)          # paired games per candidate and variant (20,000 a
 HOUSING_GAMES = scaled(500)   # games per setting for the housing counts
 SEAT_GAMES = scaled(2000)
 SEED = 7_777_000              # offset from each mode's seed for evaluate(): no other study uses these seeds
+CONFIRM_SEED = 7_888_000      # fresh seeds for the confirmation
+CONFIRM_GAMES = scaled(4000)  # 40,000 at MM_SCALE=10
 BOOT = 2000
 
 
@@ -97,8 +110,9 @@ def joint_bootstrap(games: dict, boot: int = BOOT, seed: int = 0) -> tuple[dict,
     i_boot = r_boot / np.maximum(r_boot[:, :1, :], 1e-12)
     ilo, ihi = q(i_boot)
     inter = ratio / np.maximum(ratio[:1, :], 1e-12)
+    log_se = np.log(np.maximum(i_boot, 1e-12)).std(axis=0, ddof=1)
     out_r = {v: (ratio[j], lo[j], hi[j]) for j, v in enumerate(names)}
-    out_i = {v: (inter[j], ilo[j], ihi[j]) for j, v in enumerate(names)}
+    out_i = {v: (inter[j], ilo[j], ihi[j], log_se[j]) for j, v in enumerate(names)}
     return out_r, out_i
 
 
@@ -116,11 +130,12 @@ def compare(mode: str, n: int) -> tuple[list[dict], list[str]]:
     ratios, inter = joint_bootstrap(games, seed=n)
     rows = []
     for variant in VARIANTS:
-        (r, lo, hi), (ir, ilo, ihi) = ratios[variant], inter[variant]
+        (r, lo, hi), (ir, ilo, ihi, lse) = ratios[variant], inter[variant]
         for i, name in enumerate(names):
             rows.append({"mode": mode, "n_players": n, "variant": variant, "candidate": name, "ratio": r[i],
                          "ci_low": lo[i], "ci_high": hi[i], "vs_engine_rules": ir[i], "vs_engine_low": ilo[i],
-                         "vs_engine_high": ihi[i], "credit": float(games[variant][i].mean()),
+                         "vs_engine_high": ihi[i], "vs_engine_log_se": lse[i],
+                         "credit": float(games[variant][i].mean()),
                          "capped_share": float(capped[variant][i]), "games": GAMES})
     return rows, dropped
 
@@ -174,6 +189,42 @@ def seats() -> list[dict]:
     return rows
 
 
+def confirm() -> list[dict]:
+    """The official 4-player agent with and without the housing lock (at 14 houses), on fresh seeds."""
+    cands, _ = candidates("standard", 4)
+    genomes = [cands["final agent"], cands["housing lock on (14)"]]
+    evaluate(genomes, [genomes[0]], 4, CONFIRM_GAMES, seed=MODES["standard"]["seed"] + CONFIRM_SEED + 4,
+             rules=rules_for("standard", 4), fixed_opponents=True)
+    games = evaluate.last_games
+    ratio, lo, hi = paired_ratio(games[1], games[0], seed=4)
+    return [{"mode": "standard", "n_players": 4, "candidate": "housing lock on (14)", "ratio": ratio, "ci_low": lo,
+             "ci_high": hi, "games": CONFIRM_GAMES, "seed_offset": CONFIRM_SEED}]
+
+
+def adjust(cand: pd.DataFrame) -> pd.DataFrame:
+    """Bonferroni-adjusted intervals for every variant ÷ engine-rules comparison (normal on the log scale)."""
+    cand = cand.copy()
+    tests = (cand.variant != ENGINE) & (cand.candidate != "final agent")
+    z = NormalDist().inv_cdf(1 - 0.025 / max(int(tests.sum()), 1))
+    log_r = np.log(cand.vs_engine_rules)
+    cand["vs_engine_adj_low"] = np.exp(log_r - z * cand.vs_engine_log_se)
+    cand["vs_engine_adj_high"] = np.exp(log_r + z * cand.vs_engine_log_se)
+    return cand
+
+
+def moved(cand: pd.DataFrame, previous: pd.DataFrame | None) -> pd.DataFrame | None:
+    """How each ratio moved from an earlier run on the same seeds; the interval treats the runs as independent."""
+    if previous is None:
+        return None
+    keys = ["mode", "n_players", "variant", "candidate"]
+    m = cand[keys + ["ratio", "ci_low", "ci_high"]].merge(previous[keys + ["ratio", "ci_low", "ci_high"]], on=keys,
+                                                          suffixes=("", "_before"))
+    se = np.sqrt(((m.ci_high - m.ci_low) / 3.92) ** 2 + ((m.ci_high_before - m.ci_low_before) / 3.92) ** 2)
+    m["change"] = m.ratio - m.ratio_before
+    m["change_low"], m["change_high"] = m.change - 1.96 * se, m.change + 1.96 * se
+    return m[m.candidate != "final agent"]
+
+
 def verdict(lo: float, hi: float) -> str:
     return "better" if lo > 1 else "worse" if hi < 1 else "level"
 
@@ -195,8 +246,11 @@ def describe(g: pd.DataFrame) -> str:
     return f"{head}; changed by " + "; ".join(parts) + reverses
 
 
-def summary(cand: pd.DataFrame, hous: pd.DataFrame, seat: pd.DataFrame, dropped: dict) -> str:
+def summary(cand: pd.DataFrame, hous: pd.DataFrame, seat: pd.DataFrame, dropped: dict,
+            conf: pd.DataFrame | None = None, change: pd.DataFrame | None = None) -> str:
     tests = int(((cand.variant != ENGINE) & (cand.candidate != "final agent")).sum())
+    t = cand[(cand.variant != ENGINE) & (cand.candidate != "final agent")]
+    adjusted = int(((t.vs_engine_adj_low > 1) | (t.vs_engine_adj_high < 1)).sum())
     lines = ["# Rule sensitivity of the housing findings", "",
              f"Paired games per cell: {GAMES:,}. Ratio = the candidate's credit ÷ the final agent's in the same seat "
              "on the same games (95% bootstrap interval). \"Variant ÷ engine rules\" is that ratio under a variant "
@@ -205,7 +259,8 @@ def summary(cand: pd.DataFrame, hous: pd.DataFrame, seat: pd.DataFrame, dropped:
              + ", ".join(VARIANTS) + ".", "",
              f"There are {tests} variant ÷ engine-rules intervals below. At 95%, about {tests / 20:.0f} would exclude "
              "1 by chance even if no variant mattered, so a lone exclusion is weak evidence; a consistent pattern "
-             "across settings or variants is not.", ""]
+             f"across settings or variants is not. With Bonferroni-adjusted intervals, {adjusted} of the {tests} "
+             "still exclude 1 (marked **).", ""]
     for (mode, n), d in cand.groupby(["mode", "n_players"], sort=False):
         lines += [f"## {mode}, {n} players", ""]
         if dropped.get((mode, n)):
@@ -221,11 +276,13 @@ def summary(cand: pd.DataFrame, hous: pd.DataFrame, seat: pd.DataFrame, dropped:
         for name, g in d.groupby("candidate", sort=False):
             cells = ["1 (the same games)" if r.vs_engine_low == r.vs_engine_high == 1 else
                      f"{r.vs_engine_rules:.3f} [{r.vs_engine_low:.3f}, {r.vs_engine_high:.3f}]"
-                     + ("*" if r.vs_engine_low > 1 or r.vs_engine_high < 1 else "")
+                     + ("**" if r.vs_engine_adj_low > 1 or r.vs_engine_adj_high < 1 else
+                        "*" if r.vs_engine_low > 1 or r.vs_engine_high < 1 else "")
                      for r in g.itertuples() if r.variant != ENGINE]
             lines.append(f"| {name} | " + " | ".join(cells) + " |")
-        lines += ["", "(* the interval excludes 1. \"The same games\": the variant's rule never came into play, so "
-                  "every game went exactly as under the engine's rules.)", ""]
+        lines += ["", "(* the 95% interval excludes 1; ** the Bonferroni-adjusted one does too. \"The same "
+                  "games\": the variant's rule never came into play, so every game went exactly as under the "
+                  "engine's rules.)", ""]
         for name, g in d.groupby("candidate", sort=False):
             lines.append(f"- {name}: {describe(g)}")
         lines.append("")
@@ -240,12 +297,34 @@ def summary(cand: pd.DataFrame, hous: pd.DataFrame, seat: pd.DataFrame, dropped:
     for _, r in seat.iterrows():
         lines.append(f"| {r.n_players} | {r.variant} | {r.first_relative:.3f} "
                      f"[{r.first_ci_low:.3f}, {r.first_ci_high:.3f}] | {r.last_relative:.3f} |")
+    if conf is not None and len(conf):
+        r = conf.iloc[0]
+        lines += ["", "## Confirmation on fresh seeds", "",
+                  f"The official 4-player agent with the housing lock (at 14 houses) ÷ the agent as it is, on "
+                  f"{int(r.games):,} paired games no other comparison played: {r.ratio:.3f} [{r.ci_low:.3f}, "
+                  f"{r.ci_high:.3f}]."]
+    if change is not None and len(change):
+        same = change[change.variant.isin([ENGINE, "build any time", "mortgaged stations count"])]
+        unchanged = int((same.change.abs() < 1e-12).sum())
+        lines += ["", "## Change from the previous run (same seeds)", "",
+                  f"Variants without house auctions reproduce the previous run exactly in {unchanged} of {len(same)} "
+                  "cells. With house auctions (after the auction fix):", "",
+                  "| Setting | Variant | Candidate | Before | After | Change [95%, runs as if independent] |",
+                  "|---|---|---|---|---|---|"]
+        for r in change[change.variant.isin(["house auctions", "any time + auctions"])].itertuples():
+            lines.append(f"| {r.mode} {r.n_players}p | {r.variant} | {r.candidate} | {r.ratio_before:.3f} | "
+                         f"{r.ratio:.3f} | {r.change:+.3f} [{r.change_low:+.3f}, {r.change_high:+.3f}] |")
     return "\n".join(lines) + "\n"
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     t = time.time()
+    # the run this one replaces (kept once, so an interrupted run still compares with the real "before")
+    before = OUT / "candidates_before.csv"
+    if not before.exists() and (OUT / "candidates.csv").exists():
+        (OUT / "candidates.csv").replace(before)
+    previous = pd.read_csv(before) if before.exists() else None
     cand, hous, dropped = [], [], {}
     for mode, n in SETTINGS:
         print(f"{mode} {n}p: candidates", flush=True)
@@ -254,9 +333,14 @@ def main():
         pd.DataFrame(cand).to_csv(OUT / "candidates.csv", index=False)
         hous += housing(mode, n)
         pd.DataFrame(hous).to_csv(OUT / "housing.csv", index=False)
+    cand = adjust(pd.DataFrame(cand))
+    cand.to_csv(OUT / "candidates.csv", index=False)
     seat = pd.DataFrame(seats())
     seat.to_csv(OUT / "seats.csv", index=False)
-    (OUT / "summary.md").write_text(summary(pd.DataFrame(cand), pd.DataFrame(hous), seat, dropped))
+    print("confirmation on fresh seeds", flush=True)
+    conf = pd.DataFrame(confirm())
+    conf.to_csv(OUT / "confirm.csv", index=False)
+    (OUT / "summary.md").write_text(summary(cand, pd.DataFrame(hous), seat, dropped, conf, moved(cand, previous)))
     (OUT / "variants.json").write_text(json.dumps({v: asdict(replace(Rules(), **f)) for v, f in VARIANTS.items()},
                                                   indent=1))
     print(f"done in {time.time() - t:.0f}s")

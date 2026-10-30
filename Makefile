@@ -13,7 +13,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 
 .DEFAULT_GOAL := help
-.PHONY: help setup test golden doctor sync status watch play v03 exploit v04 v05 deep final-check review smoke
+.PHONY: help setup test golden doctor sync status watch play v03 exploit v04 v05 deep final-check review review2 smoke
 
 help:  ## List the commands
 	@grep -hE '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 14
@@ -65,6 +65,9 @@ final-check:  ## After run 6: re-measure the 4-player official agent against its
 
 review:  ## Run 7: the methodology review's corrections and rule-sensitivity tests (about 2 hours; resumable)
 	$(PY) scripts/jobs.py run review $(JOB_FLAGS)
+
+review2:  ## Run 8: the updated review's fixes: own-turn horizons and house auctions re-measured (about 75 minutes)
+	$(PY) scripts/jobs.py run review2 $(JOB_FLAGS)
 
 smoke:  ## Two-minute check that the job runner works end to end
 	$(PY) scripts/jobs.py run smoke $(JOB_FLAGS)

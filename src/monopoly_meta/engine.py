@@ -223,6 +223,7 @@ class Game:
         self.contested_houses = 0  # times two or more players wanted more houses than the bank had
         self.house_auctions_held = 0
         self.track_housing = False  # count contested demand even when houses aren't auctioned (costs time)
+        self.house_auction_log = None  # a list records each house sold at auction: (buyer, square, price, limit)
         # squares that may not be traded (used to define "keep it" baselines in rollouts)
         self.frozen = frozenset(frozen_squares)
         # cards drawn from each deck since this Game started: public information, so a player with a
@@ -268,14 +269,16 @@ class Game:
 
     # ------------------------------------------------------------------ housing shortages
     def _house_demand(self) -> dict:
-        """{player: (houses wanted, most they would pay for one)} for every player who wants a house now."""
-        s = self.s
+        """{player: (houses wanted, most they would pay for the next one, the square it is for)} for every player
+        who wants a house now and bids at least that house's price for a square they may build on."""
+        s, ed = self.s, self.ed
         out = {}
         for q in range(s.n_players):
             if s.alive[q]:
-                want, limit = self.policies[q].house_bid(self, q)
-                if want > 0 and limit > 0:
-                    out[q] = (want, limit)
+                want, limit, sq = self.policies[q].house_bid(self, q)
+                if want > 0 and sq is not None and limit >= ed.house_cost[ed.group_of[sq]] \
+                        and limit <= s.cash[q] and self.can_build(q, sq):
+                    out[q] = (want, limit, sq)
         return out
 
     def housing_check(self) -> None:
@@ -284,25 +287,27 @@ class Game:
             return
         s, contested = self.s, False
         while s.bank_houses > 0:
-            bids = self._house_demand()
-            if len(bids) < 2 or sum(w for w, _ in bids.values()) <= s.bank_houses:
+            bids = self._house_demand()  # again after every sale: cash, levels and the bank have changed
+            if len(bids) < 2 or sum(b[0] for b in bids.values()) <= s.bank_houses:
                 break
             contested = True
             if not self.rules.house_auctions:
                 break
             # official rule: the scarce houses go to the highest bidder, one at a time; as for property, the
-            # winner pays the second-highest limit + £1 (at least the house's price), ties to the earliest in turn
+            # winner pays the second-highest limit + £1, at least the price of the house, never more than their
+            # own limit (which covers that price), and puts it on the square the bid was for; ties go to the
+            # earliest in turn order
             order = sorted(bids, key=lambda q: (-bids[q][1], (q - s.current) % s.n_players))
             win = order[0]
-            sq = self.policies[win].place_house(self, win)
-            if sq is None:
-                break
+            _, limit, sq = bids[win]
             cost = self.ed.house_cost[self.ed.group_of[sq]]
-            price = max(cost, min(bids[win][1], bids[order[1]][1] + 1))
-            if s.cash[win] < price or not self.build(win, sq):
+            price = max(cost, min(limit, bids[order[1]][1] + 1))
+            if not self.build(win, sq):
                 break
             s.cash[win] -= price - cost  # build() paid the house's price; the premium goes to the bank too
             self.house_auctions_held += 1
+            if self.house_auction_log is not None:
+                self.house_auction_log.append((win, sq, price, limit))
         self.contested_houses += contested
 
     def _record_turn(self, p: int) -> None:

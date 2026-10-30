@@ -25,7 +25,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 N = scaled(2000)
 VINE = 19
 PLAYER_COUNTS = [2, 3, 4, 5, 6]
-ROUNDS = (5, 10, 20)  # net-worth horizons, in rounds
+OWN_TURNS = (5, 10, 20)  # net-worth horizons, in each player's own turns
 BOOT = 1000           # whole-curve bootstrap resamples for the ends of each deal
 
 
@@ -39,7 +39,7 @@ def main():
         deals = [(0, range(0, 1201, 50))] + ([(2, range(0, 601, 50))] if n >= 3 else [])
         for buyer, prices in deals:
             c = trade_price_curve(state, bots, seller=1, buyer=buyer, squares=[VINE],
-                                  prices=prices, n=N, seed0=777, networth_rounds=ROUNDS, boot=BOOT)
+                                  prices=prices, n=N, seed0=777, own_turns=OWN_TURNS, boot=BOOT)
             boot[(n, buyer)] = c.attrs.get("deal_bootstrap", {})
             c["buyer"] = buyer
             c["n_players"] = n

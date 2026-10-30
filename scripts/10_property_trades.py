@@ -30,7 +30,7 @@ from monopoly_meta.rollout import trade_price_curve
 from scenarios import set_completion
 from trade_summaries import properties
 
-from run_config import TABLES as TAB, fresh, scaled, stamp  # noqa: E402
+from run_config import TABLES as TAB, code_hash, fresh, scaled, stamp, state_hash  # noqa: E402
 
 N = scaled(1000)
 PRICES = [0, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 1000, 1200]
@@ -68,12 +68,14 @@ def main():
     d.mkdir(parents=True, exist_ok=True)
     squares = [sq for sq in range(len(ed.names)) if ed.is_ownable(sq) and sq != VINE]
     t = time.time()
+    code = code_hash(__file__)
     for n in args.players:
         bots, rules = players_for(args.bots, n)
         for sq in squares:
             path = d / f"{n}p_{sq:02d}.csv"
             inputs = {"bots": bots, "rules": asdict(rules) if rules else None, "n": N, "seed0": 777,
-                      "prices": PRICES, "square": sq, "scenario": "set_completion"}
+                      "prices": PRICES, "square": sq, "scenario": "set_completion",
+                      "state": state_hash(set_completion(ed.names[sq], n)), "code": code}
             if fresh(path, inputs):
                 continue
             c = trade_price_curve(set_completion(ed.names[sq], n), bots, seller=1, buyer=0, squares=[sq],

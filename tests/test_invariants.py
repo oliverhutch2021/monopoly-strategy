@@ -45,6 +45,7 @@ def check_invariants(g):
     Rules(auctions=False, max_turns=1500),
     Rules(speed_die=True, no_bid_to_richest=True, no_trades_heads_up=True, stalemate="championship",
           max_turns=1500),
+    Rules(build_any_time=True, house_auctions=True, mortgaged_count_for_rent=True),
 ])
 def test_invariants_hold_through_full_games(rules):
     for seed in range(40):
@@ -62,3 +63,28 @@ def test_same_seed_same_game():
     a = Game([make_bot("balanced"), make_bot("aggressive")], seed=42).play()
     b = Game([make_bot("balanced"), make_bot("aggressive")], seed=42).play()
     assert a == b
+
+
+@pytest.mark.parametrize("any_time", [False, True])
+def test_house_auctions_keep_the_books(any_time):
+    """With the bank short of houses from the start, so that auctions happen often: every house is in the bank or on
+    the board, nobody's cash goes negative, and every auction charges at least the house's price and at most the
+    winner's bid, for a house on the square the bid named, owned by the winner (updated review, finding 2)."""
+    rules = Rules(house_auctions=True, build_any_time=any_time, max_turns=1500)
+    held = 0
+    for seed in range(30):
+        kinds = [KINDS[(seed + i) % 4] for i in range(3 + seed % 3)]  # no random bot: it ignores the auction
+        g = Game([make_bot(k) for k in kinds], seed=seed, rules=rules)
+        g.s.bank_houses = 8  # a quarter of the usual 32
+        g.house_auction_log = []
+        while not g.done:
+            seen = len(g.house_auction_log)
+            g.take_turn()
+            for buyer, sq, price, limit in g.house_auction_log[seen:]:
+                assert g.ed.house_cost[g.ed.group_of[sq]] <= price <= limit, (seed, buyer, sq, price, limit)
+            houses = sum(lv for lv in g.s.level if 0 < lv < HOTEL)
+            assert g.s.bank_houses + houses == 8 and g.s.bank_houses >= 0  # every house in the bank or on the board
+            assert g.s.bank_hotels + sum(lv == HOTEL for lv in g.s.level) == g.ed.bank_hotels
+            assert all(c >= 0 for p, c in enumerate(g.s.cash) if g.s.alive[p])
+        held += g.house_auctions_held
+    assert held > 0  # the test saw auctions

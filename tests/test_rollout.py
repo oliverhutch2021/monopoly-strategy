@@ -143,13 +143,68 @@ def test_extra_networth_marks_and_bootstrap_leave_the_curve_unchanged():
     s = orange_squeeze()
     kw = dict(seller=1, buyer=0, squares=[19], prices=[0, 600, 1200], n=24, workers=1, seed0=5)
     plain = trade_price_curve(s, ["balanced"] * 4, **kw)
-    more = trade_price_curve(s, ["balanced"] * 4, networth_rounds=(5, 10), boot=40, **kw)
+    more = trade_price_curve(s, ["balanced"] * 4, own_turns=(5, 10), boot=40, **kw)
     pd.testing.assert_frame_equal(plain, more[plain.columns])  # pausing to look changes no game
-    assert {"d_networth_r5", "d_networth_r10_se"} <= set(more.columns)
+    assert {"d_networth_own5", "d_networth_own10_se"} <= set(more.columns)
     b = more.attrs["deal_bootstrap"]
     assert b["resamples"] == 40 and 0 <= b["deal_share_of_resamples"] <= 1
     summary = deal_summary(more, seller=1, buyer=0)  # net worth after 5 and 10 of each player's own turns too
-    assert {"buyer_max_price_networth_r5", "seller_min_price_networth_r10"} <= set(summary)
+    assert {"buyer_max_price_networth_own5", "seller_min_price_networth_own10"} <= set(summary)
+
+
+# ---------------------------------------------------------------- own-turn horizons (updated review, finding 1)
+def _game(state, seed, n):
+    from monopoly_meta.engine import Game
+    from monopoly_meta.policies import make_bot
+    return Game([make_bot("balanced") for _ in range(n)], state=state, seed=seed, reshuffle_decks=True,
+                frozen_squares=(19,))
+
+
+def _own_turn_values(state, seed, n, k):
+    """Independently: each player's net worth right after their own k-th turn, by stepping the game."""
+    g = _game(state, seed, n)
+    taken, out = [0] * n, [None] * n
+    while not g.done:
+        p = g.s.current
+        g.take_turn()
+        taken[p] += 1
+        if taken[p] == k and out[p] is None:
+            out[p] = g.net_worth(p)
+    return [v if v is not None else g.net_worth(q) for q, v in enumerate(out)], taken
+
+
+def test_own_turn_marks_count_each_players_own_turns():
+    """The review's case: after a £600 sale of Vine Street at 4 players, seed 777, the old mark (20 rounds of the
+    starting table) came after the buyer's 24th turn, because two players went bankrupt first. The mark is now the
+    buyer's own 20th turn, in the trade arm and the keep arm alike, whenever the others go out."""
+    from monopoly_meta.rollout import play_recording
+    for n in (4, 6):
+        keep = orange_squeeze(n)
+        sold = apply_trade(keep, 1, 0, [19], 600)
+        for state in (sold, keep):  # the two arms eliminate players at different times
+            g = _game(state, 777, n)
+            _, value, turns = play_recording(g, 40, (5, 20))
+            want, taken = _own_turn_values(state, 777, n, 20)
+            for p in range(n):
+                assert turns[p, 1] == min(20, taken[p])  # exactly 20 own turns, unless out or over first
+                assert value[p, 1] == want[p]
+            assert sum(g.s.alive) < n  # someone did go bankrupt before the end
+
+
+def test_own_turn_marks_after_elimination_and_early_end():
+    """A player out before their k-th turn is recorded at 0 (taken < k); a game that ends first records the final
+    net worth; and looking never changes the game."""
+    from monopoly_meta.rollout import play_recording
+    state = apply_trade(orange_squeeze(4), 1, 0, [19], 600)
+    g = _game(state, 777, 4)
+    _, value, turns = play_recording(g, 40, (10_000,))  # longer than any game
+    plain = _game(state, 777, 4).play()
+    r = g.result()
+    assert (r.winner, r.turns, r.net_worth) == (plain.winner, plain.turns, plain.net_worth)
+    for p in range(4):
+        assert turns[p, 0] < 10_000 and value[p, 0] == r.net_worth[p]
+        if not g.s.alive[p]:
+            assert value[p, 0] == 0
 
 
 def test_games_stopped_by_the_limit_are_not_outright_wins():

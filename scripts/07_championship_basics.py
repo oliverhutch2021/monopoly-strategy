@@ -38,7 +38,8 @@ def main(games=scaled(6000)):
             k, k_limit = outcome_counts(d, "winner_bot", v)
             decided = games - int(d.capped.sum())
             rate, lo, hi = outright_rate(k, decided)
-            variants.append({"n_players": n, "variant": v, "games": games, "decided": decided, "win_rate": rate,
+            variants.append({"n_players": n, "variant": v, "games": games, "wins": k, "decided": decided,
+                             "win_rate": rate, "outright_share": k / games, "limit_share": k_limit / games,
                              "relative": rate * n, "rel_low": lo * n, "rel_high": hi * n,
                              "limit_wins": k_limit, "game_relative": (k + k_limit) / games * n,
                              "capped_share": d.capped.mean()})

@@ -30,6 +30,9 @@ against hand-written bots.
 
 ## Headline findings
 
+Every finding below is conditional: on the bots or agents that play it out, the positions it starts from and the
+rules it uses. They are controlled comparisons under those conditions, not universal prices or optimal play.
+
 ### Holds at every table size
 
 **1. Where the dice take you.** Trafalgar Square is the most-landed property, at
@@ -78,6 +81,11 @@ still gains at £1,200, all the cash they have, so those gaps are lower bounds. 
 version measured net worth after 40 player-turns, which is 20 rounds at 2 players but under
 7 at 6, so the gap seemed to grow with the table size; at equal horizons it doesn't. Both
 prices are for these bots in this one position.
+
+*Being re-measured:* an independent check found that these "own turns" were counted as
+rounds of the starting table, so after a bankruptcy the buyer could have had 24 turns at the
+"20" mark. Each player's net worth is now taken at their own k-th turn, and `make review2`
+re-runs the table.
 
 ### Changes with table size
 
@@ -394,7 +402,14 @@ seat):
   while 14 or fewer are left in the bank) wins it 6% more, and 3% more when building at any time.
 
 With 52 such comparisons some differences are chance; the variant-by-variant intervals are in
-[results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md).
+[results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md). These test the final
+agents as they are under each rule; agents trained under the official rules might play differently, and the
+house-auction bids follow one heuristic rather than a searched policy.
+
+*Being re-measured:* an independent check found that a house auction could charge a bot more than its bid, when it
+placed the house in a dearer group than the one it bid for (in a few games per 500). Each bid now names its house
+and never pays more than the bid, and `make review2` re-runs the house-auction columns on the same seeds, with a
+fresh-seed check of the housing-lock gain.
 
 **The final agents' settings** (only settings that measurably matter are worth reading closely; the rest drift
 freely during evolution):
@@ -440,7 +455,7 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
   setting. When cards are drawn with replacement (the chain's assumption), every square
   matches to within **0.5%**. Real fixed decks shift a few card-destination squares by up
   to 1.8% while someone is holding a Get Out of Jail Free card.
-- **Tests**: 171 `pytest` tests:
+- **Tests**: 178 `pytest` tests:
   - rule-by-rule checks with scripted dice;
   - invariant checks after every turn of 160 full games under four rule sets (house
     supply, even building, deck integrity, no negative cash);

@@ -93,7 +93,12 @@ def set_economics():
 def strategies():
     a = read("strategy_variants.csv", rules=RULES["standard"])
     b = read("championship_strategy_variants.csv", rules=RULES["championship"])
-    df = pd.concat([a, b])[["rules", "n_players", "variant", "relative", "rel_low", "rel_high", "capped_share"]]
+    df = pd.concat([a, b])
+    # outright wins among finished games (relative), and among all games, with the share stopped by the limit
+    extra = [c for c in ("outright_share", "limit_share") if c in df]
+    df = df[["rules", "n_players", "variant", "relative", "rel_low", "rel_high", "capped_share"] + extra]
+    if "outright_share" in df:
+        df["outright_all_relative"] = df.outright_share * df.n_players
     df["strategy"] = df.variant.map(VARIANT)
     save(df.drop(columns="variant"), "strategies.csv")
 
@@ -105,6 +110,7 @@ def seats():
     df["seat"] = df.seat + 1
     df["relative"] = df.win_rate / df.fair_share
     cols = ["rules", "n_players", "seat", "win_rate", "ci_low", "ci_high", "fair_share", "relative"]
+    cols += [c for c in ("outright_share", "limit_share") if c in df]
     save(df[cols], "seats.csv")
 
 

@@ -367,10 +367,55 @@ def test_auctioned_houses_respect_the_bots_own_caps():
     give(g, 1, 6, 8, 9)  # light blues, at three houses: the capped bot wants nothing more
     for sq in (6, 8, 9):
         g.s.level[sq] = 3
-    assert capped.house_bid(g, 1) == (0, 0) and capped.place_house(g, 1) is None
+    assert capped.house_bid(g, 1) == (0, 0, None)
     give(g, 2, 1, 3, 11, 13, 14)  # browns at three houses, pinks at one: houses go to the pinks first
     for sq, lv in ((1, 3), (3, 3), (11, 1), (13, 1), (14, 1)):
         g.s.level[sq] = lv
-    want, limit = first.house_bid(g, 2)
-    assert want == 6 and limit > 0
-    assert first.place_house(g, 2) in (11, 13, 14)
+    want, limit, sq = first.house_bid(g, 2)
+    assert want == 6 and sq in (11, 13, 14) and limit >= 100  # a pink house costs £100
+
+
+def _auction_game(cash1=1500, cash2=1500, bank=2):
+    """Player 1 owns the browns (£50 houses) and the dark blues (£200 houses), player 2 the light blues (£50), and
+    the bank has fewer houses than they want: the review's case of bidders whose groups have different prices."""
+    from monopoly_meta.engine import Rules
+    from monopoly_meta.policies import make_bot
+    g = game([(4, 5)], n=3, policies=[Passive(), make_bot("balanced"), make_bot("balanced")],
+             rules=Rules(house_auctions=True))
+    give(g, 1, 1, 3, 37, 39)
+    give(g, 2, 6, 8, 9)
+    g.s.cash[1], g.s.cash[2] = cash1, cash2
+    g.s.bank_houses = bank
+    g.house_auction_log = []
+    return g
+
+
+def test_house_auctions_never_charge_more_than_the_bid():
+    """Review finding: the limit came from the cheapest group but the house could go on a dearer one, at a price
+    above the limit. Now each bid names its square, and the price never exceeds the bid."""
+    for cash1 in (1500, 400, 300, 230):  # a £150 reserve: rich enough for a dark-blue house, or only a brown one
+        g = _auction_game(cash1=cash1)
+        houses_before = g.s.bank_houses + sum(g.s.level[sq] for sq in g.ed.ownable if g.s.level[sq] < 5)
+        money_before = sum(g.s.cash)
+        g.take_turn()
+        assert g.house_auction_log, cash1
+        for buyer, sq, price, limit in g.house_auction_log:
+            cost = g.ed.house_cost[g.ed.group_of[sq]]
+            assert cost <= price <= limit, (cash1, buyer, sq, price, limit)
+            assert g.s.owner[sq] == buyer and g.s.level[sq] >= 1
+        assert min(g.s.cash) >= 0
+        # every house is either in the bank or on the board, and the bank got exactly what was paid
+        assert g.s.bank_houses + sum(g.s.level[sq] for sq in g.ed.ownable if g.s.level[sq] < 5) == houses_before
+        spent = sum(price for _, _, price, _ in g.house_auction_log)
+        assert money_before - sum(g.s.cash) >= spent  # auctions, plus anything built after them
+
+
+def test_a_bid_is_for_the_house_it_names():
+    from monopoly_meta.policies import make_bot
+    g = _auction_game(cash1=1500)
+    want, limit, sq = g.policies[1].house_bid(g, 1)
+    assert sq in (1, 3, 37, 39) and limit >= g.ed.house_cost[g.ed.group_of[sq]]
+    g.s.cash[1] = 300  # £150 above its reserve: no dark-blue house (£200), so the bid is for a brown one
+    want, limit, sq = g.policies[1].house_bid(g, 1)
+    assert sq in (1, 3) and 50 <= limit <= 150
+    assert make_bot("balanced").house_bid(g, 0) == (0, 0, None)  # owns no set

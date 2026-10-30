@@ -128,6 +128,22 @@ JOBS: dict[str, list[tuple]] = {
         ("readme-claims", ["scripts/claims.py", "--quiet", "--no-fail", "--report", "results/final/readme_claims.txt"],
          FINAL),
     ],
+    # The updated review's fixes (about 75 minutes). Net worth "after k own turns" is now recorded at each player's
+    # own k-th turn, whoever goes bankrupt (it drifted after eliminations), so the Vine Street curves are re-run on
+    # the same games; house auctions no longer charge more than a bid (a bid now names its house), so the rule
+    # sensitivity is re-run on the same seeds, with Bonferroni-adjusted intervals, a before/after comparison and a
+    # fresh-seed confirmation of the housing-lock gain. The tournament tables gain every outcome side by side.
+    "review2": [
+        ("outcome-summaries", ["scripts/outcome_summaries.py"], FINAL),
+        ("vine-street-simple", ["scripts/04_trade_curve.py"], FINAL),
+        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], FINAL),
+        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], FINAL),
+        ("rule-sensitivity", ["scripts/15_rule_sensitivity.py"], FINAL),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
+        ("figures", ["scripts/make_figures.py"], FINAL),
+        ("readme-claims", ["scripts/claims.py", "--quiet", "--no-fail", "--report", "results/final/readme_claims.txt"],
+         FINAL),
+    ],
     # A two-minute end-to-end check of this runner (sync, steps, stamp, commit, bundle, DONE note).
     "smoke": [
         ("regression-digests", ["tests/golden.py"]),
