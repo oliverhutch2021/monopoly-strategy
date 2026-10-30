@@ -1,0 +1,102 @@
+key,rules,n_players,candidate,relative,rel_low,rel_high,significant,games
+Official rules | 2 players | Meta agent,Official rules,2,Meta agent,1.5808,1.5625,1.5992,True,30000
+Official rules | 2 players | Simple bot,Official rules,2,Simple bot,1.0,1.0,1.0,False,30000
+"Official rules | 2 players | Meta agent, simple bot's cash buffers",Official rules,2,"Meta agent, simple bot's cash buffers",1.478,1.462,1.4955,True,30000
+"Official rules | 2 players | Meta agent, simple bot's auction limit",Official rules,2,"Meta agent, simple bot's auction limit",1.5311,1.5129,1.5495,True,30000
+"Official rules | 2 players | Meta agent, simple bot's set and blocking premiums",Official rules,2,"Meta agent, simple bot's set and blocking premiums",1.5869,1.5689,1.6045,True,30000
+"Official rules | 2 players | Meta agent, simple bot's trade prices",Official rules,2,"Meta agent, simple bot's trade prices",1.4257,1.4089,1.4433,True,30000
+"Official rules | 2 players | Meta agent, simple bot's offer for a set piece",Official rules,2,"Meta agent, simple bot's offer for a set piece",1.3374,1.3206,1.3542,True,30000
+"Official rules | 2 players | Meta agent, simple bot's asking price for a set piece",Official rules,2,"Meta agent, simple bot's asking price for a set piece",1.6498,1.6302,1.6703,True,30000
+"Official rules | 2 players | Meta agent, simple bot's building caps",Official rules,2,"Meta agent, simple bot's building caps",1.5827,1.5646,1.6017,True,30000
+"Official rules | 2 players | Meta agent, simple bot's all buying weights",Official rules,2,"Meta agent, simple bot's all buying weights",1.2626,1.247,1.2782,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, brown",Official rules,2,"Meta agent, simple bot's buying weight, brown",1.5808,1.5626,1.5994,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, light blue",Official rules,2,"Meta agent, simple bot's buying weight, light blue",1.5844,1.5664,1.6029,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, pink",Official rules,2,"Meta agent, simple bot's buying weight, pink",1.5843,1.5661,1.6027,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, orange",Official rules,2,"Meta agent, simple bot's buying weight, orange",1.5824,1.5631,1.6007,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, red",Official rules,2,"Meta agent, simple bot's buying weight, red",1.4531,1.4356,1.4712,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, yellow",Official rules,2,"Meta agent, simple bot's buying weight, yellow",1.4564,1.4387,1.4732,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, green",Official rules,2,"Meta agent, simple bot's buying weight, green",1.4134,1.396,1.4303,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, dark blue",Official rules,2,"Meta agent, simple bot's buying weight, dark blue",1.5038,1.4864,1.5208,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, stations",Official rules,2,"Meta agent, simple bot's buying weight, stations",1.5751,1.5576,1.5948,True,30000
+"Official rules | 2 players | Meta agent, simple bot's buying weight, utilities",Official rules,2,"Meta agent, simple bot's buying weight, utilities",1.5826,1.5641,1.6029,True,30000
+Official rules | 3 players | Meta agent,Official rules,3,Meta agent,1.1989,1.1783,1.2217,True,30000
+Official rules | 3 players | Simple bot,Official rules,3,Simple bot,1.0,1.0,1.0,False,30000
+"Official rules | 3 players | Meta agent, simple bot's cash buffers",Official rules,3,"Meta agent, simple bot's cash buffers",1.0829,1.0634,1.1022,True,30000
+"Official rules | 3 players | Meta agent, simple bot's auction limit",Official rules,3,"Meta agent, simple bot's auction limit",1.1862,1.1647,1.208,True,30000
+"Official rules | 3 players | Meta agent, simple bot's set and blocking premiums",Official rules,3,"Meta agent, simple bot's set and blocking premiums",1.2108,1.1892,1.2328,True,30000
+"Official rules | 3 players | Meta agent, simple bot's trade prices",Official rules,3,"Meta agent, simple bot's trade prices",1.1898,1.1697,1.21,True,30000
+"Official rules | 3 players | Meta agent, simple bot's offer for a set piece",Official rules,3,"Meta agent, simple bot's offer for a set piece",1.1898,1.169,1.2115,True,30000
+"Official rules | 3 players | Meta agent, simple bot's asking price for a set piece",Official rules,3,"Meta agent, simple bot's asking price for a set piece",1.1989,1.1755,1.2205,True,30000
+"Official rules | 3 players | Meta agent, simple bot's jail and Chance choices",Official rules,3,"Meta agent, simple bot's jail and Chance choices",1.1867,1.1659,1.2077,True,30000
+"Official rules | 3 players | Meta agent, simple bot's all buying weights",Official rules,3,"Meta agent, simple bot's all buying weights",1.1069,1.0865,1.1269,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, brown",Official rules,3,"Meta agent, simple bot's buying weight, brown",1.2233,1.2013,1.247,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, light blue",Official rules,3,"Meta agent, simple bot's buying weight, light blue",1.1989,1.1774,1.2223,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, pink",Official rules,3,"Meta agent, simple bot's buying weight, pink",1.198,1.1762,1.2197,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, orange",Official rules,3,"Meta agent, simple bot's buying weight, orange",1.1868,1.1659,1.2104,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, red",Official rules,3,"Meta agent, simple bot's buying weight, red",1.203,1.1814,1.2256,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, yellow",Official rules,3,"Meta agent, simple bot's buying weight, yellow",1.1936,1.1722,1.2157,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, green",Official rules,3,"Meta agent, simple bot's buying weight, green",1.0918,1.0712,1.1119,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, dark blue",Official rules,3,"Meta agent, simple bot's buying weight, dark blue",1.197,1.1759,1.22,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, stations",Official rules,3,"Meta agent, simple bot's buying weight, stations",1.1977,1.1761,1.2213,True,30000
+"Official rules | 3 players | Meta agent, simple bot's buying weight, utilities",Official rules,3,"Meta agent, simple bot's buying weight, utilities",1.1895,1.1685,1.2115,True,30000
+Official rules | 4 players | Meta agent,Official rules,4,Meta agent,1.0453,1.025,1.0662,True,30000
+Official rules | 4 players | Simple bot,Official rules,4,Simple bot,1.0,1.0,1.0,False,30000
+"Official rules | 4 players | Meta agent, simple bot's cash buffers",Official rules,4,"Meta agent, simple bot's cash buffers",0.9574,0.9379,0.9775,True,30000
+"Official rules | 4 players | Meta agent, simple bot's auction limit",Official rules,4,"Meta agent, simple bot's auction limit",1.0593,1.0379,1.0793,True,30000
+"Official rules | 4 players | Meta agent, simple bot's set and blocking premiums",Official rules,4,"Meta agent, simple bot's set and blocking premiums",1.0471,1.0259,1.0681,True,30000
+"Official rules | 4 players | Meta agent, simple bot's trade prices",Official rules,4,"Meta agent, simple bot's trade prices",1.1792,1.1591,1.2005,True,30000
+"Official rules | 4 players | Meta agent, simple bot's offer for a set piece",Official rules,4,"Meta agent, simple bot's offer for a set piece",1.1594,1.1384,1.1822,True,30000
+"Official rules | 4 players | Meta agent, simple bot's asking price for a set piece",Official rules,4,"Meta agent, simple bot's asking price for a set piece",1.0446,1.0259,1.0638,True,30000
+"Official rules | 4 players | Meta agent, simple bot's building caps",Official rules,4,"Meta agent, simple bot's building caps",1.0433,1.0213,1.0636,True,30000
+"Official rules | 4 players | Meta agent, simple bot's all buying weights",Official rules,4,"Meta agent, simple bot's all buying weights",1.0601,1.0391,1.0812,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, brown",Official rules,4,"Meta agent, simple bot's buying weight, brown",1.0453,1.024,1.0657,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, light blue",Official rules,4,"Meta agent, simple bot's buying weight, light blue",1.0446,1.0236,1.066,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, pink",Official rules,4,"Meta agent, simple bot's buying weight, pink",1.0684,1.0483,1.0893,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, orange",Official rules,4,"Meta agent, simple bot's buying weight, orange",1.045,1.0261,1.0671,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, red",Official rules,4,"Meta agent, simple bot's buying weight, red",1.0453,1.0251,1.0664,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, yellow",Official rules,4,"Meta agent, simple bot's buying weight, yellow",1.045,1.0242,1.066,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, green",Official rules,4,"Meta agent, simple bot's buying weight, green",1.0455,1.0248,1.0668,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, dark blue",Official rules,4,"Meta agent, simple bot's buying weight, dark blue",1.0327,1.0117,1.0529,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, stations",Official rules,4,"Meta agent, simple bot's buying weight, stations",1.0453,1.0244,1.0669,True,30000
+"Official rules | 4 players | Meta agent, simple bot's buying weight, utilities",Official rules,4,"Meta agent, simple bot's buying weight, utilities",1.0486,1.0274,1.0699,True,30000
+Official rules | 5 players | Meta agent,Official rules,5,Meta agent,0.9106,0.8889,0.9331,True,30000
+Official rules | 5 players | Simple bot,Official rules,5,Simple bot,1.0,1.0,1.0,False,30000
+"Official rules | 5 players | Meta agent, simple bot's cash buffers",Official rules,5,"Meta agent, simple bot's cash buffers",0.7934,0.772,0.8139,True,30000
+"Official rules | 5 players | Meta agent, simple bot's auction limit",Official rules,5,"Meta agent, simple bot's auction limit",0.9098,0.8871,0.9327,True,30000
+"Official rules | 5 players | Meta agent, simple bot's set and blocking premiums",Official rules,5,"Meta agent, simple bot's set and blocking premiums",0.911,0.8878,0.9326,True,30000
+"Official rules | 5 players | Meta agent, simple bot's trade prices",Official rules,5,"Meta agent, simple bot's trade prices",1.2681,1.2464,1.2909,True,30000
+"Official rules | 5 players | Meta agent, simple bot's offer for a set piece",Official rules,5,"Meta agent, simple bot's offer for a set piece",1.3607,1.3359,1.3875,True,30000
+"Official rules | 5 players | Meta agent, simple bot's asking price for a set piece",Official rules,5,"Meta agent, simple bot's asking price for a set piece",0.7823,0.764,0.7999,True,30000
+"Official rules | 5 players | Meta agent, simple bot's building caps",Official rules,5,"Meta agent, simple bot's building caps",0.9093,0.8875,0.9307,True,30000
+"Official rules | 5 players | Meta agent, simple bot's all buying weights",Official rules,5,"Meta agent, simple bot's all buying weights",0.9286,0.9055,0.9517,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, brown",Official rules,5,"Meta agent, simple bot's buying weight, brown",0.9105,0.8885,0.934,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, light blue",Official rules,5,"Meta agent, simple bot's buying weight, light blue",0.9298,0.9075,0.953,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, pink",Official rules,5,"Meta agent, simple bot's buying weight, pink",0.9105,0.8883,0.9329,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, orange",Official rules,5,"Meta agent, simple bot's buying weight, orange",0.9103,0.8886,0.9341,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, red",Official rules,5,"Meta agent, simple bot's buying weight, red",0.9105,0.8888,0.9344,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, yellow",Official rules,5,"Meta agent, simple bot's buying weight, yellow",0.9166,0.8945,0.9396,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, green",Official rules,5,"Meta agent, simple bot's buying weight, green",0.9099,0.8886,0.9322,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, dark blue",Official rules,5,"Meta agent, simple bot's buying weight, dark blue",0.904,0.8816,0.9267,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, stations",Official rules,5,"Meta agent, simple bot's buying weight, stations",0.9111,0.8891,0.9332,True,30000
+"Official rules | 5 players | Meta agent, simple bot's buying weight, utilities",Official rules,5,"Meta agent, simple bot's buying weight, utilities",0.911,0.8911,0.9347,True,30000
+Official rules | 6 players | Meta agent,Official rules,6,Meta agent,1.1666,1.1463,1.189,True,30000
+Official rules | 6 players | Simple bot,Official rules,6,Simple bot,1.0,1.0,1.0,False,30000
+"Official rules | 6 players | Meta agent, simple bot's cash buffers",Official rules,6,"Meta agent, simple bot's cash buffers",0.9914,0.9724,1.0111,False,30000
+"Official rules | 6 players | Meta agent, simple bot's auction limit",Official rules,6,"Meta agent, simple bot's auction limit",1.0619,1.0433,1.0807,True,30000
+"Official rules | 6 players | Meta agent, simple bot's set and blocking premiums",Official rules,6,"Meta agent, simple bot's set and blocking premiums",1.1613,1.1399,1.1828,True,30000
+"Official rules | 6 players | Meta agent, simple bot's trade prices",Official rules,6,"Meta agent, simple bot's trade prices",1.3619,1.3388,1.3877,True,30000
+"Official rules | 6 players | Meta agent, simple bot's offer for a set piece",Official rules,6,"Meta agent, simple bot's offer for a set piece",1.3619,1.3369,1.3864,True,30000
+"Official rules | 6 players | Meta agent, simple bot's asking price for a set piece",Official rules,6,"Meta agent, simple bot's asking price for a set piece",1.1666,1.1462,1.1874,True,30000
+"Official rules | 6 players | Meta agent, simple bot's building caps",Official rules,6,"Meta agent, simple bot's building caps",1.1608,1.1414,1.1826,True,30000
+"Official rules | 6 players | Meta agent, simple bot's jail and Chance choices",Official rules,6,"Meta agent, simple bot's jail and Chance choices",1.1619,1.142,1.1826,True,30000
+"Official rules | 6 players | Meta agent, simple bot's all buying weights",Official rules,6,"Meta agent, simple bot's all buying weights",1.1643,1.1428,1.1859,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, brown",Official rules,6,"Meta agent, simple bot's buying weight, brown",1.1666,1.1465,1.1877,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, light blue",Official rules,6,"Meta agent, simple bot's buying weight, light blue",1.1666,1.1458,1.1881,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, pink",Official rules,6,"Meta agent, simple bot's buying weight, pink",1.1668,1.1468,1.1875,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, orange",Official rules,6,"Meta agent, simple bot's buying weight, orange",1.1674,1.1463,1.1886,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, red",Official rules,6,"Meta agent, simple bot's buying weight, red",1.1664,1.147,1.1886,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, yellow",Official rules,6,"Meta agent, simple bot's buying weight, yellow",1.1666,1.1445,1.1887,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, green",Official rules,6,"Meta agent, simple bot's buying weight, green",1.1666,1.1464,1.1874,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, dark blue",Official rules,6,"Meta agent, simple bot's buying weight, dark blue",1.1627,1.1424,1.1835,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, stations",Official rules,6,"Meta agent, simple bot's buying weight, stations",1.167,1.1459,1.1871,True,30000
+"Official rules | 6 players | Meta agent, simple bot's buying weight, utilities",Official rules,6,"Meta agent, simple bot's buying weight, utilities",1.167,1.1465,1.1873,True,30000

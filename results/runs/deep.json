@@ -1,0 +1,49 @@
+{
+ "job": "deep",
+ "commit": "20e4b339608a36abbb8132cc316ca7911157ccd9",
+ "started": "2026-10-30T01:41:36+00:00",
+ "finished": "2026-10-30T09:45:08+00:00",
+ "machine": {
+  "host": "TheBEAST",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_threads": 16,
+  "ram_gb": 15.2,
+  "python": "3.12.3"
+ },
+ "steps": {
+  "prepare": 9,
+  "final-agents": 1,
+  "validate-standard": 1455,
+  "validate-championship": 4032,
+  "meta-vs-simple-standard": 1645,
+  "meta-vs-simple-championship": 1462,
+  "vine-street-meta-standard": 574,
+  "vine-street-meta-championship": 890,
+  "property-trades-meta": 5674,
+  "property-trades-championship": 6040,
+  "vine-street-simple": 677,
+  "property-trades-simple": 4077,
+  "tournaments": 1457,
+  "championship-basics": 831,
+  "dashboard-data": 8,
+  "figures": 3
+ },
+ "commands": {
+  "prepare": "MM_RESULTS=results/final MM_SCALE=10 python scripts/deep_prepare.py",
+  "final-agents": "MM_RESULTS=results/final MM_SCALE=10 python scripts/final_agents.py",
+  "validate-standard": "MM_RESULTS=results/final MM_SCALE=10 python scripts/05b_refine_meta.py --mode standard --revalidate",
+  "validate-championship": "MM_RESULTS=results/final MM_SCALE=10 python scripts/05b_refine_meta.py --mode championship --revalidate",
+  "meta-vs-simple-standard": "MM_RESULTS=results/final MM_SCALE=10 python scripts/09_meta_vs_simple.py --mode standard",
+  "meta-vs-simple-championship": "MM_RESULTS=results/final MM_SCALE=10 python scripts/09_meta_vs_simple.py --mode championship",
+  "vine-street-meta-standard": "MM_RESULTS=results/final MM_SCALE=10 python scripts/06_meta_trade_curve.py --mode standard",
+  "vine-street-meta-championship": "MM_RESULTS=results/final MM_SCALE=10 python scripts/06_meta_trade_curve.py --mode championship",
+  "property-trades-meta": "MM_RESULTS=results/final MM_SCALE=10 python scripts/10_property_trades.py --bots meta",
+  "property-trades-championship": "MM_RESULTS=results/final MM_SCALE=5 python scripts/10_property_trades.py --bots championship",
+  "vine-street-simple": "MM_RESULTS=results/final MM_SCALE=10 python scripts/04_trade_curve.py",
+  "property-trades-simple": "MM_RESULTS=results/final MM_SCALE=10 python scripts/10_property_trades.py --bots simple",
+  "tournaments": "MM_RESULTS=results/final MM_SCALE=10 python scripts/03_tournament.py",
+  "championship-basics": "MM_RESULTS=results/final MM_SCALE=10 python scripts/07_championship_basics.py",
+  "dashboard-data": "MM_RESULTS=results/final MM_SCALE=10 python scripts/08_dashboard_data.py",
+  "figures": "MM_RESULTS=results/final MM_SCALE=10 python scripts/make_figures.py"
+ }
+}

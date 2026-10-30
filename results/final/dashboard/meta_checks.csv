@@ -1,0 +1,41 @@
+rules,n_players,check,relative,rel_low,rel_high,capped_share
+Official rules,2,best challenger vs meta agents,1.1552,1.1422,1.1683,0.0021
+Official rules,2,baseline bot vs meta agents,0.4107,0.4026,0.4187,0.0036
+Official rules,2,meta agent at a table of meta agents,1.0014,,,0.0021
+Official rules,2,meta agent vs baseline bots,1.5792,1.5639,1.5949,0.0037
+Official rules,3,best challenger vs meta agents,1.4973,1.4772,1.5186,0.0002
+Official rules,3,baseline bot vs meta agents,0.677,0.6628,0.6906,0.003
+Official rules,3,meta agent at a table of meta agents,1.0051,,,0.0009
+Official rules,3,meta agent vs baseline bots,1.1916,1.172,1.2104,0.0033
+Official rules,4,best challenger vs meta agents,1.0974,1.0783,1.1164,0.0045
+Official rules,4,baseline bot vs meta agents,0.6091,0.5954,0.6234,0.006
+Official rules,4,meta agent at a table of meta agents,0.998,,,0.0042
+Official rules,4,meta agent vs baseline bots,1.0442,1.0267,1.062,0.0052
+Official rules,5,best challenger vs meta agents,1.1604,1.1391,1.1823,0.0137
+Official rules,5,baseline bot vs meta agents,0.4357,0.4224,0.4486,0.0148
+Official rules,5,meta agent at a table of meta agents,0.9805,,,0.0061
+Official rules,5,meta agent vs baseline bots,0.8955,0.876,0.915,0.0109
+Official rules,6,best challenger vs meta agents,1.5101,1.4826,1.5383,0.0026
+Official rules,6,baseline bot vs meta agents,0.9802,0.9663,0.9942,0.0014
+Official rules,6,meta agent at a table of meta agents,1.0061,,,0.0014
+Official rules,6,meta agent vs baseline bots,1.147,1.1294,1.1662,0.0007
+Championship rules,2,best challenger vs meta agents,1.0271,1.0156,1.0395,0.0168
+Championship rules,2,baseline bot vs meta agents,0.3128,0.3058,0.3204,0.0132
+Championship rules,2,meta agent at a table of meta agents,1.0189,,,0.0332
+Championship rules,2,meta agent vs baseline bots,1.6672,1.6506,1.6835,0.013
+Championship rules,3,best challenger vs meta agents,1.4789,1.4554,1.5018,0.0065
+Championship rules,3,baseline bot vs meta agents,0.7594,0.7441,0.7743,0.0033
+Championship rules,3,meta agent at a table of meta agents,1.0245,,,0.0508
+Championship rules,3,meta agent vs baseline bots,1.7522,1.7281,1.7792,0.0013
+Championship rules,4,best challenger vs meta agents,1.3058,1.2802,1.3302,0.0086
+Championship rules,4,baseline bot vs meta agents,0.4524,0.4386,0.4666,0.0038
+Championship rules,4,meta agent at a table of meta agents,1.0055,,,0.0103
+Championship rules,4,meta agent vs baseline bots,1.149,1.1263,1.1734,0.0013
+Championship rules,5,best challenger vs meta agents,1.4225,1.401,1.4453,0.2162
+Championship rules,5,baseline bot vs meta agents,0.7922,0.7787,0.8067,0.2838
+Championship rules,5,meta agent at a table of meta agents,1.089,,,0.7521
+Championship rules,5,meta agent vs baseline bots,0.8652,0.8454,0.8845,0.0058
+Championship rules,6,best challenger vs meta agents,1.2539,1.2395,1.2683,0.7192
+Championship rules,6,baseline bot vs meta agents,0.6644,0.6511,0.6784,0.3837
+Championship rules,6,meta agent at a table of meta agents,0.9361,,,0.8073
+Championship rules,6,meta agent vs baseline bots,1.2044,1.1788,1.2292,0.0032
