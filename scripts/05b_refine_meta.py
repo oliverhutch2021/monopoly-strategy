@@ -18,6 +18,8 @@ import json
 import sys
 import time
 
+import numpy as np
+
 from meta_common import EVAL_GAMES, MODES, ablations, aggregate, ckpt_dir, parse, rules_for
 from monopoly_meta.meta import BALANCED, evaluate, paired_ratio, refine
 
@@ -35,7 +37,8 @@ def validate(mode: str, n: int, meta: dict, challenger: dict) -> tuple[list, lis
     for i, name in enumerate(names):
         rel, lo, hi = paired_ratio(games[i], base, seed=i)
         rows.append({"n_players": n, "name": name, "raw": float(games[i].mean()), "relative": rel,
-                     "rel_low": lo, "rel_high": hi, "games": EVAL_GAMES, "capped_share": float(capped[i])})
+                     "rel_low": lo, "rel_high": hi, "games": EVAL_GAMES, "capped_share": float(capped[i]),
+                     "no_effect": bool(np.array_equal(games[i], base))})  # the change never altered a game
     by_name = {r["name"]: r for r in rows}
     val = [
         {**by_name["best challenger"], "name": "best challenger vs meta agents"},

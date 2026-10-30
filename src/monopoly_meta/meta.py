@@ -152,10 +152,18 @@ def evaluate(candidates: list[dict], pool: list[dict], n_players: int, games: in
 
 def paired_ratio(a: np.ndarray, b: np.ndarray, n_boot: int = 2000, seed: int = 0) -> tuple[float, float, float]:
     """Ratio of mean(a) to mean(b) for per-game results played on the same games, with a
-    95% bootstrap interval that resamples games (so the pairing is kept)."""
+    95% bootstrap interval that resamples games (so the pairing is kept).
+
+    The interval conditions on the two strategies compared: it doesn't cover the search that picked them, so a
+    challenger's ratio is a measured gain of one found strategy, a lower bound on how exploitable an agent is.
+    Resamples are drawn in batches of 100 (the same random numbers, and results, as all at once: memory stays
+    near 100 x games instead of about 2 GB at 2,000 x 40,000)."""
     rng = np.random.default_rng(seed)
-    idx = rng.integers(0, len(a), size=(n_boot, len(a)))
-    boot = a[idx].mean(axis=1) / np.maximum(b[idx].mean(axis=1), 1e-12)
+    boot = np.empty(n_boot)
+    for start in range(0, n_boot, 100):
+        m = min(100, n_boot - start)
+        idx = rng.integers(0, len(a), size=(m, len(a)))
+        boot[start:start + m] = a[idx].mean(axis=1) / np.maximum(b[idx].mean(axis=1), 1e-12)
     return float(a.mean() / max(b.mean(), 1e-12)), float(np.quantile(boot, 0.025)), float(np.quantile(boot, 0.975))
 
 

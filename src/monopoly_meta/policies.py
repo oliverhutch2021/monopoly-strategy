@@ -41,6 +41,22 @@ class Policy:
     def manage(self, g, p) -> None:
         pass
 
+    def manage_buildings(self, g, p) -> None:
+        """Building and unmortgaging only, no trades: what a player may also do between other players' turns when
+        Rules.build_any_time is on."""
+        pass
+
+    def house_bid(self, g, p) -> tuple[int, int]:
+        """(houses wanted right now, most it would pay for one) when houses are auctioned (Rules.house_auctions)."""
+        return 0, 0
+
+    def place_house(self, g, p) -> int | None:
+        """Where to put a house won at auction: the first square it may build a house on."""
+        for sq in g.ed.ownable:
+            if g.s.level[sq] < 4 and g.can_build(p, sq):
+                return sq
+        return None
+
     def raise_cash(self, g, p, target) -> None:
         default_liquidation(g, p, target)
 
@@ -501,10 +517,57 @@ class HeuristicBot(Policy):
                 return
 
     def manage(self, g, p) -> None:
-        s, ed = g.s, g.ed
-        build_reserve = self.endgame_reserve if self.endgame_rounds and self._endgame(g) else self.build_reserve
         if self.trades:
             self._try_trade(g, p)
+            g.housing_check()  # a set this trade completed competes for scarce houses too (no-op by default)
+        self.manage_buildings(g, p)
+
+    def _build_reserve(self, g) -> float:
+        return self.endgame_reserve if self.endgame_rounds and self._endgame(g) else self.build_reserve
+
+    def _house_cap(self, g, p) -> int:
+        """The level it is building houses up to right now, as manage_buildings does: build_cap while one of its
+        sets is below it, then max_level; at most 4 (a hotel isn't a house)."""
+        top = min(self.max_level, HOTEL)
+        cap = self.build_cap if self.build_cap < top and self._below_cap(g, p) else top
+        return min(cap, 4)
+
+    def house_bid(self, g, p) -> tuple[int, int]:
+        """How many houses it would build now if the bank had them all (up to its current cap, within its cash
+        and reserve), and the most it pays for one at auction: the house's price times (1 + bid_frac), its auction
+        appetite for property applied to houses."""
+        s, ed = g.s, g.ed
+        budget = s.cash[p] - self._build_reserve(g)
+        target = self._house_cap(g, p)
+        wanted, cheapest = 0, None
+        for gi in ed.street_groups:
+            sqs = ed.group_squares[gi]
+            if not g.owns_group(p, gi) or any(s.mortgaged[x] for x in sqs):
+                continue
+            hc = ed.house_cost[gi]
+            k = min(sum(max(0, target - s.level[x]) for x in sqs), max(0, int(budget // hc)))
+            if k > 0:
+                wanted += k
+                budget -= k * hc
+                cheapest = hc if cheapest is None else min(cheapest, hc)
+        if not wanted:
+            return 0, 0
+        return wanted, int(min(cheapest * (1 + self.bid_frac), s.cash[p] - self._build_reserve(g)))
+
+    def place_house(self, g, p) -> int | None:
+        """The house goes where it adds the most rent per pound, as when building, and never past its current cap."""
+        s, ed = g.s, g.ed
+        cap = self._house_cap(g, p)
+        options = [sq for gi in ed.street_groups for sq in ed.group_squares[gi]
+                   if s.level[sq] < cap and g.can_build(p, sq)]
+        if not options:
+            return None
+        return max(options, key=lambda sq: (ed.rent[sq][s.level[sq] + 1] - ed.rent[sq][s.level[sq]])
+                   / ed.house_cost[ed.group_of[sq]])
+
+    def manage_buildings(self, g, p) -> None:
+        s, ed = g.s, g.ed
+        build_reserve = self._build_reserve(g)
         # 1. unmortgage pieces of complete sets (needed before we can build), then the rest
         mortgaged = [sq for sq in ed.ownable if s.owner[sq] == p and s.mortgaged[sq]]
         if mortgaged:

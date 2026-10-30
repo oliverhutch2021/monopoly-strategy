@@ -1,20 +1,20 @@
-key,opponents,deal,n_players,seller_break_even,buyer_maximum,buyer_maximum_is_all_cash,deal_zone,seller_break_even_networth,buyer_maximum_networth,buyer_win_pct_without,buyer_win_pct_if_free
-Simple bots | Completes the buyer's set | 2 players,Simple bots,Completes the buyer's set,2,661.3536,661.3536,False,False,367.1402,501.765,63.535,96.81
-Simple bots | Completes the buyer's set | 3 players,Simple bots,Completes the buyer's set,3,661.8831,890.3256,False,True,455.6045,625.7482,27.83,94.315
-Simple bots | Buyer doesn't need it | 3 players,Simple bots,Buyer doesn't need it,3,56.6108,55.7034,False,False,166.3547,164.3118,49.565,52.825
-Simple bots | Completes the buyer's set | 4 players,Simple bots,Completes the buyer's set,4,593.8028,1144.3689,False,True,524.4837,692.7124,6.42,90.135
-Simple bots | Buyer doesn't need it | 4 players,Simple bots,Buyer doesn't need it,4,53.3898,50.4892,False,False,184.7081,179.8513,34.765,37.5
-Simple bots | Completes the buyer's set | 5 players,Simple bots,Completes the buyer's set,5,485.0877,1200.0,True,True,504.1507,696.2107,2.035,90.095
-Simple bots | Buyer doesn't need it | 5 players,Simple bots,Buyer doesn't need it,5,55.8559,48.2496,False,False,189.4192,178.8024,38.71,41.88
-Simple bots | Completes the buyer's set | 6 players,Simple bots,Completes the buyer's set,6,487.037,1200.0,True,True,507.617,747.1114,2.39,91.49
-Simple bots | Buyer doesn't need it | 6 players,Simple bots,Buyer doesn't need it,6,41.3793,58.9701,False,True,219.2017,183.5753,51.325,54.71
-"Meta agents, official rules | Completes the buyer's set | 2 players","Meta agents, official rules",Completes the buyer's set,2,304.0087,306.0172,False,True,204.8287,257.4079,63.23,80.91
-"Meta agents, official rules | Completes the buyer's set | 3 players","Meta agents, official rules",Completes the buyer's set,3,568.0085,810.7317,False,True,466.0066,590.1813,28.225,88.525
-"Meta agents, official rules | Completes the buyer's set | 4 players","Meta agents, official rules",Completes the buyer's set,4,746.3259,1200.0,True,True,671.7959,804.0961,7.305,85.425
-"Meta agents, official rules | Completes the buyer's set | 5 players","Meta agents, official rules",Completes the buyer's set,5,743.2292,1200.0,True,True,702.1748,893.3839,1.515,91.05
-"Meta agents, official rules | Completes the buyer's set | 6 players","Meta agents, official rules",Completes the buyer's set,6,556.6667,1200.0,True,True,612.8093,863.9406,2.38,90.815
-"Meta agents, championship rules | Completes the buyer's set | 2 players","Meta agents, championship rules",Completes the buyer's set,2,356.0379,351.9217,False,False,91.8865,254.5837,56.5305,73.8211
-"Meta agents, championship rules | Completes the buyer's set | 3 players","Meta agents, championship rules",Completes the buyer's set,3,229.3661,675.9073,False,True,107.5595,343.4823,27.5645,65.7361
-"Meta agents, championship rules | Completes the buyer's set | 4 players","Meta agents, championship rules",Completes the buyer's set,4,248.7502,735.1049,False,True,196.6607,558.317,20.6113,60.3529
-"Meta agents, championship rules | Completes the buyer's set | 5 players","Meta agents, championship rules",Completes the buyer's set,5,,1200.0,True,False,689.782,792.3917,11.3166,94.4234
-"Meta agents, championship rules | Completes the buyer's set | 6 players","Meta agents, championship rules",Completes the buyer's set,6,,1200.0,True,False,548.821,785.276,5.5045,88.9896
+key,opponents,deal,n_players,seller_break_even,buyer_maximum,buyer_maximum_is_all_cash,deal_zone,deal_ranges,allowed,note,seller_break_even_networth,buyer_maximum_networth,buyer_win_pct_without,buyer_win_pct_if_free
+Simple bots | Completes the buyer's set | 2 players,Simple bots,Completes the buyer's set,2,661.3536,661.3536,False,False,,True,,367.1402,501.765,63.535,96.81
+Simple bots | Completes the buyer's set | 3 players,Simple bots,Completes the buyer's set,3,661.8831,890.3256,False,True,662-890,True,,455.6045,625.7482,27.83,94.315
+Simple bots | Buyer doesn't need it | 3 players,Simple bots,Buyer doesn't need it,3,56.6108,55.7034,False,False,,True,,166.3547,164.3118,49.565,52.825
+Simple bots | Completes the buyer's set | 4 players,Simple bots,Completes the buyer's set,4,593.8028,1144.3689,False,True,594-1144,True,,524.4837,692.7124,6.42,90.135
+Simple bots | Buyer doesn't need it | 4 players,Simple bots,Buyer doesn't need it,4,53.3898,50.4892,False,False,,True,,184.7081,179.8513,34.765,37.5
+Simple bots | Completes the buyer's set | 5 players,Simple bots,Completes the buyer's set,5,485.0877,1200.0,True,True,485-1200,True,,504.1507,696.2107,2.035,90.095
+Simple bots | Buyer doesn't need it | 5 players,Simple bots,Buyer doesn't need it,5,55.8559,48.2496,False,False,,True,,189.4192,178.8024,38.71,41.88
+Simple bots | Completes the buyer's set | 6 players,Simple bots,Completes the buyer's set,6,487.037,1200.0,True,True,487-1200,True,,507.617,747.1114,2.39,91.49
+Simple bots | Buyer doesn't need it | 6 players,Simple bots,Buyer doesn't need it,6,41.3793,58.9701,False,True,41-59,True,,219.2017,183.5753,51.325,54.71
+"Meta agents, official rules | Completes the buyer's set | 2 players","Meta agents, official rules",Completes the buyer's set,2,304.0087,306.0172,False,True,304-306,True,,204.8287,257.4079,63.23,80.91
+"Meta agents, official rules | Completes the buyer's set | 3 players","Meta agents, official rules",Completes the buyer's set,3,568.0085,810.7317,False,True,568-811,True,,466.0066,590.1813,28.225,88.525
+"Meta agents, official rules | Completes the buyer's set | 4 players","Meta agents, official rules",Completes the buyer's set,4,746.3259,1200.0,True,True,746-1200,True,,671.7959,804.0961,7.305,85.425
+"Meta agents, official rules | Completes the buyer's set | 5 players","Meta agents, official rules",Completes the buyer's set,5,743.2292,1200.0,True,True,743-1200,True,,702.1748,893.3839,1.515,91.05
+"Meta agents, official rules | Completes the buyer's set | 6 players","Meta agents, official rules",Completes the buyer's set,6,556.6667,1200.0,True,True,557-1200,True,,612.8093,863.9406,2.38,90.815
+"Meta agents, championship rules | Completes the buyer's set | 2 players","Meta agents, championship rules",Completes the buyer's set,2,356.0379,351.9217,False,False,,False,not allowed: no trades heads-up under championship rules (a hypothetical intervention),91.8865,254.5837,56.5305,73.8211
+"Meta agents, championship rules | Completes the buyer's set | 3 players","Meta agents, championship rules",Completes the buyer's set,3,229.3661,675.9073,False,True,229-676,True,,107.5595,343.4823,27.5645,65.7361
+"Meta agents, championship rules | Completes the buyer's set | 4 players","Meta agents, championship rules",Completes the buyer's set,4,248.7502,735.1049,False,True,249-735,True,,196.6607,558.317,20.6113,60.3529
+"Meta agents, championship rules | Completes the buyer's set | 5 players","Meta agents, championship rules",Completes the buyer's set,5,,1200.0,True,False,,True,,689.782,792.3917,11.3166,94.4234
+"Meta agents, championship rules | Completes the buyer's set | 6 players","Meta agents, championship rules",Completes the buyer's set,6,,1200.0,True,False,,True,,548.821,785.276,5.5045,88.9896

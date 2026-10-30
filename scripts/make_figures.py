@@ -68,7 +68,7 @@ GROUP_LABEL = {"brown": "Brown", "light_blue": "Light blue", "pink": "Pink", "or
                "red": "Red", "yellow": "Yellow", "green": "Green", "dark_blue": "Dark blue"}
 VARIANT_LABEL = {
     "aggressive": "aggressive (no cash buffer)", "cautious": "cautious (£400 buffer)",
-    "three_house": "three-house cap", "hoarder": "never builds hotels", "jail_short": "always leaves jail",
+    "three_house": "three houses first", "hoarder": "never builds hotels", "jail_short": "always leaves jail",
     "jail_long": "always stays in jail", "take_chance": "takes the Chance card",
     "no_trade": "never proposes trades", "hard_bargain": "hard bargainer (asks 3×, offers 1.5×)",
 }
@@ -280,7 +280,8 @@ def fig_seat():
     ax.grid(axis="x", visible=False)
     ax.legend(handles=[key(BLUE, "o", "First player"), key(RED, "s", "Last player")], loc="upper left", fontsize=9)
     deed(fig, INK, "Seat order", "Going first is a real edge once there are 3+ players",
-         f"Identical simple bots in fixed seats, {int(sa.games.max()):,} games per table size; 95% Wilson intervals")
+         f"Identical simple bots in fixed seats, {int(sa.games.max()):,} games per table size; outright wins, "
+         "95% Wilson intervals")
     save(fig, "seat_advantage.png")
 
 
@@ -321,7 +322,7 @@ def fig_strategies(mode="standard"):
     fig, ax = plt.subplots(figsize=(8, 5.6))
     _diverging_heatmap(piv["relative"], piv["rel_low"], piv["rel_high"], ax)
     deed(fig, INK, f"Strategy tweaks · {MODE_TITLE[mode]}", "Which tweaks to the simple bot win?",
-         f"One tweaked bot against simple bots: win rate ÷ fair share, {games(sv)} games per cell.\n"
+         f"One tweaked bot against simple bots: outright wins ÷ fair share, {games(sv)} games per cell.\n"
          "Red loses (darkest at 0.5× or less), blue wins; * = not significant at 95%")
     save(fig, "strategy_variants_championship.png" if champ else "strategy_variants.png")
 
@@ -340,7 +341,10 @@ def fig_deal_zone():
             y = r.n_players + dy
             lo, hi = r.seller_min_price_win, r.buyer_max_price_win
             cens = bool(r.get("buyer_max_censored", False))
-            if np.isfinite(lo) and np.isfinite(hi) and hi > lo:
+            if not bool(r.get("legal", True)):
+                ax.text(1265, y, f"{lab}: not allowed (no trades heads-up)", fontsize=7.5, color=MUTED, va="center")
+                continue
+            if bool(r.get("deal_zone_exists", hi > lo)) and np.isfinite(lo) and np.isfinite(hi):
                 ax.plot([lo, hi], [y, y], color=col, lw=6, alpha=0.35, solid_capstyle="round", zorder=2)
                 txt = f"£{lo:,.0f} – £{hi:,.0f}" + ("+" if cens else "")
             elif np.isfinite(lo) and np.isfinite(hi):
@@ -459,18 +463,30 @@ def no_op_ablations(mode):
     return out
 
 
+RENAMED = {"three-house cap": "three houses first"}  # build_cap 3 is a priority, not a cap (it still builds hotels)
+
+
 def fig_meta_ablations(mode):
     ab = pd.read_csv(TAB / f"meta_ablations_{mode}.csv")
+    ab["name"] = ab.name.replace(RENAMED)
     skip = no_op_ablations(mode)
     ab = ab[[(int(n), name) not in skip and name != "meta agent (placebo)" for n, name in zip(ab.n_players, ab.name)]]
+    # no effect at all: the same result in every game, so the change never altered a decision (e.g. a take-a-Chance
+    # flip for an agent whose card counting makes that choice); shown like a change the agent already plays
+    same = (ab.rel_low == 1) & (ab.rel_high == 1)
+    if "no_effect" in ab:  # rows from a partial re-run may lack it: fall back to the identical-results test there
+        same = ab.no_effect.astype("boolean").fillna(same).astype(bool)
+    ab.loc[same, ["relative", "rel_low", "rel_high"]] = np.nan
     order = ab.groupby("name").relative.mean().sort_values(ascending=False).index.tolist()
     piv = {k: ab.pivot(index="name", columns="n_players", values=k).loc[order]
            for k in ("relative", "rel_low", "rel_high")}
     fig, ax = plt.subplots(figsize=(8.5, 6.2))
     _diverging_heatmap(piv["relative"], piv["rel_low"], piv["rel_high"], ax)
     deed(fig, GROUP["dark_blue"], f"Off the meta · {MODE_TITLE[mode]}", "Deviating from the meta",
-         f"One setting changed in one meta agent, against unchanged agents; {games(ab)} games per cell.\n"
-         "Red loses (darkest at 0.5× or less), blue wins; * = not significant; — = the agent already plays this way")
+         f"One setting changed in one meta agent, against unchanged agents; {games(ab)} games per cell"
+         + ("; credit = championship points.\n" if mode == "championship" else ".\n")
+         + "Red loses (darkest at 0.5× or less), blue wins; * = not significant; — = no effect: the agent already "
+         "plays this way, or the change never altered a decision")
     save(fig, f"meta_ablations_{mode}.png")
 
 
@@ -489,12 +505,13 @@ def fig_meta_validation(mode):
     ax.axhline(1, color=AXIS, lw=1)
     ax.set_xticks(range(2, 7))
     ax.set_xlabel("Number of players")
-    ax.set_ylabel("Win credit, relative")
+    ax.set_ylabel("Win credit, relative" if mode == "standard" else "Points credit, relative")
     ax.grid(axis="x", visible=False)
     ax.legend(handles=[key(col, marker, lab) for _, col, marker, lab in series], loc="upper center",
               bbox_to_anchor=(0.5, -0.16), ncol=3, fontsize=8.5)
     deed(fig, GROUP["dark_blue"], f"Champions' table · {MODE_TITLE[mode]}", "How strong are the meta agents?",
-         f"1.0 = level with the player it replaces, on the same {games(v)} games; 95% bootstrap intervals")
+         f"1.0 = level with the player it replaces, on the same {games(v)} games; 95% bootstrap intervals"
+         + ("; credit = championship points ÷ 28, not a win probability" if mode == "championship" else ""))
     save(fig, f"meta_validation_{mode}.png")
 
 

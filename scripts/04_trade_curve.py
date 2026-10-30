@@ -5,27 +5,33 @@ Marlborough Street; Player 1 holds Vine Street; every other player is a bystande
 unrelated properties. What is Vine Street worth, to whom, and how does that change with the
 number of players at the table?
 
+The curves also record the change in net worth 5, 10 and 20 rounds later (the same number of turns for each
+player at every table size), and each deal's ends get a whole-curve paired bootstrap (rollout.deal_bootstrap).
+
 Outputs
   results/tables/trade_curve_orange_squeeze.csv   every price x player x player count
-  results/tables/trade_curve_summary.csv          indifference prices and deal zones
+  results/tables/trade_curve_summary.csv          deal ranges (trade_summaries.py), with bootstrap intervals
 """
 import time
 
 import pandas as pd
 
-from monopoly_meta.rollout import deal_summary, trade_price_curve
+from monopoly_meta.rollout import trade_price_curve
 from scenarios import orange_squeeze
+from trade_summaries import vine_simple
 
 from run_config import TABLES as OUT, scaled  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
 N = scaled(2000)
 VINE = 19
 PLAYER_COUNTS = [2, 3, 4, 5, 6]
+ROUNDS = (5, 10, 20)  # net-worth horizons, in rounds
+BOOT = 1000           # whole-curve bootstrap resamples for the ends of each deal
 
 
 def main():
     t = time.time()
-    curves = []
+    curves, boot = [], {}
     for n in PLAYER_COUNTS:
         state = orange_squeeze(n)
         bots = ["balanced"] * n
@@ -33,7 +39,8 @@ def main():
         deals = [(0, range(0, 1201, 50))] + ([(2, range(0, 601, 50))] if n >= 3 else [])
         for buyer, prices in deals:
             c = trade_price_curve(state, bots, seller=1, buyer=buyer, squares=[VINE],
-                                  prices=prices, n=N, seed0=777)
+                                  prices=prices, n=N, seed0=777, networth_rounds=ROUNDS, boot=BOOT)
+            boot[(n, buyer)] = c.attrs.get("deal_bootstrap", {})
             c["buyer"] = buyer
             c["n_players"] = n
             curves.append(c)
@@ -41,9 +48,7 @@ def main():
     curve = pd.concat(curves)
     curve.to_csv(OUT / "trade_curve_orange_squeeze.csv", index=False)
 
-    rows = [{"n_players": n, "buyer": buyer, **deal_summary(c, seller=1, buyer=buyer)}
-            for (n, buyer), c in curve.groupby(["n_players", "buyer"])]
-    summary = pd.DataFrame(rows)
+    summary = vine_simple(curve, boot)
     summary.to_csv(OUT / "trade_curve_summary.csv", index=False)
     print(summary.round(2).to_string(index=False))
 

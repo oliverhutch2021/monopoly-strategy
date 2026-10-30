@@ -1,5 +1,9 @@
 """Monte Carlo tournaments at every player count from 2 to 6 (the championship maximum).
 
+Win rates are outright wins, as a share of the decided games (so 1/n is the fair share). A game stopped by the turn
+limit (4,000 player-turns; rare under these rules) has no outright winner: its richest survivor is counted apart
+(limit_wins), and game_relative is the share of all games finished on top by either route, relative to 1/n.
+
 Outputs
   results/tables/seat_advantage.csv     win rate by seat (identical bots, no rotation)
   results/tables/strategy_variants.csv  one variant vs (n-1) 'balanced' bots, seats rotated
@@ -11,7 +15,7 @@ import time
 import pandas as pd
 
 from monopoly_meta.engine import Rules
-from monopoly_meta.tournament import run_games, wilson, win_rates
+from monopoly_meta.tournament import outcome_counts, outright_rate, run_games, win_rates
 
 from run_config import TABLES as OUT, scaled  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
@@ -44,13 +48,16 @@ def strategy_variants(games=scaled(10000)):
         for i, v in enumerate(VARIANTS):
             lineup = [v] + ["balanced"] * (n - 1)
             df = run_games(lineup, games, seed0=10_000_000 * n + i * 100_000)
-            k = int((df.winner_bot == v).sum())
-            lo, hi = wilson(k, games)
-            rows.append({"n_players": n, "variant": v, "games": games, "wins": k,
-                         "win_rate": k / games, "ci_low": lo, "ci_high": hi, "fair_share": fair,
-                         "edge_pp": 100 * (k / games - fair),
-                         "relative": (k / games) / fair, "rel_low": lo / fair, "rel_high": hi / fair,
-                         "median_rounds": df.rounds.median(), "capped_share": df.capped.mean()})
+            k, k_limit = outcome_counts(df, "winner_bot", v)
+            decided = games - int(df.capped.sum())
+            rate, lo, hi = outright_rate(k, decided)
+            rows.append({"n_players": n, "variant": v, "games": games, "wins": k, "limit_wins": k_limit,
+                         "decided": decided, "win_rate": rate, "ci_low": lo, "ci_high": hi, "fair_share": fair,
+                         "edge_pp": 100 * (rate - fair),
+                         "relative": rate / fair, "rel_low": lo / fair, "rel_high": hi / fair,
+                         "game_relative": (k + k_limit) / games / fair,
+                         "median_rounds": df.rounds.median(), "median_turns": df.turns.median(),
+                         "capped_share": df.capped.mean()})
         best = max((r for r in rows if r["n_players"] == n), key=lambda r: r["relative"])
         print(f"{n} players: best variant {best['variant']} ({best['relative']:.2f}x fair share)")
     pd.DataFrame(rows).to_csv(OUT / "strategy_variants.csv", index=False)
@@ -67,12 +74,12 @@ def house_rules(games=scaled(6000)):
         for i, (name, rules) in enumerate(variants.items()):
             df = run_games(["balanced"] * n, games, seed0=50_000_000 * n + i * 100_000,
                            rules=rules, rotate=False)
-            k = int((df.winner_seat == 0).sum())
-            lo, hi = wilson(k, games)
-            rows.append({"n_players": n, "rules": name, "games": games,
+            k, _ = outcome_counts(df, "winner_seat", 0)
+            rate, lo, hi = outright_rate(k, games - int(df.capped.sum()))
+            rows.append({"n_players": n, "rules": name, "games": games, "median_turns": df.turns.median(),
                          "median_rounds": df.rounds.median(), "mean_rounds": df.rounds.mean(),
                          "p90_rounds": df.rounds.quantile(0.9), "capped_share": df.capped.mean(),
-                         "seat1_win_rate": k / games, "seat1_ci_low": lo, "seat1_ci_high": hi,
+                         "seat1_win_rate": rate, "seat1_ci_low": lo, "seat1_ci_high": hi,
                          "fair_share": 1 / n})
         print(f"{n} players: house rules done")
     pd.DataFrame(rows).to_csv(OUT / "house_rules.csv", index=False)

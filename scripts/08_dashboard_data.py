@@ -17,14 +17,14 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from meta_common import ablations  # noqa: E402
 
 from monopoly_meta import load_edition  # noqa: E402
-from monopoly_meta.rollout import deal_summary  # noqa: E402
 
 from run_config import DASHBOARD as OUT, TABLES as TAB  # noqa: E402
 OUT.mkdir(parents=True, exist_ok=True)
 RULES = {"standard": "Official rules", "championship": "Championship rules"}
 VARIANT = {
     "aggressive": "Aggressive (no cash buffer, bids 120%)", "cautious": "Cautious (£400 buffer, bids 80%)",
-    "three_house": "Three-house cap", "hoarder": "Never builds hotels", "jail_short": "Always leaves jail",
+    "three_house": "Three houses first (then hotels)", "hoarder": "Never builds hotels",
+    "jail_short": "Always leaves jail",
     "jail_long": "Always stays in jail", "take_chance": "Takes the Chance card",
     "no_trade": "Never proposes trades", "hard_bargain": "Hard bargainer (asks 3×, offers 1.5×)",
     "random": "Random decisions",
@@ -40,10 +40,12 @@ PARAM = {  # genome key: (label, unit)
 }
 LEVEL = {3: "3 houses", 4: "4 houses", 5: "a hotel"}
 JAIL = {"short": "leaves at once", "long": "stays and rolls for doubles", "adaptive": "leaves early, stays late"}
+RENAMED = {"three-house cap": "three houses first"}  # build_cap 3 is a priority, not a cap (hotels follow)
 ABLATION = {
     "meta agent (placebo)": "Unchanged meta agent", "no trading at all": "No trading at all",
     "accept trades": "Accepts trades", "always leave jail": "Always leave jail at once",
-    "always stay in jail": "Always stay in jail", "three-house cap": "Stop at three houses",
+    "always stay in jail": "Always stay in jail", "three-house cap": "Three houses first (then hotels)",
+    "three houses first": "Three houses first (then hotels)",
     "never build hotels": "Never build hotels", "flip 'take a Chance'": "Flip the take-a-Chance choice",
     "keep £200 more cash": "Keep £200 more cash", "keep no cash buffer": "Keep no cash buffer",
     "bid 25% more": "Bid 25% more at auctions", "bid 25% less": "Bid 25% less at auctions",
@@ -138,7 +140,8 @@ def trades():
             zones.append({"opponents": label, "deal": kind, "n_players": r.n_players,
                           "seller_break_even": r.seller_min_price_win, "buyer_maximum": r.buyer_max_price_win,
                           "buyer_maximum_is_all_cash": bool(r.buyer_max_censored),
-                          "deal_zone": bool(r.deal_zone_exists),
+                          "deal_zone": bool(r.deal_zone_exists), "deal_ranges": r.get("deal_ranges", ""),
+                          "allowed": bool(r.get("legal", True)), "note": zone_note(r),
                           "seller_break_even_networth": r.seller_min_price_networth,
                           "buyer_maximum_networth": r.buyer_max_price_networth,
                           "buyer_win_pct_without": 100 * r.p_win_base_buyer,
@@ -147,6 +150,15 @@ def trades():
     z = pd.DataFrame(zones)
     z.insert(0, "key", z.opponents + " | " + z.deal + " | " + z.n_players.astype(str) + " players")
     save(z, "deal_zones.csv")
+
+
+def zone_note(r) -> str:
+    """Why a deal zone needs care: the rules forbid the trade, or a curve that is not monotone."""
+    if not bool(r.get("legal", True)):
+        return "not allowed: no trades heads-up under championship rules (a hypothetical intervention)"
+    if not bool(r.get("monotone", True)):
+        return "not monotone: a bot here does better after paying more, a flaw of its policy rather than value"
+    return ""
 
 
 def roles(c: pd.DataFrame, keys: list[str], buyer: int = 0, seller: int = 1) -> list[dict]:
@@ -200,24 +212,25 @@ def property_trades():
         c = pd.concat(parts)
         for r in roles(c, ["n_players", "square"]):
             curves.append({"opponents": label, **r})
+        summary = read(f"property_trade_summary_{bots}.csv")
+        if summary is None:
+            continue
         for (n, sq), g in c.groupby(["n_players", "square"]):
-            z = deal_summary(g, seller=1, buyer=0)
-            sc, bc = g[g.player == 1].d_win, g[g.player == 0].d_win
-            seller_note = buyer_note = ""
-            if z["seller_min_price_win"] is None:  # the seller's curve never crosses zero in the prices tested
-                seller_note = "gains at any price" if (sc > 0).all() else "loses at every price tested"
-                if (sc > 0).all():
-                    z["seller_min_price_win"] = 0.0
-            if z["buyer_max_price_win"] is None and (bc < 0).all():
-                buyer_note = "loses at every price, even free"
-            lo, hi = z["seller_min_price_win"], z["buyer_max_price_win"]
-            z["deal_zone_exists"] = bool(lo is not None and hi is not None and hi > lo)
+            hit = summary[(summary.n_players == n) & (summary.square == sq)]
+            if hit.empty:
+                continue
+            z = hit.iloc[0]
+            seller_note = ("gains even giving it away" if z.seller_gains_free else
+                           "loses at every price tested" if pd.isna(z.seller_min_price_win) else "")
+            buyer_note = "loses at every price, even free" if pd.isna(z.buyer_max_price_win) else ""
             zones.append({"opponents": label, "n_players": n, "square": sq, "name": ed.names[sq],
                           "group": ed.group_names[ed.group_of[sq]], "price": ed.price[sq],
                           "seller_break_even": z["seller_min_price_win"], "buyer_maximum": z["buyer_max_price_win"],
                           "seller_break_even_se": crossing_se(g, 1), "buyer_maximum_se": crossing_se(g, 0),
                           "buyer_maximum_is_all_cash": bool(z["buyer_max_censored"]),
-                          "deal_zone": z["deal_zone_exists"],
+                          "deal_zone": bool(z["deal_zone_exists"]), "deal_ranges": z["deal_ranges"],
+                          "confident_deal_ranges": z["confident_deal_ranges"], "allowed": bool(z["legal"]),
+                          "note": zone_note(z),
                           "seller_break_even_networth": z["seller_min_price_networth"],
                           "buyer_maximum_networth": z["buyer_max_price_networth"],
                           "buyer_win_pct_without": 100 * z["p_win_base_buyer"],
@@ -281,9 +294,14 @@ def meta():
         v = pd.read_csv(TAB / f"meta_validation_{mode}.csv").assign(rules=label)
         checks.append(v[["rules", "n_players", "name", "relative", "rel_low", "rel_high", "capped_share"]])
         a = pd.read_csv(TAB / f"meta_ablations_{mode}.csv").assign(rules=label)
+        a["name"] = a.name.replace(RENAMED)  # tables from before the rename use the old name
         a = a[[(int(n), name) not in no_ops for n, name in zip(a.n_players, a.name)]]
         a["significant"] = (a.rel_low > 1) | (a.rel_high < 1)
-        abl.append(a[["rules", "n_players", "name", "relative", "rel_low", "rel_high", "significant",
+        # the same result in every game: the change never altered a decision (e.g. a take-a-Chance flip for an agent
+        # whose card counting makes that choice)
+        same = (a.rel_low == 1) & (a.rel_high == 1)
+        a["no_effect"] = a.no_effect.astype("boolean").fillna(same).astype(bool) if "no_effect" in a else same
+        abl.append(a[["rules", "n_players", "name", "relative", "rel_low", "rel_high", "significant", "no_effect",
                       "capped_share"]])
         h = pd.read_csv(TAB / f"meta_refinement_{mode}.csv").assign(rules=label)
         # the agent kept: the one marked by least-exploitable selection, else the last one tested

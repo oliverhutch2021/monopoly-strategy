@@ -314,3 +314,63 @@ def test_game_state_copy_is_independent():
     g.take_turn()
     g.s.cash[0] += 1
     assert snap.cash[0] != g.s.cash[0] or snap.turn != g.s.turn
+
+
+# ------------------------------------------------------------------ rule variants (methodology review, 2026-10-30)
+def test_mortgaged_stations_count_only_in_the_variant():
+    from monopoly_meta.engine import Rules
+    for count_all, rent in ((False, 100), (True, 200)):
+        g = game([(2, 3)], rules=Rules(mortgaged_count_for_rent=count_all))
+        give(g, 1, 5, 15, 25, 35)
+        g.s.mortgaged[15] = True
+        g.take_turn()  # GO + 5 = King's Cross
+        assert g.s.pos[0] == 5 and g.s.cash[0] == 1500 - rent
+
+
+def test_building_between_turns_only_in_the_variant():
+    from monopoly_meta.engine import Rules
+    from monopoly_meta.policies import make_bot
+    for any_time in (False, True):
+        g = game([(4, 5)], policies=[Passive(), make_bot("balanced")], rules=Rules(build_any_time=any_time))
+        give(g, 1, 1, 3)  # the browns
+        g.take_turn()  # player 0 moves; player 1 may build only if building between turns is allowed
+        built = g.s.level[1] + g.s.level[3]
+        assert (built > 0) == any_time
+
+
+def test_scarce_houses_are_auctioned_in_the_variant():
+    from monopoly_meta.engine import Rules
+    from monopoly_meta.policies import make_bot
+    for auctions in (False, True):
+        g = game([(4, 5)], n=3, policies=[Passive(), make_bot("balanced"), make_bot("balanced")],
+                 rules=Rules(house_auctions=auctions))
+        g.track_housing = True
+        give(g, 1, 1, 3)
+        give(g, 2, 6, 8, 9)
+        g.s.bank_houses = 2
+        g.take_turn()  # before player 0's management the two players both want more houses than the bank has
+        assert g.contested_houses >= 1
+        if auctions:
+            assert g.house_auctions_held == 2 and g.s.bank_houses == 0
+            assert g.s.level[1] + g.s.level[3] == 2 and g.s.cash[1] == 1500 - 2 * 100  # £50 houses at £100
+        else:
+            assert g.house_auctions_held == 0 and g.s.bank_houses == 2
+
+
+def test_auctioned_houses_respect_the_bots_own_caps():
+    """Review finding: a bot capped at three houses (max_level 3), or building three houses everywhere first
+    (build_cap 3), must not bid for or place a house past that cap."""
+    from monopoly_meta.policies import make_bot
+    capped = make_bot({"name": "capped", "max_level": 3})
+    first = make_bot({"name": "three first", "build_cap": 3})
+    g = game([(4, 5)], n=3, policies=[Passive(), capped, first])
+    give(g, 1, 6, 8, 9)  # light blues, at three houses: the capped bot wants nothing more
+    for sq in (6, 8, 9):
+        g.s.level[sq] = 3
+    assert capped.house_bid(g, 1) == (0, 0) and capped.place_house(g, 1) is None
+    give(g, 2, 1, 3, 11, 13, 14)  # browns at three houses, pinks at one: houses go to the pinks first
+    for sq, lv in ((1, 3), (3, 3), (11, 1), (13, 1), (14, 1)):
+        g.s.level[sq] = lv
+    want, limit = first.house_bid(g, 2)
+    assert want == 6 and limit > 0
+    assert first.place_house(g, 2) in (11, 13, 14)

@@ -81,6 +81,10 @@ class Rules:
     speed_die: bool = False             # Speed Die once a player has passed GO
     no_bid_to_richest: bool = False     # an auction with no bids gives the property to the richest player for £1
     no_trades_heads_up: bool = False    # no trades once only two players are left
+    # rule variants for sensitivity tests; the defaults are the engine's original simplifications (RULES.md)
+    build_any_time: bool = False        # players may also build and unmortgage between other players' turns
+    house_auctions: bool = False        # when two or more players want more houses than the bank has, auction them
+    mortgaged_count_for_rent: bool = False  # mortgaged stations/utilities still count towards the number owned
 
 
 def championship_rules(n_players: int, rounds: int = 150) -> "Rules":
@@ -216,6 +220,9 @@ class Game:
         self.done = sum(self.s.alive) <= 1
         self.capped = False
         self.uneven_events = 0  # hotel broken during a house shortage (see RULES.md)
+        self.contested_houses = 0  # times two or more players wanted more houses than the bank had
+        self.house_auctions_held = 0
+        self.track_housing = False  # count contested demand even when houses aren't auctioned (costs time)
         # squares that may not be traded (used to define "keep it" baselines in rollouts)
         self.frozen = frozenset(frozen_squares)
         # cards drawn from each deck since this Game started: public information, so a player with a
@@ -247,10 +254,56 @@ class Game:
         else:
             self._roll_and_move(p)
         if s.alive[p] and not self.done:
+            self.housing_check()
             self.policies[p].manage(self, p)
         if self.stats is not None and s.alive[p]:
             self._record_turn(p)
+        if self.rules.build_any_time and not self.done:
+            for k in range(1, s.n_players):  # the others, in turn order, before the next roll
+                q = (p + k) % s.n_players
+                if s.alive[q]:
+                    self.housing_check()
+                    self.policies[q].manage_buildings(self, q)
         self._end_turn()
+
+    # ------------------------------------------------------------------ housing shortages
+    def _house_demand(self) -> dict:
+        """{player: (houses wanted, most they would pay for one)} for every player who wants a house now."""
+        s = self.s
+        out = {}
+        for q in range(s.n_players):
+            if s.alive[q]:
+                want, limit = self.policies[q].house_bid(self, q)
+                if want > 0 and limit > 0:
+                    out[q] = (want, limit)
+        return out
+
+    def housing_check(self) -> None:
+        """Before anyone builds: count contested demand for houses and, under Rules.house_auctions, auction them."""
+        if not (self.rules.house_auctions or self.track_housing) or self.s.bank_houses == 0:
+            return
+        s, contested = self.s, False
+        while s.bank_houses > 0:
+            bids = self._house_demand()
+            if len(bids) < 2 or sum(w for w, _ in bids.values()) <= s.bank_houses:
+                break
+            contested = True
+            if not self.rules.house_auctions:
+                break
+            # official rule: the scarce houses go to the highest bidder, one at a time; as for property, the
+            # winner pays the second-highest limit + £1 (at least the house's price), ties to the earliest in turn
+            order = sorted(bids, key=lambda q: (-bids[q][1], (q - s.current) % s.n_players))
+            win = order[0]
+            sq = self.policies[win].place_house(self, win)
+            if sq is None:
+                break
+            cost = self.ed.house_cost[self.ed.group_of[sq]]
+            price = max(cost, min(bids[win][1], bids[order[1]][1] + 1))
+            if s.cash[win] < price or not self.build(win, sq):
+                break
+            s.cash[win] -= price - cost  # build() paid the house's price; the premium goes to the bank too
+            self.house_auctions_held += 1
+        self.contested_houses += contested
 
     def _record_turn(self, p: int) -> None:
         s, st = self.s, self.stats[p]
@@ -423,7 +476,8 @@ class Game:
             base = ed.rent[sq][0]
             return base * 2 if self.owns_group(o, ed.group_of[sq]) else base
         sqs = ed.group_squares[ed.group_of[sq]]
-        k = sum(1 for x in sqs if s.owner[x] == o and not s.mortgaged[x])
+        count_all = self.rules.mortgaged_count_for_rent
+        k = sum(1 for x in sqs if s.owner[x] == o and (count_all or not s.mortgaged[x]))
         if t == T_STATION:
             return ed.station_rent[k - 1]
         return ed.utility_multiplier[k - 1] * (dice if dice is not None else self.last_dice)

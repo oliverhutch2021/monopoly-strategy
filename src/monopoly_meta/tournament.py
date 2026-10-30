@@ -68,31 +68,46 @@ def run_games(lineup: list, n_games: int, seed0: int = 0, rules: Rules | None = 
     return pd.DataFrame(rows).sort_values("seed").reset_index(drop=True)
 
 
+def outcome_counts(df: pd.DataFrame, column: str, value) -> tuple[int, int]:
+    """(outright wins, time-limit wins) of `value` in a run_games table. A game stopped by the turn limit has no
+    outright winner; its `winner_*` is the richest survivor (Game.result), which championship rules call the winner
+    of the table. The two are counted apart so that each analysis can say which outcome it reports."""
+    hit = df[column] == value
+    return int((hit & ~df.capped).sum()), int((hit & df.capped).sum())
+
+
+def outright_rate(k: int, decided: int) -> tuple[float, float, float]:
+    """Share of the decided games (those not stopped by the turn limit) won outright, with its Wilson interval.
+    Its fair share is 1/n whatever the number of stopped games, so it compares directly with 1/n."""
+    lo, hi = wilson(k, decided)
+    return (k / decided if decided else math.nan), lo, hi
+
+
 def win_rates(df: pd.DataFrame, by: str = "winner_bot", lineup: list[str] | None = None) -> pd.DataFrame:
-    """Win rate per bot (or per seat) with 95% Wilson intervals.
+    """Outright win rate per bot (or per seat), with 95% Wilson intervals: the share of the decided games won
+    outright, so 1/n is its fair share. Games stopped by the turn limit are counted apart (limit_wins: the richest
+    survivor), and game_win_rate is the share of all games in which the bot finished on top, by either route.
 
     For bots that appear k times in the lineup the rate is per *bot instance*,
     so it is directly comparable with the 1/n 'fair share'.
     """
     n = len(df)
+    decided = n - int(df.capped.sum())
     out = []
     if by == "winner_bot":
         lineup = [bot_label(x) for x in lineup] if lineup else \
             [df[c].iloc[0] for c in df.columns if c.startswith("seat")]
         for bot in sorted(set(lineup)):
             copies = lineup.count(bot)
-            k = int((df.winner_bot == bot).sum())
-            lo, hi = wilson(k, n * copies) if copies == 1 else _scaled(k, n, copies)
-            out.append({"bot": bot, "copies": copies, "wins": k, "games": n,
-                        "win_rate": k / (n * copies), "ci_low": lo, "ci_high": hi})
+            k, k_limit = outcome_counts(df, "winner_bot", bot)
+            rate, lo, hi = outright_rate(k, decided)
+            out.append({"bot": bot, "copies": copies, "wins": k, "limit_wins": k_limit, "games": n,
+                        "decided": decided, "win_rate": rate / copies, "ci_low": lo / copies,
+                        "ci_high": hi / copies, "game_win_rate": (k + k_limit) / (n * copies)})
     else:
         for seat in sorted(df.winner_seat.unique()):
-            k = int((df.winner_seat == seat).sum())
-            lo, hi = wilson(k, n)
-            out.append({"seat": seat, "wins": k, "games": n, "win_rate": k / n, "ci_low": lo, "ci_high": hi})
+            k, k_limit = outcome_counts(df, "winner_seat", seat)
+            rate, lo, hi = outright_rate(k, decided)
+            out.append({"seat": seat, "wins": k, "limit_wins": k_limit, "games": n, "decided": decided,
+                        "win_rate": rate, "ci_low": lo, "ci_high": hi, "game_win_rate": (k + k_limit) / n})
     return pd.DataFrame(out)
-
-
-def _scaled(k: int, n: int, copies: int) -> tuple[float, float]:
-    lo, hi = wilson(k, n)  # share of games won by any copy, then per copy
-    return lo / copies, hi / copies

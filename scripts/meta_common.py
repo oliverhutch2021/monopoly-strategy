@@ -44,7 +44,7 @@ def ablations(meta: dict) -> dict:
         "accept trades": {**m, "accept_trades": True},
         "always leave jail": {**m, "jail": "short"},
         "always stay in jail": {**m, "jail": "long"},
-        "three-house cap": {**m, "build_cap": 3},
+        "three houses first": {**m, "build_cap": 3},  # a priority, not a cap: hotels follow once all sets have 3
         "never build hotels": {**m, "max_level": 4},
         "flip 'take a Chance'": {**m, "take_chance": not m["take_chance"]},
         "keep £200 more cash": {**m, "reserve": m["reserve"] + 200, "build_reserve": m["build_reserve"] + 200},

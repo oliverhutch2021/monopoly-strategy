@@ -138,6 +138,24 @@ The deep run re-measured each final agent against the strongest challenger its s
 4-player agent under official rules, one of Step 4's exploits beats it by more (1.29× on 10,000 games in Step 5's
 checks). This re-measures that exploit on 40,000 games, then refreshes the dashboard data and the figures.
 
+## Step 8: the methodology review's corrections (about 2 hours)
+
+```
+make sync && make review
+```
+
+An independent review found places where results were summarised or labelled wrongly, and rules the engine
+simplifies that the housing findings might depend on. This job:
+
+1. re-reads every stored trade curve as a whole: each price range where both sides gain, curves that aren't
+   monotone, and trades the rules forbid (no new games);
+2. re-runs the tournaments and championship basics to count outright wins apart from time-limit wins;
+3. re-runs the Vine Street trades on the same games, adding net worth at equal own-turn horizons and a
+   bootstrap of each deal's ends;
+4. replays the housing comparisons under the official building rules (`scripts/15_rule_sensitivity.py`);
+5. refreshes the dashboard data and figures, and lists the README numbers the re-runs moved
+   (`results/final/readme_claims.txt`).
+
 ## Watching a run
 
 Open a second Ubuntu window while a job runs and type:

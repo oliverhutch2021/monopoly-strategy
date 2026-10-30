@@ -109,6 +109,25 @@ JOBS: dict[str, list[tuple]] = {
         ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
         ("figures", ["scripts/make_figures.py"], FINAL),
     ],
+    # The methodology review's corrections (about 2 hours). Deal zones are re-read from the stored curves (every
+    # range where both sides gain, trades checked under their own rules); the tournaments are re-run to count
+    # outright wins apart from time-limit wins; the Vine Street curves are re-run (same games) to add net worth at
+    # equal own-turn horizons and a whole-curve bootstrap of each deal's ends; and the housing findings are re-tested
+    # under the official building rules the engine simplifies (scripts/15_rule_sensitivity.py).
+    "review": [
+        ("trade-summaries", ["scripts/trade_summaries.py"], FINAL),
+        ("tournaments", ["scripts/03_tournament.py"], FINAL),
+        ("championship-basics", ["scripts/07_championship_basics.py"], FINAL),
+        ("vine-street-simple", ["scripts/04_trade_curve.py"], FINAL),
+        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], FINAL),
+        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], FINAL),
+        ("rule-sensitivity", ["scripts/15_rule_sensitivity.py"], FINAL),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
+        ("figures", ["scripts/make_figures.py"], FINAL),
+        # which README numbers the re-runs moved (results/final/readme_claims.txt); never fails the job
+        ("readme-claims", ["scripts/claims.py", "--quiet", "--no-fail", "--report", "results/final/readme_claims.txt"],
+         FINAL),
+    ],
     # A two-minute end-to-end check of this runner (sync, steps, stamp, commit, bundle, DONE note).
     "smoke": [
         ("regression-digests", ["tests/golden.py"]),
@@ -213,7 +232,19 @@ def machine() -> dict:
     except OSError:
         pass
     return {"host": socket.gethostname(), "platform": platform.platform(), "cpu_threads": os.cpu_count(),
-            "ram_gb": mem, "python": platform.python_version()}
+            "ram_gb": mem, "python": platform.python_version(), "packages": packages()}
+
+
+def packages() -> dict:
+    """Exact versions of the packages the results depend on, so a run can be reproduced on the same stack."""
+    from importlib.metadata import PackageNotFoundError, version
+    out = {}
+    for name in ("numpy", "scipy", "pandas", "matplotlib", "pillow"):
+        try:
+            out[name] = version(name)
+        except PackageNotFoundError:
+            out[name] = None
+    return out
 
 
 def run(job: str, force: bool, watch: bool = True) -> None:

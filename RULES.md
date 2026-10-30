@@ -35,10 +35,15 @@ only to validate the Markov chain.
 - **Rent**:
   - Unimproved streets pay double rent when the whole colour set has one owner.
   - Mortgaged properties collect no rent.
-  - Stations pay £25, £50, £100 or £200 by the number owned, and **mortgaged stations do
-    not count** (classic rule).
-  - Utilities pay 4× the dice roll for one owned, or 10× for both. Mortgaged utilities
-    don't count either (the station rule applied to utilities by analogy).
+  - Stations pay £25, £50, £100 or £200 by the number owned. By default **a mortgaged
+    station doesn't count** towards that number. That is the engine's reading: the rules
+    sheet doesn't settle it, and some players count every station owned.
+    `Rules(mortgaged_count_for_rent=True)` plays it that way, and `make review` measures
+    whether the choice matters.
+  - Utilities pay 4× the dice roll for one owned, or 10× for both, with the same choice
+    about a mortgaged one.
+  - A street's double rent for a whole set applies even if another street in the set is
+    mortgaged.
 - **Building**:
   - You need the whole colour set, with no property in it mortgaged.
   - Houses must be built evenly across the set, and sold back evenly.
@@ -59,14 +64,22 @@ only to validate the Markov chain.
   common house rule, where taxes and fines (card fines, repairs, the jail fine) go into a pot
   for whoever lands there. Mortgage interest goes to the bank, not the pot.
 
-## Simplifications (and why they are acceptable)
+## Simplifications (and how each is tested)
 
-| Simplification | Effect |
+Three of the simplifications below could bend the findings: two decide who gets houses,
+which several findings rest on, and one sets station and utility rent. Each has an engine
+switch that plays the official rule instead, and `make review`
+(`scripts/15_rule_sensitivity.py`) replays the housing comparisons under every switch, on
+games no search has seen, and counts how often the simplification binds. Until those
+results are in, treat the housing findings as findings about the engine's rules.
+
+| Simplification | Effect, and the switch that removes it |
 |---|---|
-| Building, unmortgaging and trading happen once per turn, at the end of the player's own turn (the rules allow any time). | Small timing effect; standard in simulators. |
+| Building, unmortgaging and trading happen once per turn, at the end of the player's own turn (the rules allow building at any time). | `Rules(build_any_time=True)`: after each turn, every other player in turn order may also build and unmortgage (trades stay on a player's own turn). Games run 2–3 times slower. |
+| During a housing shortage, the remaining houses go to whoever builds first. There's no auction for the last houses. | `Rules(house_auctions=True)`: whenever two or more players want more houses than the bank has, the houses are auctioned one at a time. The highest limit wins and pays the second-highest + £1 (at least the house's price); ties go to the earliest in turn order. `Game.contested_houses` counts those moments (also without the switch, with `Game.track_housing`), and `Game.house_auctions_held` the houses sold. A first check found them in about 4% of 4-player games between the official meta agents. |
+| A mortgaged station or utility doesn't count towards the rent of the others (see Rent above). | `Rules(mortgaged_count_for_rent=True)`. |
 | Players buy only with cash on hand. They don't mortgage to fund a purchase. | Slightly fewer purchases by cash-poor players. |
-| During a housing shortage, the remaining houses go to whoever builds first. There's no auction for the last houses. | Rare; counted in `Game.uneven_events` when it bends the even-build rule. |
-| If a hotel must be broken up and the bank lacks 4 houses, it is sold further down. The other streets in the set aren't forced down with it. | Very rare; same counter. |
+| If a hotel must be broken up and the bank lacks 4 houses, it is sold further down. The other streets in the set aren't forced down with it. | Very rare; counted in `Game.uneven_events` (which counts only this, not housing shortages in general). |
 | Rent is always collected (in the real game the owner must ask for it before the next roll). | Treats every player as attentive. |
 | If the card-drawer goes bankrupt while collecting birthday money, collection stops; money owed to a bankrupt player goes to the bank. | Edge case; keeps the books consistent. |
 | A game stops after `max_turns` (default 4,000 player-turns). The richest player is then recorded as the winner, and the `capped` flag is set. | Under the official rules almost no game reaches it (1 in 10,000 at 4 players, none at other sizes). Bots that rarely trade hit it more often: up to 3.5% for the hard-bargainer at 6 players. |
@@ -113,7 +126,9 @@ use it.
   worth and score finishing points: 28 for an outright win; with 2 players left 25 and 14;
   with 3 left 22, 12 and 6; with 4 left 19, 10, 5 and 3. The rules sheet stops at 4
   survivors, so 5 and 6 survivors use an extrapolated 16/8/4/2/1 and 13/6/3/2/1/0.
-  Agents maximise points ÷ 28.
+  Agents maximise points ÷ 28, and championship results report that credit, which is not a
+  win probability: with two survivors the credits sum to 39/28. Win-rate tables count
+  outright wins and time-limit leaders separately (`limit_wins`).
 - Not modelled: the real-time clock (official heats run for a fixed number of minutes, not
   rounds), the 60-second limit on trade talks, and rent that is lost when the owner forgets
   to ask for it.

@@ -15,11 +15,15 @@ Every result covers **2 to 6 players**, the largest table that official champion
 scoring allows. Strategies are tested against **meta agents found by self-play**, not only
 against hand-written bots.
 
-> **Status (v0.5, final numbers).** The engine, the analyses and the meta agents are done and tested, including
-> v0.4's search for unconventional strategies and v0.5's hardening against them. Every study was then re-run at 10
-> times the samples with the final agents (the deep run, `results/final`); the numbers and charts below come from it
-> unless a finding says otherwise. A live viewer replays games from running jobs (`make watch`), and you can play
-> the meta agents yourself (`make play`). Next come a Rust engine and learned value models ([ROADMAP.md](ROADMAP.md)).
+> **Status (v0.5, corrected after an independent methodology review).** The engine, the analyses and the meta agents
+> are done and tested, including v0.4's search for unconventional strategies and v0.5's hardening against them. The
+> studies were then re-run with 10 times the samples, using the final agents (the deep run, `results/final`): a
+> precision extension, since the first tenth of each sample is v0.3's games, and the exact Markov and payback tables
+> were copied rather than re-run. The numbers and charts below come from it unless a finding says otherwise. An
+> independent review (October 2026) found errors in how some results were summarised and labelled. They are
+> corrected below wherever the stored data allow; `make review` re-runs the rest and tests the housing findings under
+> the official building rules. A live viewer replays games from running jobs (`make watch`), and you can play the
+> meta agents yourself (`make play`). Next come learned value models ([ROADMAP.md](ROADMAP.md)).
 
 ---
 
@@ -28,7 +32,8 @@ against hand-written bots.
 ### Holds at every table size
 
 **1. Where the dice take you.** Trafalgar Square is the most-landed property, at
-**3.48 landings per 100 turns**. Next come Marlborough Street and Marylebone Station (3.28
+**3.48 landings per 100 turns** (exact for cards drawn with replacement; the real fixed decks
+shift a few squares by up to 1.8%). Next come Marlborough Street and Marylebone Station (3.28
 each), then Vine Street (3.25). Park Lane is the least-landed property (2.36). Landing rates
 are per turn, so they don't depend on the number of players. Players spend **11%** of their
 turns in Jail if they roll for doubles, and **4.7%** if they pay straight out. When
@@ -39,8 +44,10 @@ opponents leave Jail quickly, Marylebone and Vine Street get about **12% more** 
 **2. Orange pays back fastest, and the third house is the best buy.** With hotels, the
 orange set repays the whole investment (set + buildings) faster than any other set. In
 every group except brown, the third house earns the best return of any building level.
-Payback time scales with 1/(number of opponents), so the ranking is the same at every
-table size and only the speed changes:
+This is stationary gross-rent payback: the rent once everything is built, leaving out what
+it costs to get the set and the turns spent building. Payback time scales with 1/(number of
+opponents), so the ranking is the same at every table size by construction, and only the
+speed changes:
 
 | Players | Orange with hotels | Green with hotels |
 |---|---|---|
@@ -53,12 +60,13 @@ table size and only the speed changes:
 ![Payback](results/final/figures/payback_by_group.png)
 ![Marginal return per house](results/final/figures/marginal_return_heatmap.png)
 
-**3. Valuing a property in pounds underprices it.** In the trade test below, the buyer's
-true maximum price (where their win chance stops improving) is well above the maximum
-implied by expected net worth. The gap is **24% at 2 players, 30% at 3 and 39% at 4**. At
-5–6 players it's at least 38–42%: the buyer still gains at £1,200, all the cash they have,
-so the true maximum is higher still. Completing a set is worth much more than the rent it
-brings in.
+**3. Net worth undervalues completing a set.** In the trade test below, the highest price
+at which the buyer's win chance still improves is well above the highest price at which
+their net worth, 40 turns later, still improves. The gap is **24% at 2 players, 30% at 3 and
+39% at 4**, and at least 38–42% at 5–6 players, where the buyer still gains at £1,200, all
+the cash they have. Two cautions: the 40 turns are player-turns, so 20 rounds at 2 players
+but under 7 at 6; and both prices are for these bots in this one position. `make review`
+adds net worth at equal own-turn horizons.
 
 ### Changes with table size
 
@@ -80,6 +88,12 @@ The extra room comes from the bystanders. Every deal in the zone takes win proba
 away from the players who aren't trading. Selling Vine Street to a player who *doesn't*
 need it barely matters at any table size (break-even £41–£57).
 
+These are prices for a one-shot sale with no resale (the property is frozen afterwards, in both
+arms), to these bots, in one hand-built position per table size. Each extra player adds a
+bystander with four properties, so the properties the bank still holds fall from 20 at 2
+players to 4 at 6. The widening zone holds for this family of positions; positions drawn
+from real games are the next test (ROADMAP.md).
+
 ![Deal zone by players](results/final/figures/deal_zone_by_players.png)
 ![Trade curve, 4 players](results/final/figures/trade_curve_vine_street.png)
 
@@ -98,7 +112,9 @@ simple bot:
 
 Under championship rules (60,000 games per cell), aggressive play also gains most at big tables (1.30× at 6
 players), and never proposing trades also collapses there (0.31× at 6). At 2 players those rules ban trades, so not
-proposing them changes nothing.
+proposing them changes nothing. These championship rates count the richest player as the winner when the time limit
+hits, as those rules do; that happens in 3–8% of 2-player games and almost never at 4–6, and `make review` re-counts
+outright wins separately.
 
 ![Strategy variants](results/final/figures/strategy_variants.png)
 
@@ -109,10 +125,12 @@ rules it's 1.09× and 1.19× for the first player at 4 and 6.
 
 ![Seat advantage](results/final/figures/seat_advantage.png)
 
-**7. Games get shorter (in rounds) with more players.** The median game lasts 63 rounds
-with 2 players and 35 with 6. A Free Parking jackpot shortens games at every table size,
-most at 2 players (56.5 rounds instead of 63). Championship rules, with the Speed Die,
-shorten them more: the median is 50.5 rounds at 2 players and 28 at 6.
+**7. With more players each player gets fewer turns, but the game has more of them.** The
+median game lasts 63 rounds with 2 players and 35 with 6, where a round is the total number
+of turns divided by the starting number of players: 126 turns in all at 2 players and 212 at
+6. A Free Parking jackpot shortens games at every table size, most at 2 players (56.5 rounds
+instead of 63). Championship rules, with the Speed Die, shorten them more: the median is
+50.5 rounds at 2 players and 28 at 6.
 
 ![Game length](results/final/figures/game_length_by_players.png)
 
@@ -155,7 +173,10 @@ winner. The strongest MAP-Elites finds, re-measured on 10,000 fresh games:
 | 6 | 1.52× | 1.21× |
 
 (Win credit ÷ the meta agent's own credit in that seat, on the same games; 95% intervals about ±0.03 to ±0.06.
-Details: [results/v04/tables/unconventional/summary.md](results/v04/tables/unconventional/summary.md).)
+These are measured gains of strategies the searches found, so they are lower bounds on how exploitable each agent
+is; the intervals don't include the search that picked them. Under championship rules the credit is finishing
+points ÷ 28, not a win probability. Details:
+[results/v04/tables/unconventional/summary.md](results/v04/tables/unconventional/summary.md).)
 
 **9. Two new moves do most of the work: borrowing to build and the housing lock.** Each move was switched off in
 turn in v0.4's strongest finds, on 6,000 paired games each:
@@ -172,7 +193,8 @@ turn in v0.4's strongest finds, on 6,000 paired games each:
 | Playing the clock | 13 | 0 | 0.000× |
 
 The housing lock means stopping at four houses while the bank is short and a rival still needs houses for a set.
-It is the classic housing-shortage play, and the search found it with no hints. The other moves mostly ride along.
+It is the classic housing-shortage play. It is one of the eight hand-coded moves, and the search started from each
+move switched on, so what the search found is when and how hard to use it. The other moves mostly ride along.
 At 4 players, the strongest finds keep most of their edge with every new move off (1.45–1.56×). The v0.3
 agents were beatable mainly through ordinary settings: what to buy and how fast to build.
 
@@ -219,15 +241,16 @@ and with a simple bot at its table, on 40,000 paired games per cell:
 |---|---|---|---|---|
 | 2 | v0.5 / v0.5 | 1.16× / 1.03× | 1.58× / 1.67× | 0.41× / 0.31× |
 | 3 | v0.3 / v0.5 | 1.50× / 1.48× | 1.19× / 1.75× | 0.68× / 0.76× |
-| 4 | v0.5 / v0.5 | 1.29×† / 1.31× | 1.04× / 1.15× | 0.61× / 0.45× |
+| 4 | v0.5 / v0.5 | 1.25× / 1.31× | 1.04× / 1.15× | 0.61× / 0.45× |
 | 5 | v0.5 / v0.3 | 1.16× / 1.42× | 0.90× / 0.87× | 0.44× / 0.79× |
 | 6 | v0.3 / v0.3 | 1.51× / 1.25× | 1.15× / 1.20× | 0.98× / 0.66× |
 
-(Official rules / championship rules. Each number is a win credit relative to the player it replaces, on the same
-games; 95% intervals are ±0.01 to ±0.03.) The exploits re-measure within about 0.05 of v0.4 and v0.5's smaller
-samples, so they are real. †At 4 players under official rules the deep run re-measured the fresh searches' best
-find against the hardened agent (1.10×), but one of v0.4's finds still beats it by more: 1.29× on 10,000 games in
-v0.5's checks.
+(Official rules / championship rules. Each number is a credit relative to the player it replaces, on the same
+games; 95% intervals are ±0.01 to ±0.03. Under championship rules the credit is finishing points ÷ 28, not a win
+probability.) The exploits re-measure within about 0.05 of v0.4 and v0.5's smaller samples, so they are real. They
+are the gains of the strongest challengers found so far, so each is a lower bound on how far the agent can be
+beaten. At 4 players under official rules the strongest is one of v0.4's finds (1.29× on 10,000 games in v0.5's
+checks), not the fresh searches' best (1.10×).
 
 Under championship rules at 5 and 6 players, 75% and 81% of the games between meta agents run to the time limit
 and are scored by finishing position. Those two agents accept no trades at all (finding 14).
@@ -246,10 +269,14 @@ against copies of the unchanged agent:
   3-player agent also gains 5% by bidding 25% less. For the official 2-player agent, bidding more is a mistake
   (0.82×).
 - **Jail and the Chance card matter little.** Always leaving or always staying in jail costs 9% at most, and
-  staying is 3% better for the official 2-player agent. Flipping the "£10 fine or take a Chance" choice changes
-  results by 1.4% at most.
-- **With 5–6 players under championship rules, the agents refuse every trade, and that's stable.** Accepting
-  trades would cost them 19% and 29% of their wins (0.81× and 0.71×). Nobody gains by breaking the embargo alone.
+  staying is 3% better for the official 2-player agent (which plays the clock, so it stays in jail near the time
+  limit whatever its jail setting). Flipping the "£10 fine or take a Chance" choice changes results by 1.4% at
+  most. The three agents that count cards make that choice from the cards still to come, so for them the flip
+  changes nothing (shown as "—" in the charts).
+- **With 5–6 players under championship rules, the agents refuse every trade.** Switching to accepting trades,
+  with everything else unchanged, would cost them 19% and 29% of their credit (0.81× and 0.71×), so the embargo is
+  stable against that change. That is the only deviation tested: the strongest known challengers still beat these
+  agents by 1.42× and 1.25× (finding 13).
 
 ![Meta validation, official rules](results/final/figures/meta_validation_standard.png)
 ![Deviating from the meta, official rules](results/final/figures/meta_ablations_standard.png)
@@ -265,18 +292,21 @@ official 4- and 6-player agents to 1.16× and 1.36×. A strategy's strength only
 it's played against, which is why this project reports both.
 
 **16. Against meta agents the deal zone moves, and it vanishes where they refuse all trades.** Finding 4's Vine
-Street sale again, with the final meta agents playing on (20,000 paired rollouts per price):
+Street sale again (the same one-shot sale with no resale), with the final meta agents playing on (20,000 paired
+rollouts per price):
 
 | Players | Simple bots | Meta agents, official rules | Meta agents, championship rules |
 |---|---|---|---|
-| 2 | none (£661 for both) | £304–£306, in effect none | none (about £355 for both) |
+| 2 | none (£661 for both) | £304–£306, within the noise | not allowed: no trades once two players are left |
 | 3 | £662–£890 | £568–£811 | £229–£676 |
 | 4 | £594–£1,144 | £746–£1,200+ | £249–£735 |
 | 5 | £485–£1,200+ | £743–£1,200+ | none: the seller loses at every price |
 | 6 | £487–£1,200+ | £557–£1,200+ | none: the seller loses at every price |
 
 - **At 2 players the orange set is worth half as much against a meta agent.** Getting Vine Street free lifts the
-  buyer's win chance from 63% to 81% against the 2-player agent, and from 64% to 97% with simple bots.
+  buyer's win chance from 63% to 81% against the 2-player agent, and from 64% to 97% with simple bots. Under
+  official rules a game that hits the time limit is a loss for both players, so a 2-player sale isn't exactly
+  zero-sum; the £2-wide zone is smaller than its own sampling error.
 - **At 4–6 players, sellers should ask more against meta agents** (break-even £557–£746, against £485–£594).
 - **Under championship rules the seller breaks even far lower** at 3–4 players (£229–£249). At 5–6 players, where
   the agents refuse all trades, the sale ends the stalemate in the buyer's favour and no price compensates the
@@ -288,7 +318,7 @@ finding 16). At 4 players, the seller's break-even and the buyer's maximum:
 
 | Piece sold | Simple bots | Meta agents, official rules | Meta agents, championship rules |
 |---|---|---|---|
-| Old Kent Road (brown) | none | none | none |
+| Old Kent Road (brown) | £473–£578* | £419–£667* | none: the buyer loses even if given it |
 | The Angel Islington (light blue) | £504–£944 | £642–£1,100 | £148–£335 |
 | Pall Mall (pink) | £453–£861 | £609–£979 | £198–£480 |
 | Vine Street (orange) | £594–£1,144 | £746–£1,200+ | £249–£735 |
@@ -300,9 +330,22 @@ finding 16). At 4 players, the seller's break-even and the buyer's maximum:
 
 Against the official meta agents, sellers of any colour-group piece except a brown should ask £70–£171 more than
 against simple bots, and buyers will pay £93–£156 more (the oranges' maximum is past the £1,200 tested). Under
-championship rules both fall for every colour group. At 4 players brown has no deal under any of the three:
-completing it is worth less to the buyer than the seller needs. Every property at every table size is in
+championship rules both fall for every colour group. Every property at every table size is in
 `results/final/tables/property_trade_summary_*.csv`.
+
+\*Not a clean zone: the buyer's win chance doesn't fall steadily as the price rises. Against the official meta
+agents the buyer wins 16% of games when given Old Kent Road free but 34% after paying £300; with simple bots it is
+34% free, 27% at £150 and 39% at £400. A player who could always leave the money unspent shouldn't do better for
+having paid it, so these bots play the brown set (or the cash) badly after the trade, and the brown prices say
+more about the bots than about the property. Under championship rules it goes further: the buyer is worse off even
+when given the piece, and the seller is better off giving it away.
+
+The first summaries of these curves took the first price at which each one crossed zero. That missed 10 deals, all
+in curves that cross more than once or never: both browns at 4 players, with simple bots and with the official meta
+agents, and six championship sales in which the seller gains even by giving the piece away (browns at 3 and 6
+players, Oxford Street and Bond Street at 3). They also listed six 2-player championship sales that those rules
+forbid. Every summary now reads the whole curve: it lists every price range where both sides gain, flags curves
+that aren't monotone, and says when the rules don't allow the trade.
 
 **The final agents' settings** (only settings that measurably matter are worth reading closely; the rest drift
 freely during evolution):
@@ -348,7 +391,7 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
   setting. When cards are drawn with replacement (the chain's assumption), every square
   matches to within **0.5%**. Real fixed decks shift a few card-destination squares by up
   to 1.8% while someone is holding a Get Out of Jail Free card.
-- **Tests**: 155 `pytest` tests:
+- **Tests**: 171 `pytest` tests:
   - rule-by-rule checks with scripted dice;
   - invariant checks after every turn of 160 full games under four rule sets (house
     supply, even building, deck integrity, no negative cash);
@@ -357,7 +400,10 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
   - scenario and zero-sum checks at every table size;
   - meta-search checks (mutation bounds, paired evaluation, evolution, hardening);
   - the new moves, MAP-Elites, resumable hardening, and playing a whole game as a person;
-  - regression tests for the defects an independent code review found.
+  - regression tests for the defects an independent code review found;
+  - the methodology review's fixes: whole-curve deal summaries, trades the rules forbid,
+    outright and time-limit wins, the rule variants, and a check that the deep-run
+    findings' numbers in this README still match their tables (`scripts/claims.py`).
 - **Speed**: about 2–4 ms per full game in pure Python, depending on table size.
 
 ## Quick start
@@ -404,9 +450,20 @@ print(result.winner, result.turns)
 - Bot trading uses simple rules (set-completing swaps, and cash offers at a multiple of
   face value). Richer negotiation comes with the value model.
 - Meta-agent games stop after 150 rounds. Under official rules a stopped game is a loss
-  for everyone; under championship rules it is scored by finishing position.
-- The rollout valuer is exact but slow (about 1 minute per price curve). The learned value
-  model in Phase 3 makes it instant.
+  for everyone; under championship rules it is scored by finishing position, so championship
+  numbers are finishing points ÷ 28; `make review` also counts outright wins and
+  time-limit wins separately.
+- The engine simplifies three rules ([RULES.md](RULES.md)): players build only after their
+  own move, the last houses go to whoever builds first rather than to an auction, and
+  mortgaged stations and utilities don't count towards their rent. Each official rule is
+  an engine option, and `make review` re-tests the housing findings under all of them
+  (`scripts/15_rule_sensitivity.py`).
+- Trade prices are for a one-shot sale with no resale, in hand-built positions, to these
+  bots. Exploit numbers are the gains of challengers found so far: lower bounds.
+- The deep run extends v0.3's samples rather than replacing them (the first tenth of each
+  is v0.3's games), so it is more precise, not an independent replication.
+- The rollout valuer is unbiased for its bots but slow (about 1 minute per price curve).
+  The learned value model in Phase 3 makes it instant.
 
 ## Repository
 
@@ -414,7 +471,8 @@ print(result.winner, result.turns)
 src/monopoly_meta/   engine, Markov chain, ROI, bots, tournaments, rollouts, meta search,
                      unconventional strategies, hardening, replays, play mode
 src/monopoly_meta/data/uk_classic.json   board, rents and cards (with sources)
-scripts/             reproducible pipeline 01 → 14, figures, the PC job runner and the viewer's server
+scripts/             reproducible pipeline 01 → 15, figures, deal summaries, the README claims
+                     check, the PC job runner and the viewer's server
 results/tables       v0.3's numbers, as CSV/JSON (meta_<mode>/ holds per-table-size checkpoints)
 results/v04          v0.4: exploitability and unconventional strategies (tables/unconventional/summary.md)
 results/v05          v0.5: hardening and the meta agents kept (tables/hardened/summary.md)

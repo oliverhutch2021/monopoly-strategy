@@ -8,7 +8,8 @@ that square in its place: Player 1 owns it, Player 0 owns the rest of its group,
 else holds unrelated properties. The sale is then played out with paired rollouts at each
 price, exactly as for Vine Street (04_trade_curve.py), but with 1,000 rollouts per price on a
 coarser price grid. Vine Street itself reuses the 2,000-rollout curves from 04 / 06.
-Checkpointed per square and table size.
+Checkpointed per square and table size; a checkpoint is reused only if its inputs match (run_config.fresh).
+Championship rules forbid trades heads-up: those 2-player curves are hypothetical, marked legal=False.
 
 Outputs
   results/tables/property_trades/<bots>/<n>p_<square>.csv     checkpoints
@@ -18,16 +19,18 @@ Outputs
 import argparse
 import json
 import time
+from dataclasses import asdict
 
 import pandas as pd
 
 from monopoly_meta import load_edition
 from monopoly_meta.engine import championship_rules
 from monopoly_meta.meta import to_spec, tournament_rules
-from monopoly_meta.rollout import deal_summary, trade_price_curve
+from monopoly_meta.rollout import trade_price_curve
 from scenarios import set_completion
+from trade_summaries import properties
 
-from run_config import TABLES as TAB, scaled  # noqa: E402
+from run_config import TABLES as TAB, fresh, scaled, stamp  # noqa: E402
 
 N = scaled(1000)
 PRICES = [0, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 1000, 1200]
@@ -69,19 +72,20 @@ def main():
         bots, rules = players_for(args.bots, n)
         for sq in squares:
             path = d / f"{n}p_{sq:02d}.csv"
-            if path.exists():
+            inputs = {"bots": bots, "rules": asdict(rules) if rules else None, "n": N, "seed0": 777,
+                      "prices": PRICES, "square": sq, "scenario": "set_completion"}
+            if fresh(path, inputs):
                 continue
             c = trade_price_curve(set_completion(ed.names[sq], n), bots, seller=1, buyer=0, squares=[sq],
-                                  prices=PRICES, n=N, seed0=777, rules=rules)
+                                  prices=PRICES, n=N, seed0=777, rules=rules, hypothetical=True)
             c.assign(n_players=n, square=sq).to_csv(path, index=False)
+            stamp(path, inputs)
             print(f"{n}p {ed.names[sq]:24s} {time.time() - t:6.0f}s", flush=True)
     curves = [pd.read_csv(p) for p in sorted(d.glob("*p_*.csv"))] + [vine_curve(args.bots)]
     curve = pd.concat(curves)
     curve = curve[curve.n_players.isin(sorted({int(p.name.split("p_")[0]) for p in d.glob("*p_*.csv")}))]
     curve.to_csv(TAB / f"property_trade_curve_{args.bots}.csv", index=False)
-    rows = [{"n_players": n, "square": sq, "name": ed.names[sq], **deal_summary(c, seller=1, buyer=0)}
-            for (n, sq), c in curve.groupby(["n_players", "square"])]
-    summary = pd.DataFrame(rows)
+    summary = properties(curve, args.bots)
     summary.to_csv(TAB / f"property_trade_summary_{args.bots}.csv", index=False)
     print(summary.round(0).to_string(index=False))
 
