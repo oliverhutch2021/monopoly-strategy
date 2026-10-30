@@ -1,17 +1,33 @@
-"""Render every results figure from the CSVs in results/tables (run the numbered scripts first)."""
+"""Render every results figure from the CSVs in results/tables (run the numbered scripts first).
+
+Each chart is a title deed on the board: a cream card with an ink border on the board's mint, a band in the colour
+of the property group the chart is about (the board's ink when it's about the whole game), the title in Oswald
+capitals (scripts/fonts, SIL Open Font Licence) and the plot below. The colours are the board kit's (watch/board):
+houses green, hotels red, every property in its own colour. The data colours were checked for contrast on the card
+and for colour-blind readers; where the board's green sits close to its red, orange or pink for them, the chart
+also tells the two apart by marker shape, position or a label.
+"""
 import json
+from io import BytesIO
+from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib import font_manager
+from matplotlib.lines import Line2D
+from matplotlib.transforms import ScaledTranslation, blended_transform_factory
 from meta_common import ablations
+from PIL import Image, ImageDraw, ImageFont
 
 matplotlib.use("Agg")
 
 from run_config import FIGURES as FIG, TABLES as TAB, scaled  # noqa: E402
 FIG.mkdir(parents=True, exist_ok=True)
 ROLLOUTS = scaled(2000)  # paired rollouts per price in 04_trade_curve.py and 06_meta_trade_curve.py
+DPI = 180
+FONTS = Path(__file__).resolve().parent / "fonts"
 
 
 def games(df) -> str:
@@ -19,20 +35,27 @@ def games(df) -> str:
     return f"{int(df.games.max()):,}"
 
 
-# reference palette (light mode) from the dataviz method
-SURFACE, INK, INK2, MUTED = "#fcfcfb", "#0b0b0b", "#52514e", "#898781"
-GRID, AXIS = "#e1e0d9", "#c3c2b7"
-S1, S2, S3 = "#2a78d6", "#eb6834", "#1baf7a"
-SEQ = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
+# ---------------------------------------------------------------- the board's colours (watch/board)
+BOARD, CARD, INK = "#d6e9d4", "#fff9ee", "#203c44"     # mint field, title-deed cream, the board's ink
+INK2, MUTED = "#4a5f63", "#6f7c7b"                      # secondary and muted text on the card
+GRID, AXIS, NEUTRAL = "#ece4d2", "#cfc6b0", "#d8d1bf"   # hairlines, axis rules, the squares nobody can own
+GROUP = {"brown": "#8a5a3b", "light_blue": "#8cc9e8", "pink": "#c9468f", "orange": "#ec8a2c", "red": "#d53a2c",
+         "yellow": "#edcb2c", "green": "#22955a", "dark_blue": "#2c58a8", "stations": "#3b3833",
+         "utilities": "#9a9488"}
+# data colours: the board's own, orange one step darker so that it holds 3:1 on the card
+BLUE, RED, GREEN, ORANGE, PINK = "#2c58a8", "#d53a2c", "#22955a", "#d9731c", "#c9468f"
+HOUSE, HOTEL = GREEN, RED
+# value scales: houses green for amounts; Trafalgar red to Mayfair blue through cream for worse/better
+SEQ = ["#f0f6ef", "#d3eadb", "#a9d6b8", "#78bf92", "#4aa36f", "#22955a", "#1a7446", "#11502f"]
+DIV = ["#9e2a1f", "#cf4a3b", "#e88f82", "#f5d2cb", "#efe9dc", "#d0dbef", "#8ea8dc", "#4a72bd", "#24498f"]
 
 plt.rcParams.update({
-    "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
+    "figure.facecolor": CARD, "axes.facecolor": CARD, "savefig.facecolor": CARD,
     "font.family": "DejaVu Sans", "font.size": 10, "text.color": INK,
-    "axes.edgecolor": AXIS, "axes.labelcolor": INK2, "axes.titlecolor": INK,
-    "xtick.color": MUTED, "ytick.color": MUTED, "axes.grid": True, "grid.color": GRID,
-    "grid.linewidth": 0.8, "axes.spines.top": False, "axes.spines.right": False,
-    "axes.titlesize": 13, "axes.titleweight": "semibold", "axes.titlelocation": "left",
-    "legend.frameon": False,
+    "axes.edgecolor": AXIS, "axes.labelcolor": INK2, "xtick.color": AXIS, "ytick.color": AXIS,
+    "xtick.labelcolor": INK2, "ytick.labelcolor": INK2, "axes.grid": True, "grid.color": GRID,
+    "grid.linewidth": 0.8, "axes.spines.top": False, "axes.spines.right": False, "legend.frameon": False,
+    "legend.labelcolor": INK, "lines.solid_capstyle": "round",
 })
 
 SHORT = {
@@ -43,36 +66,138 @@ SHORT = {
 }
 GROUP_LABEL = {"brown": "Brown", "light_blue": "Light blue", "pink": "Pink", "orange": "Orange",
                "red": "Red", "yellow": "Yellow", "green": "Green", "dark_blue": "Dark blue"}
-
-
 VARIANT_LABEL = {
     "aggressive": "aggressive (no cash buffer)", "cautious": "cautious (£400 buffer)",
     "three_house": "three-house cap", "hoarder": "never builds hotels", "jail_short": "always leaves jail",
     "jail_long": "always stays in jail", "take_chance": "takes the Chance card",
     "no_trade": "never proposes trades", "hard_bargain": "hard bargainer (asks 3×, offers 1.5×)",
 }
+MODE_TITLE = {"standard": "official rules", "championship": "championship rules"}
 
 
-def title(ax, main, sub):
-    ax.set_title(main, pad=26 + 14 * sub.count("\n"))
-    ax.text(0, 1.02, sub, transform=ax.transAxes, color=INK2, fontsize=9.5, va="bottom")
+# ---------------------------------------------------------------- the title-deed card
+def _font(pt: float, face: str = "Oswald-700.ttf") -> ImageFont.FreeTypeFont:
+    path = font_manager.findfont("DejaVu Sans") if face == "DejaVu" else str(FONTS / face)
+    return ImageFont.truetype(path, round(pt * DPI / 72))
+
+
+def _width(draw, text: str, font, tracking: float = 0) -> float:
+    return draw.textlength(text, font=font) + tracking * max(len(text) - 1, 0)
+
+
+def _wrap(draw, text: str, font, width: float, tracking: float = 0) -> list[str]:
+    lines, line = [], ""
+    for word in text.split():
+        trial = f"{line} {word}".strip()
+        if line and _width(draw, trial, font, tracking) > width:
+            lines.append(line)
+            line = word
+        else:
+            line = trial
+    return lines + [line] if line else lines
+
+
+def _centred(draw, cx: float, y: float, text: str, font, fill: str, tracking: float = 0) -> None:
+    x = cx - _width(draw, text, font, tracking) / 2
+    if not tracking:
+        draw.text((x, y), text, font=font, fill=fill)
+        return
+    for ch in text:
+        draw.text((x, y), ch, font=font, fill=fill)
+        x += draw.textlength(ch, font=font) + tracking
+
+
+def deed(fig, band: str, kicker: str, title: str, sub: str) -> None:
+    """Title a chart like a title deed: a band in `band` with the kicker over the title, the subtitle below it."""
+    fig._deed = (band, kicker, title, sub)
+
+
+def card(chart: Image.Image, band: str, kicker: str, title: str, sub: str) -> Image.Image:
+    """The rendered chart on a title-deed card, laid on the board's mint."""
+    px = DPI / 72
+    edge, border, inset, pad = round(9 * px), max(2, round(1.1 * px)), round(4 * px), round(11 * px)
+    fk, ft, fs = _font(8, "Oswald-500.ttf"), _font(17), _font(9, "DejaVu")
+    tk, tt = 0.16 * 8 * px, 0.02 * 17 * px  # letter-spacing of the kicker and the title, in pixels
+    d = ImageDraw.Draw(Image.new("RGB", (8, 8)))
+    inner = max(chart.width, round(6.4 * DPI))
+    text_w = inner - 2 * (inset + pad)
+    titles = _wrap(d, title.upper(), ft, text_w, tt)
+    subs = [line for part in sub.split("\n") for line in _wrap(d, part, fs, text_w)]
+    kh, th, sh = round(8 * px * 1.5), round(17 * px * 1.22), round(9 * px * 1.45)
+    band_h = round(0.75 * pad) + kh + len(titles) * th + round(0.8 * pad)
+    w = inner + 2 * border
+    sub_top = border + inset + band_h + round(0.8 * pad)
+    chart_top = sub_top + len(subs) * sh + round(0.5 * pad)
+    h = chart_top + chart.height + pad + border
+    img = Image.new("RGB", (w + 2 * edge, h + 2 * edge), BOARD)
+    d = ImageDraw.Draw(img)
+    d.rectangle([edge, edge, edge + w - 1, edge + h - 1], fill=CARD, outline=INK, width=border)
+    x0, y0 = edge + border + inset, edge + border + inset
+    d.rectangle([x0, y0, edge + w - 1 - border - inset, y0 + band_h], fill=band, outline=INK, width=max(1, border // 2))
+    cx = edge + w / 2
+    y = y0 + round(0.75 * pad)
+    _centred(d, cx, y, kicker.upper(), fk, "#ffffff", tk)
+    y += kh
+    for line in titles:
+        _centred(d, cx, y, line, ft, "#ffffff", tt)
+        y += th
+    y = edge + sub_top
+    for line in subs:
+        _centred(d, cx, y, line, fs, INK2)
+        y += sh
+    img.paste(chart, (round(cx - chart.width / 2), edge + chart_top))
+    return img
 
 
 def save(fig, name):
-    fig.savefig(FIG / name, dpi=180, bbox_inches="tight")
+    buf = BytesIO()
+    fig.savefig(buf, dpi=DPI, bbox_inches="tight", pad_inches=0.1)
     plt.close(fig)
+    buf.seek(0)
+    card(Image.open(buf).convert("RGB"), *fig._deed).save(FIG / name, optimize=True)
     print("wrote", name)
 
 
+def group_ticks(ax, groups) -> None:
+    """Colour groups as y tick labels, each with a square in its board colour beside the axis."""
+    ax.set_yticks(range(len(groups)))
+    ax.set_yticklabels([GROUP_LABEL[g] for g in groups], color=INK)
+    ax.tick_params(axis="y", length=0, pad=17)
+    shift = ScaledTranslation(-8.5 / 72, 0, ax.figure.dpi_scale_trans)  # the squares sit 8.5 pt left of the axis
+    tr = blended_transform_factory(ax.transAxes, ax.transData) + shift
+    for i, g in enumerate(groups):
+        ax.plot([0], [i], marker="s", ms=8, color=GROUP[g], transform=tr, clip_on=False, zorder=5)
+
+
+def plain(ax, rows: int | None = None, cols: int | None = None) -> None:
+    """A table-like chart: no grid, spines or tick marks; cells parted by the card's colour, like board squares."""
+    ax.grid(False)
+    for s in ax.spines.values():
+        s.set_visible(False)
+    ax.tick_params(length=0)
+    for x in np.arange(0.5, (cols or 0) - 1, 1):
+        ax.axvline(x, color=CARD, lw=2.5)
+    for y in np.arange(0.5, (rows or 0) - 1, 1):
+        ax.axhline(y, color=CARD, lw=2.5)
+
+
+def key(color: str, marker: str, label: str) -> Line2D:
+    """A legend entry for a dot series (an errorbar's own entry carries a stray whisker)."""
+    return Line2D([], [], ls="", marker=marker, ms=7, color=color, markeredgecolor=CARD, markeredgewidth=1.5,
+                  label=label)
+
+
+# ---------------------------------------------------------------- the charts
 def fig_landing():
     lp = pd.read_csv(TAB / "landing_probabilities.csv")
     y = 100 * lp.landings_per_turn_long
+    colour = [GROUP.get(g, NEUTRAL) if isinstance(g, str) else NEUTRAL for g in lp.group]
     ownable = lp.type.isin(["street", "station", "utility"])
-    fig, ax = plt.subplots(figsize=(11, 4.6))
-    ax.bar(lp.square[ownable], y[ownable], width=0.62, color=S1, label="Property you can buy", zorder=3)
-    ax.bar(lp.square[~ownable], y[~ownable], width=0.62, color=AXIS, label="Other square", zorder=3)
+    fig, ax = plt.subplots(figsize=(11, 4.4))
+    ax.bar(lp.square, y, width=0.66, color=colour, zorder=3)
     ax.set_xticks(lp.square)
-    ax.set_xticklabels([SHORT.get(n, n) for n in lp.name], rotation=90, fontsize=7.5, color=INK2)
+    ax.set_xticklabels([SHORT.get(n, n) for n in lp.name], rotation=90, fontsize=7.5)
+    ax.tick_params(axis="x", length=0)
     ax.set_ylabel("Landings per 100 turns")
     ax.grid(axis="x", visible=False)
     ax.set_xlim(-0.8, 39.8)
@@ -81,33 +206,30 @@ def fig_landing():
     for _, r in top.iterrows():
         ax.annotate(f"{r.v:.2f}", (r.square, r.v), xytext=(0, 3), textcoords="offset points",
                     ha="center", fontsize=8, color=INK)
-    ax.legend(loc="upper left", fontsize=8.5, ncol=2, bbox_to_anchor=(0, 1.0))
-    title(ax, "Trafalgar Square is the most-landed property on the UK board",
-          "Expected landings per 100 turns from the exact Markov chain (long-stay jail strategy). "
-          "Jail itself: 11.0% of turns.")
+    deed(fig, GROUP["red"], "Landing odds", "Trafalgar Square is the most-landed property",
+         "Expected landings per 100 turns from the exact Markov chain (staying in jail to roll for doubles), each "
+         "property in its colour on the board; grey squares can't be bought. Jail itself: 11.0% of turns.")
     save(fig, "landing_probabilities.png")
 
 
 def fig_payback():
     gt = pd.read_csv(TAB / "group_economics_4p.csv")
     gt = gt[gt.group.isin(GROUP_LABEL)]
-    piv = gt.pivot(index="group", columns="level", values="payback_rounds")
-    piv = piv.sort_values("hotel", ascending=False)
-    ypos = np.arange(len(piv))
-    h = 0.34
+    piv = gt.pivot(index="group", columns="level", values="payback_rounds").sort_values("hotel", ascending=False)
+    ypos, h = np.arange(len(piv)), 0.34
     fig, ax = plt.subplots(figsize=(8.5, 4.8))
-    ax.barh(ypos + h / 2, piv["3 houses"], height=h, color=S1, label="3 houses", zorder=3)
-    ax.barh(ypos - h / 2, piv["hotel"], height=h, color=S2, label="Hotel", zorder=3)
+    ax.barh(ypos + h / 2, piv["3 houses"], height=h, color=HOUSE, label="3 houses", zorder=3)
+    ax.barh(ypos - h / 2, piv["hotel"], height=h, color=HOTEL, label="Hotel", zorder=3)
     for i, (a, b) in enumerate(zip(piv["3 houses"], piv["hotel"])):
         ax.text(a + 0.15, i + h / 2, f"{a:.1f}", va="center", fontsize=8, color=INK2)
         ax.text(b + 0.15, i - h / 2, f"{b:.1f}", va="center", fontsize=8, color=INK2)
-    ax.set_yticks(ypos)
-    ax.set_yticklabels([GROUP_LABEL[g] for g in piv.index], color=INK)
+    group_ticks(ax, list(piv.index))
     ax.set_xlabel("Rounds to pay back the whole set + buildings (4 players)")
     ax.grid(axis="y", visible=False)
     ax.legend(loc="lower right", fontsize=9)
-    title(ax, "Orange pays for itself fastest, at any table size",
-          "Investment ÷ rent per round from 3 opponents. Other sizes: multiply by 3/(n−1); the ranking never changes")
+    deed(fig, GROUP["orange"], "Payback", "Orange pays for itself fastest, at any table size",
+         "Investment ÷ rent per round from 3 opponents, houses green and hotels red as on the board. "
+         "Other sizes: multiply by 3/(n−1); the ranking never changes.")
     save(fig, "payback_by_group.png")
 
 
@@ -118,32 +240,30 @@ def fig_marginal():
     levels = ["1 house", "2 houses", "3 houses", "4 houses", "hotel"]
     m = gt.pivot(index="group", columns="level", values="marginal_roi_per_round").loc[order, levels] * 100
     fig, ax = plt.subplots(figsize=(7.5, 4.9))
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("seq", SEQ)
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("houses", SEQ)
     im = ax.imshow(m.values, cmap=cmap, aspect="auto", vmin=0, vmax=m.values.max())
     for i in range(m.shape[0]):
         for j in range(m.shape[1]):
             v = m.values[i, j]
             ax.text(j, i, f"{v:.0f}%", ha="center", va="center", fontsize=8.5,
-                    color="#ffffff" if v > 0.55 * m.values.max() else INK)
+                    color="#ffffff" if v > 0.6 * m.values.max() else INK)
     ax.set_xticks(range(len(levels)))
     ax.set_xticklabels(["1st house", "2nd", "3rd", "4th", "Hotel"], color=INK)
-    ax.set_yticks(range(len(order)))
-    ax.set_yticklabels([GROUP_LABEL[g] for g in order], color=INK)
-    ax.grid(False)
-    for s in ax.spines.values():
-        s.set_visible(False)
+    plain(ax, *m.shape)
+    group_ticks(ax, order)
     cb = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.02)
     cb.outline.set_visible(False)
-    cb.ax.tick_params(colors=MUTED, labelsize=8)
-    title(ax, "The third house is the best money you can spend",
-          "Extra rent per round (3 opponents) per £ spent on that building level")
+    cb.ax.tick_params(colors=AXIS, labelcolor=MUTED, labelsize=8)
+    deed(fig, GROUP["green"], "Houses and hotels", "The third house is the best money you can spend",
+         "Extra rent per round (3 opponents) per £ spent on that building level")
     save(fig, "marginal_return_heatmap.png")
 
 
 def fig_seat():
     sa = pd.read_csv(TAB / "seat_advantage.csv")
     fig, ax = plt.subplots(figsize=(8, 4.4))
-    for (label, pick, color, dx) in [("First player", "first", S1, -0.08), ("Last player", "last", S2, 0.08)]:
+    for label, pick, color, marker, dx in [("First player", "first", BLUE, "o", -0.08),
+                                           ("Last player", "last", RED, "s", 0.08)]:
         xs, ys, lo, hi = [], [], [], []
         for n, d in sa.groupby("n_players"):
             r = d.iloc[0] if pick == "first" else d.iloc[-1]
@@ -151,17 +271,41 @@ def fig_seat():
             ys.append(100 * (r.win_rate - r.fair_share))
             lo.append(100 * (r.win_rate - r.ci_low))
             hi.append(100 * (r.ci_high - r.win_rate))
-        ax.errorbar(xs, ys, yerr=[lo, hi], fmt="o", color=color, ms=7, capsize=0, elinewidth=1.6,
-                    label=label, zorder=3, markeredgecolor=SURFACE, markeredgewidth=1.5)
+        ax.errorbar(xs, ys, yerr=[lo, hi], fmt=marker, color=color, ms=7, capsize=0, elinewidth=1.6,
+                    label=label, zorder=3, markeredgecolor=CARD, markeredgewidth=1.5)
     ax.axhline(0, color=AXIS, lw=1)
     ax.set_xticks(range(2, 7))
     ax.set_xlabel("Number of players")
     ax.set_ylabel("Win rate minus fair share (pp)")
     ax.grid(axis="x", visible=False)
-    ax.legend(loc="upper left", fontsize=9)
-    title(ax, "Going first is a real edge once there are 3+ players",
-          "Identical 'balanced' bots, fixed seats; 95% Wilson intervals")
+    ax.legend(handles=[key(BLUE, "o", "First player"), key(RED, "s", "Last player")], loc="upper left", fontsize=9)
+    deed(fig, INK, "Seat order", "Going first is a real edge once there are 3+ players",
+         f"Identical simple bots in fixed seats, {int(sa.games.max()):,} games per table size; 95% Wilson intervals")
     save(fig, "seat_advantage.png")
+
+
+def _diverging_heatmap(m, lo, hi, ax):
+    """Ratios on a log scale, red below 1 and blue above, full colour at 0.5x and 2x (the numbers carry the rest);
+    empty cells (NaN) are left blank with a dash."""
+    logm = np.ma.masked_invalid(np.log2(m.values.astype(float)))
+    lim = 1.0
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("worse-better", DIV)
+    cmap.set_bad(CARD)
+    ax.imshow(logm, cmap=cmap, vmin=-lim, vmax=lim, aspect="auto")
+    for i in range(m.shape[0]):
+        for j in range(m.shape[1]):
+            v = m.values[i, j]
+            if not np.isfinite(v):
+                ax.text(j, i, "—", ha="center", va="center", fontsize=9, color=MUTED)
+                continue
+            sig = lo.values[i, j] > 1 or hi.values[i, j] < 1
+            ax.text(j, i, f"{v:.2f}×" + ("" if sig else "*"), ha="center", va="center", fontsize=9,
+                    color="#ffffff" if abs(logm[i, j]) > 0.7 * lim else INK)
+    ax.set_xticks(range(m.shape[1]))
+    ax.set_xticklabels([f"{n} players" for n in m.columns], color=INK)
+    ax.set_yticks(range(m.shape[0]))
+    ax.set_yticklabels(m.index, color=INK)
+    plain(ax, *m.shape)
 
 
 def fig_strategies(mode="standard"):
@@ -171,55 +315,33 @@ def fig_strategies(mode="standard"):
     sv = sv[sv.variant != "random"]
     order = (sv.groupby("variant").relative.mean().sort_values(ascending=False).index.tolist())
     counts = sorted(sv.n_players.unique())
-    m = sv.pivot(index="variant", columns="n_players", values="relative").loc[order, counts]
-    lo = sv.pivot(index="variant", columns="n_players", values="rel_low").loc[order, counts]
-    hi = sv.pivot(index="variant", columns="n_players", values="rel_high").loc[order, counts]
-    logm = np.log2(m.values)
-    lim = np.abs(logm).max()
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        "div", ["#b8302f", "#e34948", "#f4b4b3", "#f0efec", "#9ec5f4", "#3987e5", "#184f95"])
+    piv = {k: sv.pivot(index="variant", columns="n_players", values=k).loc[order, counts]
+           for k in ("relative", "rel_low", "rel_high")}
+    piv["relative"].index = [VARIANT_LABEL.get(v, v) for v in order]
     fig, ax = plt.subplots(figsize=(8, 5.6))
-    ax.imshow(logm, cmap=cmap, vmin=-lim, vmax=lim, aspect="auto")
-    for i in range(m.shape[0]):
-        for j in range(m.shape[1]):
-            v = m.values[i, j]
-            sig = lo.values[i, j] > 1 or hi.values[i, j] < 1
-            ax.text(j, i, f"{v:.2f}×" + ("" if sig else "*"), ha="center", va="center", fontsize=9,
-                    color="#ffffff" if abs(logm[i, j]) > 0.6 * lim else INK)
-    ax.set_xticks(range(len(counts)))
-    ax.set_xticklabels([f"{n} players" for n in counts], color=INK)
-    ax.set_yticks(range(len(order)))
-    ax.set_yticklabels([VARIANT_LABEL.get(v, v) for v in order], color=INK)
-    ax.tick_params(length=0)
-    ax.grid(False)
-    for s in ax.spines.values():
-        s.set_visible(False)
-    question = " under championship rules?" if champ else ", at every table size?"
-    title(ax, "Which tweaks to the baseline bot win" + question,
-          f"Win rate ÷ fair share vs (n−1) baseline bots; {games(sv)} games per cell; * = not significant at 95%")
+    _diverging_heatmap(piv["relative"], piv["rel_low"], piv["rel_high"], ax)
+    deed(fig, INK, f"Strategy tweaks · {MODE_TITLE[mode]}", "Which tweaks to the simple bot win?",
+         f"One tweaked bot against simple bots: win rate ÷ fair share, {games(sv)} games per cell.\n"
+         "Red loses (darkest at 0.5× or less), blue wins; * = not significant at 95%")
     save(fig, "strategy_variants_championship.png" if champ else "strategy_variants.png")
 
 
 def fig_deal_zone():
     """Seller's break-even and buyer's maximum for Vine Street, by player count and by who plays on."""
-    rows = [("simple bots", TAB / "trade_curve_summary.csv", S3)]
-    for mode, col in (("standard", "#6250d6"), ("championship", "#e87ba4")):
-        rows.append((f"meta agents, {MODE_TITLE[mode].split(' (')[0]}", TAB / f"meta_trade_summary_{mode}.csv", col))
+    rows = [("simple bots", TAB / "trade_curve_summary.csv", GREEN)]
+    for mode, col in (("standard", BLUE), ("championship", PINK)):
+        rows.append((f"meta agents, {MODE_TITLE[mode]}", TAB / f"meta_trade_summary_{mode}.csv", col))
     rows = [(lab, pd.read_csv(f).query("buyer == 0") if "buyer" in pd.read_csv(f) else pd.read_csv(f), col)
             for lab, f, col in rows if f.exists()]
     offsets = np.linspace(-0.27, 0.27, len(rows)) if len(rows) > 1 else [0.0]
     fig, ax = plt.subplots(figsize=(11, 6.8))
-    seen = set()
     for (lab, s, col), dy in zip(rows, offsets):
         for _, r in s.sort_values("n_players").iterrows():
             y = r.n_players + dy
             lo, hi = r.seller_min_price_win, r.buyer_max_price_win
             cens = bool(r.get("buyer_max_censored", False))
             if np.isfinite(lo) and np.isfinite(hi) and hi > lo:
-                key = f"Deal zone ({lab})"
-                ax.plot([lo, hi], [y, y], color=col, lw=6, alpha=0.55, solid_capstyle="round", zorder=2,
-                        label=key if key not in seen else None)
-                seen.add(key)
+                ax.plot([lo, hi], [y, y], color=col, lw=6, alpha=0.35, solid_capstyle="round", zorder=2)
                 txt = f"£{lo:,.0f} – £{hi:,.0f}" + ("+" if cens else "")
             elif np.isfinite(lo) and np.isfinite(hi):
                 txt = f"none (both break even at £{lo:,.0f})"
@@ -227,48 +349,53 @@ def fig_deal_zone():
                 txt = "none (seller loses at every price)"
             else:
                 txt = "none"
-            for v, c, name in [(lo, S2, "Seller's break-even"), (hi, S1, "Buyer's maximum")]:
-                if np.isfinite(v):
-                    ax.plot(v, y, "o", color=c, ms=7, markeredgecolor=SURFACE, markeredgewidth=1.6, zorder=3,
-                            label=name if name not in seen else None)
-                    seen.add(name)
+            if np.isfinite(lo):
+                ax.plot(lo, y, "o", ms=7.5, markerfacecolor=CARD, markeredgecolor=col, markeredgewidth=2, zorder=3)
+            if np.isfinite(hi):
+                ax.plot(hi, y, "o", ms=7.5, color=col, markeredgecolor=CARD, markeredgewidth=1.4, zorder=4)
             ax.text(1265, y, f"{lab}: {txt}", fontsize=7.5, color=INK2, va="center")
     counts = sorted(rows[0][1].n_players)
     ax.set_yticks(counts)
     ax.set_yticklabels([f"{n} players" for n in counts], color=INK)
+    ax.tick_params(axis="y", length=0)
     ax.set_ylim(max(counts) + 0.6, min(counts) - 0.6)
     ax.set_xlim(0, 1900)
     ax.set_xticks(range(0, 1201, 200))
     ax.set_xlabel("Price for Vine Street (£)")
     ax.grid(axis="y", visible=False)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.45, -0.1), ncol=3, fontsize=8)
-    title(ax, "Is there a price that suits both sides?",
-          f"Orange-squeeze position; {ROLLOUTS:,} paired rollouts per price; "
-          "'+' = buyer would pay all £1,200 they have")
+    handles = [Line2D([], [], color=col, lw=6, alpha=0.35, label=f"Deal zone, {lab}") for lab, _, col in rows]
+    handles += [Line2D([], [], ls="", marker="o", ms=7.5, markerfacecolor=CARD, markeredgecolor=INK2,
+                       markeredgewidth=2, label="Seller's break-even"),
+                Line2D([], [], ls="", marker="o", ms=7.5, color=INK2, label="Buyer's maximum")]
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.45, -0.1), ncol=3, fontsize=8)
+    deed(fig, GROUP["orange"], "Vine Street", "Is there a price that suits both sides?",
+         f"Orange-squeeze position; {ROLLOUTS:,} paired rollouts per price; "
+         "'+' = the buyer would pay all £1,200 they have")
     save(fig, "deal_zone_by_players.png")
 
 
 def fig_house_rules():
     hr = pd.read_csv(TAB / "house_rules.csv")
     fig, ax = plt.subplots(figsize=(8, 4.4))
-    names = {"official": ("Official rules", S1), "free_parking_jackpot": ("Free Parking jackpot", S2),
-             "no_auctions": ("No auctions", S3)}
-    for key, (lab, col) in names.items():
+    names = {"official": ("Official rules", BLUE, "o"), "free_parking_jackpot": ("Free Parking jackpot", GREEN, "s"),
+             "no_auctions": ("No auctions", ORANGE, "^")}
+    for key, (lab, col, marker) in names.items():
         d = hr[hr.rules == key].sort_values("n_players")
-        ax.plot(d.n_players, d.median_rounds, "-o", color=col, lw=2, ms=7, label=lab,
-                markeredgecolor=SURFACE, markeredgewidth=1.5)
+        ax.plot(d.n_players, d.median_rounds, "-" + marker, color=col, lw=2, ms=7, label=lab,
+                markeredgecolor=CARD, markeredgewidth=1.5)
     champ = TAB / "championship_seat_advantage.csv"
     if champ.exists():
         d = pd.read_csv(champ).groupby("n_players").median_rounds.first()
-        ax.plot(d.index, d.values, "-o", color="#6250d6", lw=2, ms=7, label="Championship rules (Speed Die)",
-                markeredgecolor=SURFACE, markeredgewidth=1.5)
+        ax.plot(d.index, d.values, "-D", color=PINK, lw=2, ms=6.5, label="Championship rules (Speed Die)",
+                markeredgecolor=CARD, markeredgewidth=1.5)
     ax.set_xticks(sorted(hr.n_players.unique()))
     ax.set_xlabel("Number of players")
     ax.set_ylabel("Median game length (rounds)")
     ax.grid(axis="x", visible=False)
     ax.legend(loc="upper right", fontsize=9)
-    title(ax, "More players, shorter games (in rounds)", f"Identical baseline bots; {games(hr)} games per point")
     ax.set_ylim(bottom=0)
+    deed(fig, INK, "Game length", "More players, shorter games (in rounds)",
+         f"Identical simple bots; {games(hr)} games per point")
     save(fig, "game_length_by_players.png")
 
 
@@ -284,27 +411,29 @@ def fig_trade(n_players=4):
     lo = s[s.buyer == 0].seller_min_price_win.iloc[0]
     hi = s[s.buyer == 0].buyer_max_price_win.iloc[0]
     if np.isfinite(lo) and np.isfinite(hi) and hi > lo:
-        ax.axvspan(lo, hi, color=S3, alpha=0.10, lw=0, zorder=1)
+        ax.axvspan(lo, hi, color=GROUP["orange"], alpha=0.12, lw=0, zorder=1)
         ax.text((lo + hi) / 2, 88, f"deal zone: £{lo:,.0f} – £{hi:,.0f}", ha="center", va="top",
                 color=INK2, fontsize=9)
-    for d, col, lab in [(buyer, S1, "Buyer (owns the other two oranges)"), (seller, S2, "Seller (owns Vine Street)")]:
+    for d, col, lab in [(buyer, BLUE, "Buyer (owns the other two oranges)"),
+                        (seller, RED, "Seller (owns Vine Street)")]:
         ax.fill_between(d.price, 100 * (d.d_win - 1.96 * d.d_win_se), 100 * (d.d_win + 1.96 * d.d_win_se),
                         color=col, alpha=0.12, lw=0, zorder=2)
         ax.plot(d.price, 100 * d.d_win, color=col, lw=2, label=lab, zorder=3)
-    ax.plot(by.price, 100 * by.d_win, color=MUTED, lw=2, ls="-",
-            label=f"The {n_players - 2} other players (combined)", zorder=3)
+    ax.plot(by.price, 100 * by.d_win, color=MUTED, lw=2, label=f"The {n_players - 2} other players (combined)",
+            zorder=3)
     ax.axhline(0, color=AXIS, lw=1)
     ax.set_xlabel("Price paid for Vine Street (£)")
     ax.set_ylabel("Change in win probability (pp)")
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=3, fontsize=8.5)
     ax.grid(axis="x", visible=False)
-    title(ax, f"What is Vine Street worth, and to whom? ({n_players} players)",
-          f"Orange-squeeze position, {ROLLOUTS:,} paired rollouts per price (common random numbers); "
-          "bands = 95% CI")
+    deed(fig, GROUP["orange"], f"Vine Street · {n_players} players", "What is Vine Street worth, and to whom?",
+         f"Orange-squeeze position, {ROLLOUTS:,} paired rollouts per price (common random numbers); "
+         "bands = 95% CI")
     save(fig, "trade_curve_vine_street.png")
 
     fig, ax = plt.subplots(figsize=(8, 4.4))
-    for b, col, lab in [(0, S1, "Sell to the player who completes orange"), (2, S3, "Sell to a player who doesn't")]:
+    for b, col, lab in [(0, ORANGE, "Sell to the player who completes orange"),
+                        (2, BLUE, "Sell to a player who doesn't")]:
         d = c[(c.buyer == b) & (c.player == 1)].sort_values("price")
         d = d[d.price <= 600]
         ax.fill_between(d.price, 100 * (d.d_win - 1.96 * d.d_win_se), 100 * (d.d_win + 1.96 * d.d_win_se),
@@ -315,39 +444,9 @@ def fig_trade(n_players=4):
     ax.set_ylabel("Seller's change in win probability (pp)")
     ax.legend(loc="upper left", fontsize=8.5)
     ax.grid(axis="x", visible=False)
-    title(ax, "Who you sell to matters as much as the price",
-          f"Seller = owner of Vine Street; {n_players} players, same position and rollouts as above")
+    deed(fig, GROUP["orange"], f"Vine Street · {n_players} players", "Who you sell to matters as much as the price",
+         f"Seller = owner of Vine Street; {n_players} players, same position and rollouts as above")
     save(fig, "trade_curve_who_you_sell_to.png")
-
-
-def _diverging_heatmap(m, lo, hi, ax):
-    """Ratios on a log scale, red below 1 and blue above; empty cells (NaN) are left blank with a dash."""
-    logm = np.ma.masked_invalid(np.log2(m.values.astype(float)))
-    lim = max(float(np.abs(logm).max()) if logm.count() else 0.0, 0.05)
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
-        "div", ["#b8302f", "#e34948", "#f4b4b3", "#f0efec", "#9ec5f4", "#3987e5", "#184f95"])
-    cmap.set_bad(SURFACE)
-    ax.imshow(logm, cmap=cmap, vmin=-lim, vmax=lim, aspect="auto")
-    for i in range(m.shape[0]):
-        for j in range(m.shape[1]):
-            v = m.values[i, j]
-            if not np.isfinite(v):
-                ax.text(j, i, "—", ha="center", va="center", fontsize=9, color=MUTED)
-                continue
-            sig = lo.values[i, j] > 1 or hi.values[i, j] < 1
-            ax.text(j, i, f"{v:.2f}×" + ("" if sig else "*"), ha="center", va="center", fontsize=9,
-                    color="#ffffff" if abs(logm[i, j]) > 0.6 * lim else INK)
-    ax.set_xticks(range(m.shape[1]))
-    ax.set_xticklabels([f"{n} players" for n in m.columns], color=INK)
-    ax.set_yticks(range(m.shape[0]))
-    ax.set_yticklabels(m.index, color=INK)
-    ax.tick_params(length=0)
-    ax.grid(False)
-    for s in ax.spines.values():
-        s.set_visible(False)
-
-
-MODE_TITLE = {"standard": "official rules", "championship": "championship rules (Speed Die)"}
 
 
 def no_op_ablations(mode):
@@ -369,32 +468,33 @@ def fig_meta_ablations(mode):
            for k in ("relative", "rel_low", "rel_high")}
     fig, ax = plt.subplots(figsize=(8.5, 6.2))
     _diverging_heatmap(piv["relative"], piv["rel_low"], piv["rel_high"], ax)
-    title(ax, f"Deviating from the meta, {MODE_TITLE[mode]}",
-          "One deviating player vs (n−1) meta agents, relative to a meta agent at the same table; "
-          f"{games(ab)} games per cell;\n* = not significant; — = the agent already plays this way")
+    deed(fig, GROUP["dark_blue"], f"Off the meta · {MODE_TITLE[mode]}", "Deviating from the meta",
+         f"One setting changed in one meta agent, against unchanged agents; {games(ab)} games per cell.\n"
+         "Red loses (darkest at 0.5× or less), blue wins; * = not significant; — = the agent already plays this way")
     save(fig, f"meta_ablations_{mode}.png")
 
 
 def fig_meta_validation(mode):
     v = pd.read_csv(TAB / f"meta_validation_{mode}.csv")
-    series = [("meta agent vs baseline bots", S1, "Meta agent vs simple bots", "relative"),
-              ("baseline bot vs meta agents", S2, "Simple bot at a table of meta agents", "relative"),
-              ("best challenger vs meta agents", S3, "Best challenger trained against the meta", "relative")]
+    series = [("meta agent vs baseline bots", BLUE, "o", "Meta agent at a table of simple bots"),
+              ("baseline bot vs meta agents", RED, "s", "Simple bot at a table of meta agents"),
+              ("best challenger vs meta agents", GREEN, "D", "Best challenger at a table of meta agents")]
     fig, ax = plt.subplots(figsize=(8.5, 4.6))
-    for k, (name, col, lab, key) in enumerate(series):
+    for k, (name, col, marker, lab) in enumerate(series):
         d = v[v.name == name].sort_values("n_players")
         x = d.n_players + (k - 1) * 0.12
-        ax.errorbar(x, d[key], yerr=[d[key] - d.rel_low, d.rel_high - d[key]], fmt="o",
-                    color=col, ms=7, elinewidth=1.6, capsize=0, label=lab, zorder=3,
-                    markeredgecolor=SURFACE, markeredgewidth=1.5)
+        ax.errorbar(x, d.relative, yerr=[d.relative - d.rel_low, d.rel_high - d.relative], fmt=marker,
+                    color=col, ms=7 if marker != "D" else 6.5, elinewidth=1.6, capsize=0, label=lab, zorder=3,
+                    markeredgecolor=CARD, markeredgewidth=1.5)
     ax.axhline(1, color=AXIS, lw=1)
     ax.set_xticks(range(2, 7))
     ax.set_xlabel("Number of players")
     ax.set_ylabel("Win credit, relative")
     ax.grid(axis="x", visible=False)
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3, fontsize=8.5)
-    title(ax, f"How strong are the meta agents? {MODE_TITLE[mode][0].upper()}{MODE_TITLE[mode][1:]}",
-          f"1.0 = level with the player it replaces, on the same {games(v)} games; 95% bootstrap CIs")
+    ax.legend(handles=[key(col, marker, lab) for _, col, marker, lab in series], loc="upper center",
+              bbox_to_anchor=(0.5, -0.16), ncol=3, fontsize=8.5)
+    deed(fig, GROUP["dark_blue"], f"Champions' table · {MODE_TITLE[mode]}", "How strong are the meta agents?",
+         f"1.0 = level with the player it replaces, on the same {games(v)} games; 95% bootstrap intervals")
     save(fig, f"meta_validation_{mode}.png")
 
 

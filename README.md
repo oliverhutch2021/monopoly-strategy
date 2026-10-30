@@ -348,7 +348,7 @@ data/uk_classic.json ──► edition.py ──► engine.py  (full-rules simul
   setting. When cards are drawn with replacement (the chain's assumption), every square
   matches to within **0.5%**. Real fixed decks shift a few card-destination squares by up
   to 1.8% while someone is holding a Get Out of Jail Free card.
-- **Tests**: 154 `pytest` tests:
+- **Tests**: 155 `pytest` tests:
   - rule-by-rule checks with scripted dice;
   - invariant checks after every turn of 160 full games under four rule sets (house
     supply, even building, deck integrity, no negative cash);
@@ -432,4 +432,5 @@ model the game.
 
 ## Licence
 
-Code: [MIT](LICENSE).
+Code: [MIT](LICENSE). The Oswald font in the charts and the dashboard: SIL Open Font Licence 1.1
+([scripts/fonts/OFL.txt](scripts/fonts/OFL.txt)).
