@@ -125,10 +125,15 @@ class Claims:
         other = s[s.buyer != 0]
         lo, hi = other.seller_min_price_win.min(), other.seller_min_price_win.max()
         self.text("4", "selling to a bystander", f"(break-even {span(lo, hi, '£')})")
-        gap = 1 - need.buyer_max_price_networth / need.buyer_max_price_win
-        self.text("3", "net worth gap", f"The gap is **{pct(gap[2])} at 2 players, {pct(gap[3])} at 3 and "
-                  f"{pct(gap[4])} at 4**, and at least {span(gap[[5, 6]].min(), gap[[5, 6]].max())} at 5{DASH}6 "
-                  "players")
+        for k in (5, 10, 20):  # net worth after k of each player's own turns
+            gap = 1 - need[f"buyer_max_price_networth_r{k}"] / need.buyer_max_price_win
+            cells = [("≥" if need.buyer_max_censored[n] else "") + pct(gap[n]) for n in range(2, 7)]
+            self.regex("3", f"net worth gap after {k} own turns", row(f"{k} own turns", *cells))
+        half = (need.deal_low_ci_high - need.deal_low_ci_low) / 2, (need.deal_high_ci_high - need.deal_high_ci_low) / 2
+        ends = pd.concat([h[[3, 4]] for h in half])
+        self.text("4", "bootstrap intervals", f"95% intervals of ±{span(ends.min(), ends.max(), '£')} for the 3- and "
+                  f"4-player prices, and ±{money(half[0][5])} and ±{money(half[0][6])} for the 5- and 6-player "
+                  "break-evens")
 
     # 5. strategy tweaks against simple bots
     def strategies(self) -> None:
@@ -144,6 +149,14 @@ class Claims:
         cv = self.read("championship_strategy_variants.csv").set_index(["variant", "n_players"]).relative
         self.text("5", "championship aggressive", f"({times(cv['aggressive', 6])} at 6 players)")
         self.text("5", "championship never trading", f"({times(cv['no_trade', 6])} at 6)")
+        both = pd.concat([self.read(f) for f in ("strategy_variants.csv", "championship_strategy_variants.csv")])
+        moved = (both.game_relative - both.relative).abs().max()
+        c2 = self.read("championship_strategy_variants.csv")
+        c2 = c2[c2.n_players == 2].capped_share
+        self.text("5", "time-limit games", f"Under championship rules {span(c2.min(), c2.max())} of 2-player games hit "
+                  "the time limit")
+        self.text("5", "outright vs time-limit", "moves no number in this finding by more than "
+                  f"{np.ceil(moved * 100) / 100:.2f}")
 
     # 6. seat order
     def seats(self) -> None:
@@ -243,6 +256,19 @@ class Claims:
                   f"{span(simple_lo.min(), simple_lo.max(), '£')})")
         ch = m["championship"].seller_min_price_win[[3, 4]]
         self.text("16", "championship break-even", f"at 3{DASH}4 players ({span(ch.min(), ch.max(), '£')})")
+        half = pd.concat([(d.deal_low_ci_high - d.deal_low_ci_low)[ns] / 2 for d, ns in
+                          ((m["standard"], [3, 4, 5]), (m["championship"], [3, 4]))])
+        six = (m["standard"].deal_low_ci_high - m["standard"].deal_low_ci_low)[6] / 2
+        self.text("16", "bootstrap intervals", f"break-evens are ±{span(half.min(), half.max(), '£')} at 3{DASH}5 "
+                  f"players and ±{money(six)} at 6")
+        c = self.read("meta_trade_curve_standard.csv")
+        c = c[(c.n_players == 2) & (c.player == 0)]
+        near = c[(c.price >= m2.deal_low_ci_low) & (c.price <= m2.deal_high_ci_high + 50)]
+        self.text("16", "fewer stalled games", f"rarer ({pct(c.capped_share_base.iloc[0], 2)} of games to about "
+                  f"{pct(near.capped_share_trade.mean(), 1)})")
+        self.text("16", "2-player band", f"The band shows up in {pct(m2.deal_share_of_resamples, 1)} of bootstrap "
+                  f"resamples, though where it sits is less sure ({money(m2.deal_low_ci_low)}{DASH}"
+                  f"{money(m2.deal_high_ci_high)})")
 
     # 17. every property, 4 players
     LABELS = {1: "Old Kent Road (brown)", 6: "The Angel Islington (light blue)", 11: "Pall Mall (pink)",
@@ -295,9 +321,62 @@ class Claims:
         self.text("17", "deals the first crossing missed", f"That missed {missed} deals")
         self.text("17", "forbidden sales listed", f"They also listed {words(listed)} 2-player championship sales")
 
+    # 18. the housing findings under the official building rules
+    SENSITIVITY = [("standard", 4, "strongest known challenger", "Official, 4 players", "strongest known challenger"),
+                   ("standard", 4, "hard three-house cap", "Official, 4 players", "hard three-house cap"),
+                   ("standard", 4, "housing lock on (14)", "Official, 4 players", "housing lock added"),
+                   ("standard", 2, "strongest known challenger", "Official, 2 players", "strongest known challenger"),
+                   ("standard", 2, "housing lock off", "Official, 2 players", "housing lock removed"),
+                   ("championship", 4, "strongest known challenger", "Championship, 4 players",
+                    "strongest known challenger"),
+                   ("championship", 4, "housing lock off", "Championship, 4 players", "housing lock removed"),
+                   ("championship", 4, "simple bot", "Championship, 4 players", "simple bot")]
+
+    def sensitivity(self) -> None:
+        c = self.read("sensitivity/candidates.csv")
+        variants = ["engine rules", "build any time", "house auctions", "mortgaged stations count"]
+        for mode, n, cand, setting, label in self.SENSITIVITY:
+            r = c[(c["mode"] == mode) & (c.n_players == n) & (c.candidate == cand)].set_index("variant").ratio
+            self.regex("18", f"{setting}, {label}", row(setting, label, *(times(r[v]) for v in variants)))
+        rest = c[c.candidate != "final agent"]
+        change = (rest.vs_engine_rules - 1).abs()
+        engine = rest[rest.variant == "engine rules"].set_index(["mode", "n_players", "candidate"])
+        flips = 0
+        for r in rest[rest.variant != "engine rules"].itertuples():
+            e = engine.loc[(r.mode, r.n_players, r.candidate)]
+            flips += (e.ci_low > 1 and r.ci_high < 1) or (e.ci_high < 1 and r.ci_low > 1)
+        self.text("18", "no verdict reverses", "No verdict reverses." if flips == 0 else
+                  f"{flips} verdicts reverse")  # the second text isn't in the README, so the claim fails
+        h = self.read("sensitivity/housing.csv").set_index(["mode", "n_players", "variant"])
+        ch, st = h.loc[("championship", 4, "house auctions")], h.loc[("standard", 4, "engine rules")]
+        auctions = change[rest.variant == "house auctions"].max()
+        self.text("18", "house auctions", f"houses than the bank has in {pct(ch.games_with_contested_houses)} of "
+                  f"championship 4-player games ({ch.houses_auctioned_per_game:.1f} houses auctioned per game) and "
+                  f"{pct(st.games_with_contested_houses)} of official 4-player games, yet no candidate's edge moves by "
+                  f"more than {pct(np.ceil(auctions * 100) / 100)}")
+        any_time = change[(rest.variant == "build any time") & (rest.candidate != "simple bot")].max()
+        self.text("18", "building at any time", f"Building at any time moves those edges by "
+                  f"{pct(np.ceil(any_time * 100) / 100)} at most")
+        simple = c[(c["mode"] == "championship") & (c.n_players == 4) & (c.candidate == "simple bot")]
+        simple = simple.set_index("variant").ratio
+        self.text("18", "simple bot, building at any time", f"it rises from {times(simple['engine rules'])} to "
+                  f"{times(simple['build any time'])}")
+        stations = change[rest.variant == "mortgaged stations count"].max()
+        self.text("18", "mortgaged stations", f"Counting mortgaged stations moves nothing by more than "
+                  f"{pct(np.ceil(stations * 100) / 100)}")
+        lock = c[(c["mode"] == "standard") & (c.n_players == 4) & (c.candidate == "housing lock on (14)")]
+        lock = lock.set_index("variant").ratio
+        self.text("18", "the housing lock at 4 players", f"wins it {pct(lock['engine rules'] - 1)} more, and "
+                  f"{pct(lock['build any time'] - 1)} more when building at any time")
+        self.text("18", "comparisons", f"With {int(((rest.variant != 'engine rules')).sum())} such comparisons")
+        seats = self.read("sensitivity/seats.csv")
+        base = seats[seats.variant == "engine rules"].set_index("n_players").first_relative
+        moved = (seats.first_relative - seats.n_players.map(base)).abs().max()
+        self.text("18", "seat order", f"the first player's edge with simple bots moves by about {moved:.2f} at most")
+
     def all(self) -> list[Claim]:
         for step in (self.landings, self.payback, self.vine_simple, self.strategies, self.seats, self.lengths,
-                     self.validation, self.ablations, self.vine_meta, self.properties):
+                     self.validation, self.ablations, self.vine_meta, self.properties, self.sensitivity):
             step()
         return self.items
 

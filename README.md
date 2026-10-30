@@ -20,10 +20,11 @@ against hand-written bots.
 > studies were then re-run with 10 times the samples, using the final agents (the deep run, `results/final`): a
 > precision extension, since the first tenth of each sample is v0.3's games, and the exact Markov and payback tables
 > were copied rather than re-run. The numbers and charts below come from it unless a finding says otherwise. An
-> independent review (October 2026) found errors in how some results were summarised and labelled. They are
-> corrected below wherever the stored data allow; `make review` re-runs the rest and tests the housing findings under
-> the official building rules. A live viewer replays games from running jobs (`make watch`), and you can play the
-> meta agents yourself (`make play`). Next come learned value models ([ROADMAP.md](ROADMAP.md)).
+> independent review (October 2026) found errors in how some results were summarised and labelled, and rules the
+> engine simplifies. All are corrected below: the affected studies were re-run (`make review`), and the housing
+> findings were re-tested under the official building rules (finding 18). A live viewer replays games from running
+> jobs (`make watch`), and you can play the meta agents yourself (`make play`). Next come learned value models
+> ([ROADMAP.md](ROADMAP.md)).
 
 ---
 
@@ -60,13 +61,23 @@ speed changes:
 ![Payback](results/final/figures/payback_by_group.png)
 ![Marginal return per house](results/final/figures/marginal_return_heatmap.png)
 
-**3. Net worth undervalues completing a set.** In the trade test below, the highest price
-at which the buyer's win chance still improves is well above the highest price at which
-their net worth, 40 turns later, still improves. The gap is **24% at 2 players, 30% at 3 and
-39% at 4**, and at least 38–42% at 5–6 players, where the buyer still gains at £1,200, all
-the cash they have. Two cautions: the 40 turns are player-turns, so 20 rounds at 2 players
-but under 7 at 6; and both prices are for these bots in this one position. `make review`
-adds net worth at equal own-turn horizons.
+**3. Net worth undervalues completing a set, by more the sooner you look.** In the trade
+test below, the highest price at which the buyer's win chance still improves is well above
+the highest price at which their net worth still improves. How far below, measured after the
+same number of each player's own turns at every table size:
+
+| Net worth measured after | 2 players | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|
+| 5 own turns | 53% | 54% | 55% | ≥53% | ≥46% |
+| 10 own turns | 41% | 37% | 39% | ≥36% | ≥27% |
+| 20 own turns | 24% | 21% | 24% | ≥17% | ≥5% |
+
+A set pays off over many turns, so a short horizon misses most of its value, and even after
+20 rounds net worth misses a fifth to a quarter of it at 2–4 players. At 5–6 players the buyer
+still gains at £1,200, all the cash they have, so those gaps are lower bounds. An earlier
+version measured net worth after 40 player-turns, which is 20 rounds at 2 players but under
+7 at 6, so the gap seemed to grow with the table size; at equal horizons it doesn't. Both
+prices are for these bots in this one position.
 
 ### Changes with table size
 
@@ -83,6 +94,9 @@ uses the same dice (common random numbers).
 | 4 | £594 | £1,144 | £594–£1,144 |
 | 5 | £485 | £1,200+ | the buyer should pay every penny they have |
 | 6 | £487 | £1,200+ | the buyer should pay every penny they have |
+
+A bootstrap over whole rollouts gives 95% intervals of ±£7–£13 for the 3- and 4-player
+prices, and ±£17 and ±£40 for the 5- and 6-player break-evens.
 
 The extra room comes from the bystanders. Every deal in the zone takes win probability
 away from the players who aren't trading. Selling Vine Street to a player who *doesn't*
@@ -112,9 +126,9 @@ simple bot:
 
 Under championship rules (60,000 games per cell), aggressive play also gains most at big tables (1.30× at 6
 players), and never proposing trades also collapses there (0.31× at 6). At 2 players those rules ban trades, so not
-proposing them changes nothing. These championship rates count the richest player as the winner when the time limit
-hits, as those rules do; that happens in 3–8% of 2-player games and almost never at 4–6, and `make review` re-counts
-outright wins separately.
+proposing them changes nothing. Win rates here are outright wins, as a share of the games that finish. Under
+championship rules 3–8% of 2-player games hit the time limit, and almost none at 4–6; counting the richest player in
+those as the winner instead moves no number in this finding by more than 0.02.
 
 ![Strategy variants](results/final/figures/strategy_variants.png)
 
@@ -297,16 +311,19 @@ rollouts per price):
 
 | Players | Simple bots | Meta agents, official rules | Meta agents, championship rules |
 |---|---|---|---|
-| 2 | none (£661 for both) | £304–£306, within the noise | not allowed: no trades once two players are left |
+| 2 | none (£661 for both) | £304–£306: a sliver, from fewer stalled games | not allowed: no trades once two players are left |
 | 3 | £662–£890 | £568–£811 | £229–£676 |
 | 4 | £594–£1,144 | £746–£1,200+ | £249–£735 |
 | 5 | £485–£1,200+ | £743–£1,200+ | none: the seller loses at every price |
 | 6 | £487–£1,200+ | £557–£1,200+ | none: the seller loses at every price |
 
+Bootstrap 95% intervals for the meta agents' break-evens are ±£10–£21 at 3–5 players and ±£52 at 6.
+
 - **At 2 players the orange set is worth half as much against a meta agent.** Getting Vine Street free lifts the
   buyer's win chance from 63% to 81% against the 2-player agent, and from 64% to 97% with simple bots. Under
-  official rules a game that hits the time limit is a loss for both players, so a 2-player sale isn't exactly
-  zero-sum; the £2-wide zone is smaller than its own sampling error.
+  official rules a game that hits the time limit is a loss for both players, and the sale makes that slightly
+  rarer (0.32% of games to about 0.2%), so both sides gain in a £2-wide band. The band shows up in 99.8% of
+  bootstrap resamples, though where it sits is less sure (£293–£318).
 - **At 4–6 players, sellers should ask more against meta agents** (break-even £557–£746, against £485–£594).
 - **Under championship rules the seller breaks even far lower** at 3–4 players (£229–£249). At 5–6 players, where
   the agents refuse all trades, the sale ends the stalemate in the buyer's favour and no price compensates the
@@ -346,6 +363,38 @@ agents, and six championship sales in which the seller gains even by giving the 
 players, Oxford Street and Bond Street at 3). They also listed six 2-player championship sales that those rules
 forbid. Every summary now reads the whole curve: it lists every price range where both sides gain, flags curves
 that aren't monotone, and says when the rules don't allow the trade.
+
+**18. The housing findings hold under the official building rules.** The engine lets players build only after their
+own move, gives the last houses to whoever builds first, and leaves mortgaged stations out of the station count
+([RULES.md](RULES.md)). Each official rule is now an engine option. The comparisons the housing findings rest on were
+replayed under each one, on 20,000 new paired games per cell (the candidate's credit ÷ the final agent's in the same
+seat):
+
+| Setting | Candidate | Engine's rules | Build any time | House auctions | Mortgaged stations count |
+|---|---|---|---|---|---|
+| Official, 4 players | strongest known challenger | 1.26× | 1.24× | 1.26× | 1.26× |
+| Official, 4 players | hard three-house cap | 0.79× | 0.77× | 0.79× | 0.79× |
+| Official, 4 players | housing lock added | 1.06× | 1.03× | 1.06× | 1.06× |
+| Official, 2 players | strongest known challenger | 1.17× | 1.19× | 1.17× | 1.18× |
+| Official, 2 players | housing lock removed | 0.96× | 0.96× | 0.96× | 0.96× |
+| Championship, 4 players | strongest known challenger | 1.33× | 1.26× | 1.32× | 1.32× |
+| Championship, 4 players | housing lock removed | 0.91× | 0.93× | 0.90× | 0.91× |
+| Championship, 4 players | simple bot | 0.46× | 0.63× | 0.46× | 0.47× |
+
+- **No verdict reverses.** No candidate that lost to the final agent under the engine's rules beats it under an
+  official rule, or the reverse. The housing lock still pays, and a hard three-house cap still costs.
+- **House auctions change nothing measurable.** In games between the final agents, two or more players want more
+  houses than the bank has in 43% of championship 4-player games (2.3 houses auctioned per game) and 5% of official
+  4-player games, yet no candidate's edge moves by more than 1%.
+- **Building at any time moves those edges by 5% at most.** It matters more for the simple bot: against the
+  championship 4-player agents it rises from 0.46× to 0.63×.
+- **Counting mortgaged stations moves nothing by more than 2%,** and the first player's edge with simple bots moves
+  by about 0.02 at most under any of the rules.
+- **A missed improvement:** the official 4-player agent doesn't use the housing lock. Adding it (hold four houses
+  while 14 or fewer are left in the bank) wins it 6% more, and 3% more when building at any time.
+
+With 52 such comparisons some differences are chance; the variant-by-variant intervals are in
+[results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md).
 
 **The final agents' settings** (only settings that measurably matter are worth reading closely; the rest drift
 freely during evolution):
@@ -451,13 +500,13 @@ print(result.winner, result.turns)
   face value). Richer negotiation comes with the value model.
 - Meta-agent games stop after 150 rounds. Under official rules a stopped game is a loss
   for everyone; under championship rules it is scored by finishing position, so championship
-  numbers are finishing points ÷ 28; `make review` also counts outright wins and
-  time-limit wins separately.
+  numbers are finishing points ÷ 28. Win-rate tables count outright wins and time-limit
+  wins separately.
 - The engine simplifies three rules ([RULES.md](RULES.md)): players build only after their
   own move, the last houses go to whoever builds first rather than to an auction, and
   mortgaged stations and utilities don't count towards their rent. Each official rule is
-  an engine option, and `make review` re-tests the housing findings under all of them
-  (`scripts/15_rule_sensitivity.py`).
+  an engine option, and under each one the housing findings hold (finding 18), but the
+  self-play searches themselves ran under the engine's rules.
 - Trade prices are for a one-shot sale with no resale, in hand-built positions, to these
   bots. Exploit numbers are the gains of challengers found so far: lower bounds.
 - The deep run extends v0.3's samples rather than replacing them (the first tenth of each

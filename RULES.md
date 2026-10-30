@@ -38,8 +38,8 @@ only to validate the Markov chain.
   - Stations pay £25, £50, £100 or £200 by the number owned. By default **a mortgaged
     station doesn't count** towards that number. That is the engine's reading: the rules
     sheet doesn't settle it, and some players count every station owned.
-    `Rules(mortgaged_count_for_rent=True)` plays it that way, and `make review` measures
-    whether the choice matters.
+    `Rules(mortgaged_count_for_rent=True)` plays it that way. The choice moves no tested
+    result by more than 2% (README, finding 18).
   - Utilities pay 4× the dice roll for one owned, or 10× for both, with the same choice
     about a mortgaged one.
   - A street's double rent for a whole set applies even if another street in the set is
@@ -68,16 +68,18 @@ only to validate the Markov chain.
 
 Three of the simplifications below could bend the findings: two decide who gets houses,
 which several findings rest on, and one sets station and utility rent. Each has an engine
-switch that plays the official rule instead, and `make review`
-(`scripts/15_rule_sensitivity.py`) replays the housing comparisons under every switch, on
-games no search has seen, and counts how often the simplification binds. Until those
-results are in, treat the housing findings as findings about the engine's rules.
+switch that plays the official rule instead. `scripts/15_rule_sensitivity.py` (run by
+`make review`) replayed the housing comparisons under every switch, on games no search had
+seen, and counted how often each simplification binds. No verdict reverses under any of
+them, and house auctions change no edge by more than 1% (README, finding 18; details in
+`results/final/tables/sensitivity/summary.md`). The meta agents were still trained under
+the engine's rules.
 
 | Simplification | Effect, and the switch that removes it |
 |---|---|
-| Building, unmortgaging and trading happen once per turn, at the end of the player's own turn (the rules allow building at any time). | `Rules(build_any_time=True)`: after each turn, every other player in turn order may also build and unmortgage (trades stay on a player's own turn). Games run 2–3 times slower. |
-| During a housing shortage, the remaining houses go to whoever builds first. There's no auction for the last houses. | `Rules(house_auctions=True)`: whenever two or more players want more houses than the bank has, the houses are auctioned one at a time. The highest limit wins and pays the second-highest + £1 (at least the house's price); ties go to the earliest in turn order. `Game.contested_houses` counts those moments (also without the switch, with `Game.track_housing`), and `Game.house_auctions_held` the houses sold. A first check found them in about 4% of 4-player games between the official meta agents. |
-| A mortgaged station or utility doesn't count towards the rent of the others (see Rent above). | `Rules(mortgaged_count_for_rent=True)`. |
+| Building, unmortgaging and trading happen once per turn, at the end of the player's own turn (the rules allow building at any time). | `Rules(build_any_time=True)`: after each turn, every other player in turn order may also build and unmortgage (trades stay on a player's own turn). Games run 2–3 times slower. Moves the tested agents' edges by 5% at most; helps the simple bot more (0.46× to 0.63× against the championship 4-player agents). |
+| During a housing shortage, the remaining houses go to whoever builds first. There's no auction for the last houses. | `Rules(house_auctions=True)`: whenever two or more players want more houses than the bank has, the houses are auctioned one at a time. The highest limit wins and pays the second-highest + £1 (at least the house's price); ties go to the earliest in turn order. `Game.contested_houses` counts those moments (also without the switch, with `Game.track_housing`), and `Game.house_auctions_held` the houses sold. Between the final meta agents, houses are contested in 5% of official 4-player games, 1% of 2-player games and 43% of championship 4-player games (2.3 houses auctioned per game). |
+| A mortgaged station or utility doesn't count towards the rent of the others (see Rent above). | `Rules(mortgaged_count_for_rent=True)`. Moves no tested result by more than 2%. |
 | Players buy only with cash on hand. They don't mortgage to fund a purchase. | Slightly fewer purchases by cash-poor players. |
 | If a hotel must be broken up and the bank lacks 4 houses, it is sold further down. The other streets in the set aren't forced down with it. | Very rare; counted in `Game.uneven_events` (which counts only this, not housing shortages in general). |
 | Rent is always collected (in the real game the owner must ask for it before the next roll). | Treats every player as attentive. |

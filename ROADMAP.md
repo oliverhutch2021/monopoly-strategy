@@ -71,8 +71,11 @@ code and the stored results, and all of them held. What changed, and the princip
 - **The README is checked against the tables**: `scripts/claims.py` recomputes the deep-run findings' numbers (a test
   runs it).
 
-`make review` runs the parts that need new games on the PC: the trade studies at equal own-turn horizons and
-with bootstrap intervals, the tournaments with outright and time-limit wins apart, and the rule sensitivity.
+`make review` ran the parts that needed new games on the PC (2 hours): the trade studies at equal own-turn
+horizons and with bootstrap intervals, the tournaments with outright and time-limit wins apart, and the rule
+sensitivity. No README number moved at its precision. Finding 3 changed: at equal horizons the gap between net
+worth and win chance doesn't grow with table size. The housing findings hold under every official building rule
+(finding 18), which also found a gain the official 4-player agent misses: the housing lock (+6%).
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the
