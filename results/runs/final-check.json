@@ -1,0 +1,25 @@
+{
+ "job": "final-check",
+ "commit": "cb6455725326c21c99b5cebd4d5dac5d3cdf748e",
+ "started": "2026-10-30T11:32:07+00:00",
+ "finished": "2026-10-30T11:38:15+00:00",
+ "machine": {
+  "host": "TheBEAST",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_threads": 16,
+  "ram_gb": 15.2,
+  "python": "3.12.3"
+ },
+ "steps": {
+  "final-agents": 1,
+  "validate-standard-4p": 354,
+  "dashboard-data": 9,
+  "figures": 4
+ },
+ "commands": {
+  "final-agents": "MM_RESULTS=results/final MM_SCALE=10 python scripts/final_agents.py",
+  "validate-standard-4p": "MM_RESULTS=results/final MM_SCALE=10 python scripts/05b_refine_meta.py --mode standard --revalidate 4",
+  "dashboard-data": "MM_RESULTS=results/final MM_SCALE=10 python scripts/08_dashboard_data.py",
+  "figures": "MM_RESULTS=results/final MM_SCALE=10 python scripts/make_figures.py"
+ }
+}
