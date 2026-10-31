@@ -1,0 +1,2 @@
+mode,n_players,candidate,ratio,ci_low,ci_high,games,seed_offset
+standard,4,housing lock on (14),1.0488631830873556,1.0428337883785606,1.0550873295787957,40000,7888000
