@@ -21,12 +21,14 @@ D = {
                       "per £100 spent on each building level. Computed from the Markov chain."),
     "strategies": ("Strategy tweaks vs simple bots",
                    "One tweaked bot against copies of the simple bot at 2 to 6 players, seats rotated: outright wins "
-                   "as a share of the games that finish, relative to a fair share, with 95% Wilson intervals (100,000 "
-                   "games per cell under official rules, 60,000 under championship rules)."),
+                   "as a share of the games that finish, relative to a fair share, with 95% Wilson intervals; beside "
+                   "it the share of all games won outright, the share stopped by the time limit and the share won "
+                   "on it (100,000 games per cell under official rules, 60,000 under championship rules)."),
     "seats": ("Win rate by seat",
               "Identical simple bots in fixed seats at 2 to 6 players: outright wins per seat as a share of the "
-              "games that finish, with 95% intervals and relative to a fair share (100,000 games per table size "
-              "under official rules, 60,000 under championship rules)."),
+              "games that finish, with 95% intervals and relative to a fair share, and beside it the share of all "
+              "games won outright and the share in which the seat was richest when the time limit hit (100,000 "
+              "games per table size under official rules, 60,000 under championship rules)."),
     "game_length": ("Game length by rule set",
                     "Median and 90th-percentile rounds per game with simple bots, by rule set and table size, and "
                     "the share of games stopped by the time limit."),

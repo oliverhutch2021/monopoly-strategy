@@ -160,6 +160,15 @@ class Claims:
                   "the time limit")
         self.text("5", "outright vs time-limit", "moves no number in this finding by more than "
                   f"{np.ceil(moved * 100) / 100:.2f}")
+        if "outright_share" in c2.index.names or "outright_share" in self.read("championship_strategy_variants.csv"):
+            ch = self.read("championship_strategy_variants.csv")
+            two = ch[ch.n_players == 2].assign(all_games=lambda d: d.outright_share * 2)
+            drop = (two.relative - two.all_games)
+            worst = two.loc[drop.idxmax()]
+            self.text("5", "outright over all games", f"the 2-player championship rates fall by up to "
+                      f"{np.ceil(drop.max() * 100) / 100:.2f}: {worst.variant} play, which stalls most "
+                      f"({pct(worst.capped_share)} of its games), goes from {times(worst.relative)} to "
+                      f"{times(worst.all_games)}")
 
     # 6. seat order
     def seats(self) -> None:
@@ -369,9 +378,26 @@ class Claims:
                   f"{pct(np.ceil(stations * 100) / 100)}")
         lock = c[(c["mode"] == "standard") & (c.n_players == 4) & (c.candidate == "housing lock on (14)")]
         lock = lock.set_index("variant").ratio
-        self.text("18", "the housing lock at 4 players", f"wins it {pct(lock['engine rules'] - 1)} more, and "
+        conf = self.read("sensitivity/confirm.csv").iloc[0]
+        self.text("18", "the housing lock at 4 players", f"wins it {pct(conf.ratio - 1)} more on {int(conf.games):,} "
+                  f"fresh games ({conf.ratio:.3f}× [{conf.ci_low:.3f}, {conf.ci_high:.3f}]; "
+                  f"{pct(lock['engine rules'] - 1)} on the comparison's own games), and "
                   f"{pct(lock['build any time'] - 1)} more when building at any time")
         self.text("18", "comparisons", f"With {int(((rest.variant != 'engine rules')).sum())} such comparisons")
+        tests = rest[rest.variant != "engine rules"]
+        adj = tests[(tests.vs_engine_adj_low > 1) | (tests.vs_engine_adj_high < 1)]
+        only_any_time = adj.variant.isin(["build any time", "any time + auctions"]).all()
+        self.text("18", "Bonferroni", f"After a Bonferroni adjustment {len(adj)} still show a change, "
+                  + ("every one of them with building at any time" if only_any_time else "(not all with building "
+                     "at any time)"))
+        before = self.read("sensitivity/candidates_before.csv")
+        keys = ["mode", "n_players", "variant", "candidate"]
+        both = rest.merge(before[keys + ["ratio"]], on=keys, suffixes=("", "_before"))
+        auction = both.variant.isin(["house auctions", "any time + auctions"])
+        shift = (both.ratio - both.ratio_before)[auction].abs().max()
+        exact = int(((both.ratio - both.ratio_before).abs() < 1e-12)[~auction].sum())
+        self.text("18", "the auction fix", f"the house-auction results moved by {np.ceil(shift * 1000) / 1000:.3f} at "
+                  f"most, and the other {exact} results reproduced exactly")
         seats = self.read("sensitivity/seats.csv")
         base = seats[seats.variant == "engine rules"].set_index("n_players").first_relative
         moved = (seats.first_relative - seats.n_players.map(base)).abs().max()

@@ -1137,7 +1137,8 @@ window.mm = (() => {
       data.filter((r) => r.strategy === s).forEach((r) => {
         const v = +r.relative, sig = +r.rel_low > 1 || +r.rel_high < 1, yy = y0 + labelH;
         svg.append('rect').attr('x', x(+r.n_players)).attr('y', yy).attr('width', x.bandwidth()).attr('height', cellH).attr('rx', 3).attr('fill', color(v))
-          .on('pointermove', (event) => t.show(event, [line(`${r.strategy}, ${r.n_players} players`, 'mm-tip-head'), line(`${f2(v)}× fair share (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`)]))
+          .on('pointermove', (event) => t.show(event, [line(`${r.strategy}, ${r.n_players} players`, 'mm-tip-head'), line(`${f2(v)}× fair share of finished games (95% CI ${f2(+r.rel_low)}–${f2(+r.rel_high)})`),
+            ...(r.outright_all_relative !== undefined && r.outright_all_relative !== '' ? [line(`${f2(+r.outright_all_relative)}× counting all games; ${f1(100 * +r.capped_share)}% stopped by the time limit`)] : [])]))
           .on('pointerleave', () => t.hide());
         svg.append('text').attr('x', x(+r.n_players) + x.bandwidth() / 2).attr('y', yy + cellH / 2).attr('dy', '0.35em').attr('text-anchor', 'middle')
           .attr('fill', ink(color(v))).style('font-size', 'var(--cds-font-size-caption)').style('pointer-events', 'none')
@@ -1155,7 +1156,8 @@ window.mm = (() => {
     const counts = [2, 3, 4, 5, 6];
     const pick = (n, last) => { const s = data.filter((r) => +r.n_players === n); return last ? d3.greatest(s, (r) => +r.seat) : s.find((r) => +r.seat === 1); };
     const H = 280;
-    const pts = counts.flatMap((n) => [['First', pick(n, false), 0], ['Last', pick(n, true), 1]].filter((d) => d[1]).map(([k, r, i]) => ({ k, n, i, v: +r.relative, lo: +r.ci_low / +r.fair_share, hi: +r.ci_high / +r.fair_share })));
+    const pts = counts.flatMap((n) => [['First', pick(n, false), 0], ['Last', pick(n, true), 1]].filter((d) => d[1]).map(([k, r, i]) => ({ k, n, i, v: +r.relative, lo: +r.ci_low / +r.fair_share, hi: +r.ci_high / +r.fair_share,
+      all: r.outright_share === undefined || r.outright_share === '' ? null : +r.outright_share / +r.fair_share, limit: r.limit_share === undefined || r.limit_share === '' ? null : +r.limit_share })));
     const { svg, w } = svgFor(el, H);
     const y = d3.scaleLinear([Math.min(0.7, d3.min(pts, (d) => d.lo)), Math.max(1.3, d3.max(pts, (d) => d.hi))], [H - 28, 10]).nice();
     const left = textWidth(svg, y.ticks(5).map((v) => f2(v))) + 14;
@@ -1168,7 +1170,8 @@ window.mm = (() => {
       const cx = x(d.n) + (d.i ? 8 : -8);
       svg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', y(d.lo)).attr('y2', y(d.hi)).attr('stroke', `var(--mm-c${d.i})`).attr('stroke-width', 2).attr('stroke-linecap', 'round');
       svg.append('circle').attr('cx', cx).attr('cy', y(d.v)).attr('r', 5).attr('fill', `var(--mm-c${d.i})`).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2)
-        .on('pointermove', (event) => t.show(event, [line(`${d.k} player, ${d.n} players`, 'mm-tip-head'), line(`${f2(d.v)}× fair share (95% CI ${f2(d.lo)}–${f2(d.hi)})`)]))
+        .on('pointermove', (event) => t.show(event, [line(`${d.k} player, ${d.n} players`, 'mm-tip-head'), line(`${f2(d.v)}× fair share of finished games (95% CI ${f2(d.lo)}–${f2(d.hi)})`),
+          ...(d.all == null ? [] : [line(`${f2(d.all)}× counting all games; richest when the time limit hit in ${f1(100 * d.limit)}% of games`)])]))
         .on('pointerleave', () => t.hide());
     });
   });

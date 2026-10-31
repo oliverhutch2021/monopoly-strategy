@@ -90,8 +90,11 @@ A second review (82/100, of 970c390) found two defects in that new work, both co
 And it asked for more, done with them: every outcome side by side in the tournament tables (outright wins among
 finished games and among all games, time-limit wins, the cap share); checkpoint keys that include hashes of the code,
 the edition data and the scenario state as built, not just its name; Bonferroni-adjusted intervals beside the 52
-rule comparisons; and a fresh-seed confirmation of the housing-lock gain. `make review2` re-runs findings 3 and 18
-on the same games and seeds and reports how each house-auction result moved.
+rule comparisons; and a fresh-seed confirmation of the housing-lock gain. `make review2` re-ran findings 3 and 18 on
+the same games and seeds (78 minutes). Counting each player's own turns raised finding 3's gaps by 1–4 points and
+left its conclusion as it was. With the auction fix, the house-auction results moved by 0.006 at most, and the 39
+results without house auctions reproduced exactly. On fresh seeds the housing-lock gain is 4.9% [4.3%, 5.5%]. After
+a Bonferroni adjustment, 11 of the 52 rule comparisons still show a change, all of them with building at any time.
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the

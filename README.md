@@ -71,21 +71,20 @@ same number of each player's own turns at every table size:
 
 | Net worth measured after | 2 players | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|
-| 5 own turns | 53% | 54% | 55% | ≥53% | ≥46% |
-| 10 own turns | 41% | 37% | 39% | ≥36% | ≥27% |
-| 20 own turns | 24% | 21% | 24% | ≥17% | ≥5% |
+| 5 own turns | 57% | 57% | 57% | ≥55% | ≥48% |
+| 10 own turns | 43% | 39% | 41% | ≥37% | ≥28% |
+| 20 own turns | 26% | 22% | 26% | ≥18% | ≥7% |
 
 A set pays off over many turns, so a short horizon misses most of its value, and even after
-20 rounds net worth misses a fifth to a quarter of it at 2–4 players. At 5–6 players the buyer
-still gains at £1,200, all the cash they have, so those gaps are lower bounds. An earlier
-version measured net worth after 40 player-turns, which is 20 rounds at 2 players but under
-7 at 6, so the gap seemed to grow with the table size; at equal horizons it doesn't. Both
-prices are for these bots in this one position.
-
-*Being re-measured:* an independent check found that these "own turns" were counted as
-rounds of the starting table, so after a bankruptcy the buyer could have had 24 turns at the
-"20" mark. Each player's net worth is now taken at their own k-th turn, and `make review2`
-re-runs the table.
+20 of their own turns net worth misses about a quarter of it at 2–4 players. At 5–6 players
+the buyer still gains at £1,200, all the cash they have, so those gaps are lower bounds. Each
+player's net worth is taken right after their own k-th turn: at 0 if they went bankrupt
+first, and at the end if the game ended first. The first version measured after 40
+player-turns, which is 20 rounds at 2 players but under 7 at 6, so the gap seemed to grow
+with the table size; at equal horizons it doesn't. (A second version counted rounds of the
+starting table, which drift once players go bankrupt; an independent check caught it, and
+counting each player's own turns moved these gaps by 1–4 points.) Both prices are for these
+bots in this one position.
 
 ### Changes with table size
 
@@ -136,7 +135,9 @@ Under championship rules (60,000 games per cell), aggressive play also gains mos
 players), and never proposing trades also collapses there (0.31× at 6). At 2 players those rules ban trades, so not
 proposing them changes nothing. Win rates here are outright wins, as a share of the games that finish. Under
 championship rules 3–8% of 2-player games hit the time limit, and almost none at 4–6; counting the richest player in
-those as the winner instead moves no number in this finding by more than 0.02.
+those as the winner instead moves no number in this finding by more than 0.02. Counted over all games, with a stopped
+game as no win, the 2-player championship rates fall by up to 0.09: aggressive play, which stalls most (8% of its
+games), goes from 1.09× to 1.00×. The tables report all three.
 
 ![Strategy variants](results/final/figures/strategy_variants.png)
 
@@ -399,17 +400,18 @@ seat):
 - **Counting mortgaged stations moves nothing by more than 2%,** and the first player's edge with simple bots moves
   by about 0.02 at most under any of the rules.
 - **A missed improvement:** the official 4-player agent doesn't use the housing lock. Adding it (hold four houses
-  while 14 or fewer are left in the bank) wins it 6% more, and 3% more when building at any time.
+  while 14 or fewer are left in the bank) wins it 5% more on 40,000 fresh games (1.049× [1.043, 1.055]; 6% on the
+  comparison's own games), and 3% more when building at any time.
 
-With 52 such comparisons some differences are chance; the variant-by-variant intervals are in
-[results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md). These test the final
-agents as they are under each rule; agents trained under the official rules might play differently, and the
-house-auction bids follow one heuristic rather than a searched policy.
+With 52 such comparisons some differences are chance. After a Bonferroni adjustment 11 still show a change, every
+one of them with building at any time; none with house auctions alone or mortgaged stations. The variant-by-variant
+intervals are in [results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md). These
+test the final agents as they are under each rule; agents trained under the official rules might play differently,
+and the house-auction bids follow one heuristic rather than a searched policy.
 
-*Being re-measured:* an independent check found that a house auction could charge a bot more than its bid, when it
-placed the house in a dearer group than the one it bid for (in a few games per 500). Each bid now names its house
-and never pays more than the bid, and `make review2` re-runs the house-auction columns on the same seeds, with a
-fresh-seed check of the housing-lock gain.
+An independent check found that a house auction could charge a bot more than its bid, when it placed the house in
+a dearer group than the one it bid for. Each bid now names its house and never pays more than the bid. Re-run on the
+same seeds, the house-auction results moved by 0.006 at most, and the other 39 results reproduced exactly.
 
 **The final agents' settings** (only settings that measurably matter are worth reading closely; the rest drift
 freely during evolution):
