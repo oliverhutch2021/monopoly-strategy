@@ -39,6 +39,21 @@ CHAMPIONSHIP_POINTS = {
     5: [16, 8, 4, 2, 1],      # extrapolated
     6: [13, 6, 3, 2, 1, 0],   # extrapolated
 }
+# The rules sheet stops at 4 survivors. Alternatives for 5 and 6, to test how much the extrapolation matters
+# (Rules.points_schedule): "extend_four" keeps the 4-survivor scores and adds 1 and 0 below them (more for the
+# leader); "rank_linear" falls evenly from the 4-survivor leader's 19 to 0 (more for the middle ranks).
+POINTS_ALTERNATIVES = {
+    "extend_four": {5: [19, 10, 5, 3, 1], 6: [19, 10, 5, 3, 1, 0]},
+    "rank_linear": {5: [19, 14, 10, 5, 0], 6: [19, 15, 11, 8, 4, 0]},
+}
+
+
+def championship_points(survivors: int, schedule: str = "extrapolated") -> list[int]:
+    """Finishing points at the time limit for this many survivors, under a points schedule."""
+    if schedule != "extrapolated" and survivors in POINTS_ALTERNATIVES[schedule]:
+        return POINTS_ALTERNATIVES[schedule][survivors]
+    return CHAMPIONSHIP_POINTS[survivors]
+
 
 # Behaviour counters kept per player when Game(track_stats=True). "Per turn" fields are summed at the
 # end of each of the player's own turns, so dividing by "turns" gives an average over the game.
@@ -85,6 +100,10 @@ class Rules:
     build_any_time: bool = False        # players may also build and unmortgage between other players' turns
     house_auctions: bool = False        # when two or more players want more houses than the bank has, auction them
     mortgaged_count_for_rent: bool = False  # mortgaged stations/utilities still count towards the number owned
+    # receiving a mortgaged property: pay 10% now and keep the mortgage, or lift it at once for the mortgage + 10%
+    # (official). Off: the 10% is always charged, so lifting at once costs the mortgage + 20%.
+    mortgage_transfer_choice: bool = False
+    points_schedule: str = "extrapolated"   # championship points for 5-6 survivors (POINTS_ALTERNATIVES)
 
 
 def championship_rules(n_players: int, rounds: int = 150) -> "Rules":
@@ -164,6 +183,7 @@ class GameResult:
     net_worth: list[int]
     elimination_order: list[int]
     stalemate: str = "networth"
+    points_schedule: str = "extrapolated"
 
     def credit(self, p: int) -> float:
         """Win credit for player p: 1 for an outright win (any scoring rule).
@@ -183,7 +203,7 @@ class GameResult:
             return 0.0
         if self.stalemate == "championship":
             ranked = sorted(alive, key=lambda q: (-self.net_worth[q], q))
-            return CHAMPIONSHIP_POINTS[len(alive)][ranked.index(p)] / 28
+            return championship_points(len(alive), self.points_schedule)[ranked.index(p)] / 28
         return float(self.winner == p)
 
 
@@ -224,6 +244,10 @@ class Game:
         self.house_auctions_held = 0
         self.track_housing = False  # count contested demand even when houses aren't auctioned (costs time)
         self.house_auction_log = None  # a list records each house sold at auction: (buyer, square, price, limit)
+        self.trade_log = None  # a list records each trade: (turn, a, b, a_gives, b_gives, cash from a to b)
+        self.contested_hotels = 0  # with track_housing: times two or more players wanted more hotels than the bank had
+        self.mortgaged_received = 0  # mortgaged deeds received in a trade or from a bankrupt player
+        self.lifted_on_receipt = 0  # ... of which lifted at once (Rules.mortgage_transfer_choice)
         # squares that may not be traded (used to define "keep it" baselines in rollouts)
         self.frozen = frozenset(frozen_squares)
         # cards drawn from each deck since this Game started: public information, so a player with a
@@ -282,7 +306,13 @@ class Game:
         return out
 
     def housing_check(self) -> None:
-        """Before anyone builds: count contested demand for houses and, under Rules.house_auctions, auction them."""
+        """Before anyone builds: count contested demand for houses and, under Rules.house_auctions, auction them.
+        With track_housing it also counts moments when two or more players want more hotels than the bank has
+        (hotels are never auctioned here, unlike under the official rules: this measures how often that matters)."""
+        if self.track_housing:
+            wanted = [self.policies[q].hotels_wanted(self, q) for q in range(self.s.n_players) if self.s.alive[q]]
+            if sum(w > 0 for w in wanted) >= 2 and sum(wanted) > self.s.bank_hotels:
+                self.contested_hotels += 1
         if not (self.rules.house_auctions or self.track_housing) or self.s.bank_houses == 0:
             return
         s, contested = self.s, False
@@ -648,13 +678,14 @@ class Game:
         props = [sq for sq in ed.ownable if s.owner[sq] == p]
         s.alive[p] = False
         s.elimination_order.append(p)
+        ending = sum(s.alive) <= 1  # this bankruptcy ends the game: nothing is decided about the deeds handed over
         if creditor is not None and s.alive[creditor]:
             s.cash[creditor] += s.cash[p]
             s.cash[p] = 0
             fee = 0
             for sq in props:
                 s.owner[sq] = creditor
-                if s.mortgaged[sq]:
+                if s.mortgaged[sq] and not ending and not self._lift_on_receipt(creditor, sq):
                     fee += ed.unmortgage_cost(sq) - ed.mortgage_value(sq)
             s.goojf[creditor].extend(s.goojf[p])
             s.goojf[p] = []
@@ -805,6 +836,23 @@ class Game:
             return 0
         return self.ed.unmortgage_cost(sq) - self.ed.mortgage_value(sq)  # 10% interest
 
+    def _lift_on_receipt(self, q: int, sq: int, keep: int = 0) -> bool:
+        """Under Rules.mortgage_transfer_choice, player q, who has just received mortgaged square sq, may lift the
+        mortgage at once for its value + 10% instead of paying the 10% now (and again when lifting later). Lifts it,
+        and returns True, if q's policy chooses to and q can pay while keeping `keep` (what else q owes for the same
+        transfer). Counts every mortgaged deed received during play, and every one lifted at once, so a study can say
+        how often the choice arises."""
+        if not self.s.mortgaged[sq]:
+            return False
+        self.mortgaged_received += 1
+        if not self.rules.mortgage_transfer_choice or not self.policies[q].lift_on_transfer(self, q, sq):
+            return False
+        if self.s.cash[q] - self.ed.unmortgage_cost(sq) < keep:
+            return False
+        lifted = self.unmortgage(q, sq)
+        self.lifted_on_receipt += lifted
+        return lifted
+
     def execute_trade(self, a: int, b: int, a_gives=(), b_gives=(), cash_a_to_b: int = 0) -> bool:
         """Swap properties and cash between players a and b (mortgages travel with a 10% fee)."""
         if not self.trade_is_valid(a, b, a_gives, b_gives, cash_a_to_b):
@@ -815,12 +863,15 @@ class Game:
             self.stats[b][ST_TRADES] += 1
         s.cash[a] -= cash_a_to_b
         s.cash[b] += cash_a_to_b
-        for sq in a_gives:
-            s.owner[sq] = b
-            s.cash[b] -= self._transfer_fee(sq)
-        for sq in b_gives:
-            s.owner[sq] = a
-            s.cash[a] -= self._transfer_fee(sq)
+        for receiver, deeds in ((b, a_gives), (a, b_gives)):
+            fees = [self._transfer_fee(sq) for sq in deeds]
+            for i, sq in enumerate(deeds):
+                s.owner[sq] = receiver
+                # lifting one deed at once mustn't leave the receiver short of the fees still due on the others
+                if not self._lift_on_receipt(receiver, sq, keep=sum(fees[i + 1:])):
+                    s.cash[receiver] -= self._transfer_fee(sq)
+        if self.trade_log is not None:
+            self.trade_log.append((s.turn, a, b, tuple(a_gives), tuple(b_gives), cash_a_to_b))
         return True
 
     # ------------------------------------------------------------------ valuation helpers
@@ -848,7 +899,7 @@ class Game:
             winner = s.elimination_order[-1]
         return GameResult(winner=winner, capped=self.capped, turns=s.turn,
                           net_worth=nw, elimination_order=s.elimination_order[:],
-                          stalemate=self.rules.stalemate)
+                          stalemate=self.rules.stalemate, points_schedule=self.rules.points_schedule)
 
 
 def play_game(policies, seed=None, rules=None, edition=None, **kw) -> GameResult:

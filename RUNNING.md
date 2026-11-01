@@ -153,8 +153,8 @@ simplifies that the housing findings might depend on. This job:
 3. re-runs the Vine Street trades on the same games, adding net worth at equal own-turn horizons and a
    bootstrap of each deal's ends;
 4. replays the housing comparisons under the official building rules (`scripts/15_rule_sensitivity.py`);
-5. refreshes the dashboard data and figures, and lists the README numbers the re-runs moved
-   (`results/final/readme_claims.txt`).
+5. refreshes the dashboard data and figures, and lists the numbers in the write-up that the
+   re-runs moved (`results/final/readme_claims.txt`).
 
 ## Step 9: the updated review's fixes (about 75 minutes)
 
@@ -169,6 +169,22 @@ group; each bid now names the house it is for. This job re-runs the Vine Street 
 rule sensitivity (same seeds, with a before/after comparison and a fresh-seed confirmation of the housing-lock
 gain), adds every outcome side by side to the tournament tables (no new games), then refreshes the dashboard data,
 figures and the README check.
+
+## Step 10: the deep review's fixes (about 3 hours)
+
+```
+make sync && make review3
+```
+
+The third review asked what each trade price means. A sale was priced against keeping the deed for good, which
+measures the deed's own value; whether to accept an offer today depends on what happens otherwise, and the bots
+often trade it later anyway. This job prices every Vine Street sale against both (`scripts/04_trade_curve.py`,
+`scripts/06_meta_trade_curve.py`), replays the narrow deals at prices someone could actually pay
+(`scripts/16_price_checks.py`), and prices the set-completing sale in 100 positions from real games
+(`scripts/17_game_positions.py`). It takes the housing lock apart into its two behaviours, adds the official
+choice on receiving a mortgaged deed and counts of contested hotels to the rule sensitivity
+(`scripts/15_rule_sensitivity.py`), re-scores the 5- and 6-player championship conclusions under other points
+schedules (`scripts/18_scoring_sensitivity.py`), then refreshes the dashboard data, figures and the README check.
 
 ## Watching a run
 

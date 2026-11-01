@@ -55,6 +55,15 @@ class Policy:
     def raise_cash(self, g, p, target) -> None:
         default_liquidation(g, p, target)
 
+    def lift_on_transfer(self, g, p, sq) -> bool:
+        """Under Rules.mortgage_transfer_choice: lift a mortgaged property just received at once (its value + 10%)
+        rather than pay the 10% now and keep it mortgaged."""
+        return False
+
+    def hotels_wanted(self, g, p) -> int:
+        """How many hotels it would build right now if the bank had them (for counting hotel shortages)."""
+        return 0
+
     def accept_trade(self, g, me, other, give, get, cash_in) -> bool:
         return False
 
@@ -142,8 +151,8 @@ def default_liquidation(g, p, target, houses_last: bool = False) -> None:
     2. sell buildings, choosing the sale that loses least rent per pound raised
     3. mortgage what is left (cheapest first)
 
-    houses_last mortgages everything it can before selling any building, so houses stay off the
-    bank's shelf (the housing lock).
+    houses_last mortgages everything it can before selling any building, so the buildings (and the rent
+    they earn) stay up and the houses stay off the bank's shelf (HeuristicBot.protect).
     """
     s, ed = g.s, g.ed
     mine = [sq for sq in ed.ownable if s.owner[sq] == p]
@@ -331,8 +340,12 @@ class HeuristicBot(Policy):
     snipe          pass on a property at its printed price when every rival has less than snipe x the
                    price in cash, so it goes to auction, where nobody can bid it up to the price (0 = off)
     lock           housing lock: while the bank has at most this many houses and a rival owns a set that
-                   still needs houses, stop at four houses instead of building hotels; and when raising
-                   cash, mortgage everything else before selling a house (0 = off)
+                   still needs houses, stop at four houses instead of building hotels (0 = off)
+    protect        when raising cash, mortgage everything else before selling a building, at any house
+                   supply. None (the default) follows lock, as before the two were separated: a bot with
+                   the housing lock also protects its buildings. An external review (2026-10-31) found
+                   that this, not the hotel deferral, carried the lock's gain for the official 4-player
+                   agent; scripts/15_rule_sensitivity.py measures each part.
     leverage       mortgage up to this share of our properties outside sets to build our sets to three
                    houses (0 = off)
     jail_exposure  stay in jail while one roll from there would cost at least this much on average, and
@@ -364,6 +377,7 @@ class HeuristicBot(Policy):
     # tactics (v0.4), all off by default
     snipe: float = 0.0
     lock: int = 0
+    protect: bool | None = None
     leverage: float = 0.0
     jail_exposure: float = 0.0
     dodge: float = 0.0
@@ -454,7 +468,8 @@ class HeuristicBot(Policy):
         return score
 
     def raise_cash(self, g, p, target) -> None:
-        default_liquidation(g, p, target, houses_last=bool(self.lock))
+        protect = bool(self.lock) if self.protect is None else bool(self.protect)
+        default_liquidation(g, p, target, houses_last=protect)
 
     def _below_cap(self, g, p) -> bool:
         """Does p own a buildable set with a property still below build_cap?"""
@@ -519,6 +534,28 @@ class HeuristicBot(Policy):
 
     def _build_reserve(self, g) -> float:
         return self.endgame_reserve if self.endgame_rounds and self._endgame(g) else self.build_reserve
+
+    def lift_on_transfer(self, g, p, sq) -> bool:
+        """It lifts a mortgage whenever its cash stays above its building reserve (as manage_buildings would this
+        turn), so given the choice it lifts at once and saves the second 10%."""
+        return g.s.cash[p] - g.ed.unmortgage_cost(sq) >= self._build_reserve(g)
+
+    def hotels_wanted(self, g, p) -> int:
+        """Squares at four houses it would turn into hotels now: its caps allow hotels, the housing lock isn't
+        holding, the whole set is at four houses, and it can afford them above its reserve."""
+        s, ed = g.s, g.ed
+        if min(self.max_level, HOTEL) < HOTEL or self._below_cap(g, p) and self.build_cap < HOTEL:
+            return 0
+        if self.lock and self._locking(g, p):
+            return 0
+        budget, wanted = s.cash[p] - self._build_reserve(g), 0
+        for gi in ed.street_groups:
+            sqs = ed.group_squares[gi]
+            if g.owns_group(p, gi) and not any(s.mortgaged[x] for x in sqs) and all(s.level[x] >= 4 for x in sqs):
+                k = min(sum(s.level[x] == 4 for x in sqs), max(0, int(budget // ed.house_cost[gi])))
+                wanted += k
+                budget -= k * ed.house_cost[gi]
+        return wanted
 
     def _house_cap(self, g, p) -> int:
         """The level it is building houses up to right now, as manage_buildings does: build_cap while one of its

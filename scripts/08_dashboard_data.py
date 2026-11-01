@@ -128,33 +128,50 @@ def game_length():
 
 
 def trades():
+    """The Vine Street curves and deal zones, against both baselines: the deed kept for good (its own value to each
+    side) and later trades allowed (the decision to accept an offer today, when the bots would otherwise trade on).
+    Championship rollouts score finishing points ÷ 28, shown as expected points, not win chance."""
     curves, zones = [], []
-    sources = [("Simple bots", pd.read_csv(TAB / "trade_curve_orange_squeeze.csv"),
-                pd.read_csv(TAB / "trade_curve_summary.csv"))]
-    for mode in ("standard", "championship"):
-        c = read(f"meta_trade_curve_{mode}.csv", buyer=0)
-        s = read(f"meta_trade_summary_{mode}.csv", buyer=0)
-        if c is not None and s is not None:
-            sources.append((f"Meta agents, {RULES[mode].lower()}", c, s))
-    for label, c, s in sources:
-        for (n, buyer), d in c.groupby(["n_players", "buyer"]):
-            kind = "Completes the buyer's set" if buyer == 0 else "Buyer doesn't need it"
-            for r in roles(d, ["n_players"], buyer=buyer):
-                curves.append({"opponents": label, "deal": kind, **r})
-        for _, r in s.iterrows():
-            kind = "Completes the buyer's set" if r.buyer == 0 else "Buyer doesn't need it"
-            zones.append({"opponents": label, "deal": kind, "n_players": r.n_players,
-                          "seller_break_even": r.seller_min_price_win, "buyer_maximum": r.buyer_max_price_win,
-                          "buyer_maximum_is_all_cash": bool(r.buyer_max_censored),
-                          "deal_zone": bool(r.deal_zone_exists), "deal_ranges": r.get("deal_ranges", ""),
-                          "allowed": bool(r.get("legal", True)), "note": zone_note(r),
-                          "seller_break_even_networth": r.seller_min_price_networth,
-                          "buyer_maximum_networth": r.buyer_max_price_networth,
-                          "buyer_win_pct_without": 100 * r.p_win_base_buyer,
-                          "buyer_win_pct_if_free": 100 * r.p_win_buyer_if_free})
+    files = {"Simple bots": ("trade_curve_orange_squeeze{}.csv", "trade_curve_summary{}.csv",
+                             "later_deals_simple.json"),
+             "Meta agents, official rules": ("meta_trade_curve_standard{}.csv", "meta_trade_summary_standard{}.csv",
+                                             "later_deals_standard.json"),
+             "Meta agents, championship rules": ("meta_trade_curve_championship{}.csv",
+                                                 "meta_trade_summary_championship{}.csv",
+                                                 "later_deals_championship.json")}
+    for label, (curve_f, summary_f, later_f) in files.items():
+        unit = "points" if "championship" in label else "pp"
+        later = json.loads((TAB / later_f).read_text()) if (TAB / later_f).exists() else {}
+        for baseline, suffix in (("Kept for good", ""), ("Later trades allowed", "_live")):
+            c, s = read(curve_f.format(suffix)), read(summary_f.format(suffix))
+            if c is None or s is None:
+                continue
+            c, s = (d if "buyer" in d else d.assign(buyer=0) for d in (c, s))
+            for (n, buyer), d in c.groupby(["n_players", "buyer"]):
+                kind = "Completes the buyer's set" if buyer == 0 else "Buyer doesn't need it"
+                for r in roles(d, ["n_players"], buyer=buyer, scale=SCALE[unit]):
+                    curves.append({"opponents": label, "deal": kind, "baseline": baseline, "unit": unit, **r})
+            for _, r in s.iterrows():
+                kind = "Completes the buyer's set" if r.buyer == 0 else "Buyer doesn't need it"
+                # what the keep arm did when trading carried on: did the buyer get the deed later anyway, and for what
+                k = later.get(f"{r.n_players}p_buyer{r.buyer}", later.get(f"{r.n_players}p", {})) if suffix else {}
+                zones.append({"opponents": label, "deal": kind, "baseline": baseline, "unit": unit,
+                              "n_players": r.n_players,
+                              "seller_break_even": r.seller_min_price_win, "buyer_maximum": r.buyer_max_price_win,
+                              "buyer_maximum_is_all_cash": bool(r.buyer_max_censored),
+                              "deal_zone": bool(r.deal_zone_exists), "deal_ranges": r.get("deal_ranges", ""),
+                              "evidence": r.get("evidence", ""), "allowed": bool(r.get("legal", True)),
+                              "note": zone_note(r),
+                              "seller_break_even_networth": r.seller_min_price_networth,
+                              "buyer_maximum_networth": r.buyer_max_price_networth,
+                              "buyer_win_pct_without": 100 * r.p_win_base_buyer,
+                              "buyer_win_pct_if_free": 100 * r.p_win_buyer_if_free,
+                              "later_to_buyer_pct": 100 * k["to_buyer"] if "to_buyer" in k else None,
+                              "later_median_price": k.get("median_price")})
     save(pd.DataFrame(curves), "trade_curves.csv")
     z = pd.DataFrame(zones)
-    z.insert(0, "key", z.opponents + " | " + z.deal + " | " + z.n_players.astype(str) + " players")
+    z.insert(0, "key", z.opponents + " | " + z.deal + " | " + z.baseline + " | " + z.n_players.astype(str)
+             + " players")
     save(z, "deal_zones.csv")
 
 
@@ -167,42 +184,74 @@ def zone_note(r) -> str:
     return ""
 
 
-def roles(c: pd.DataFrame, keys: list[str], buyer: int = 0, seller: int = 1) -> list[dict]:
-    """Per-player curve rows -> one row per role (buyer, seller, everyone else) and price."""
+def roles(c: pd.DataFrame, keys: list[str], buyer: int = 0, seller: int = 1, scale: float = 100) -> list[dict]:
+    """Per-player curve rows -> one row per role (buyer, seller, everyone else) and price. `scale` turns a change in
+    credit into the unit shown: 100 for percentage points of win chance, 28 for championship points. Everyone
+    else comes from the curve's own row for the bystanders summed game by game (player -1), whose standard error is
+    paired; older curves without it sum the players and their errors as if independent."""
     out = []
     for vals, g in c.groupby(keys + ["price"]):
         base = dict(zip(keys + ["price"], vals))
-        others = g[~g.player.isin([seller, buyer])]
+        combined = g[g.player == -1]
+        others = combined if not combined.empty else g[~g.player.isin([seller, buyer, -1])]
         for role, sub in [("Buyer", g[g.player == buyer]), ("Seller", g[g.player == seller]),
                           ("Everyone else", others)]:
             if not sub.empty:
-                out.append({**base, "role": role, "d_win_pp": 100 * sub.d_win.sum(),
-                            "d_win_se_pp": 100 * (sub.d_win_se ** 2).sum() ** 0.5, "d_networth": sub.d_networth.sum()})
+                row = {**base, "role": role, "change": scale * sub.d_win.sum(),
+                       "change_se": scale * (sub.d_win_se ** 2).sum() ** 0.5, "d_networth": sub.d_networth.sum()}
+                if "d_outright" in sub and sub.d_outright.notna().all():
+                    row["outright_pp"] = 100 * sub.d_outright.sum()
+                out.append(row)
     return out
 
 
-def crossing_se(curve: pd.DataFrame, player: int) -> float | None:
-    """Rough standard error, in pounds, of where a player's change in win chance crosses zero.
-
-    The noise in the change (its standard error) divided by how steeply it falls with price
-    there. Cheap sets have flat curves, so their break-even prices are much less certain.
-    """
+def crossing_se(curve: pd.DataFrame, player: int, at: float | None = None) -> float | None:
+    """Rough standard error, in pounds, of where a player's change in win chance crosses zero: the noise in the
+    change (its standard error) divided by how steeply it falls with price there. Cheap sets have flat curves, so
+    their break-even prices are much less certain. `at` picks the crossing nearest the price shown (a curve that
+    isn't monotone crosses more than once, and the shown end may not be the first crossing)."""
     c = curve[curve.player == player].sort_values("price")
     x, y, se = c.price.to_numpy(float), c.d_win.to_numpy(float), c.d_win_se.to_numpy(float)
+    found = []
     for i in range(len(x) - 1):
         if y[i] == 0 or (y[i] > 0) != (y[i + 1] > 0):
             slope = abs(y[i + 1] - y[i]) / (x[i + 1] - x[i])
-            return float(min(600.0, (se[i] + se[i + 1]) / 2 / slope)) if slope > 0 else 600.0
-    return None
+            where = x[i] if y[i] == 0 else x[i] + (x[i + 1] - x[i]) * y[i] / (y[i] - y[i + 1])
+            found.append((where, float(min(600.0, (se[i] + se[i + 1]) / 2 / slope)) if slope > 0 else 600.0))
+    if not found:
+        return None
+    if at is None or pd.isna(at):
+        return found[0][1]
+    return min(found, key=lambda f: abs(f[0] - at))[1]
 
 
 MODE_OF = {"meta": "standard", "championship": "championship"}
+# championship rollouts score finishing points ÷ 28, not wins: shown as expected points, other rules as win chance
+UNIT = {"simple": "pp", "meta": "pp", "championship": "points"}
+SCALE = {"pp": 100, "points": 28}
+
+
+def price_check(checks: pd.DataFrame | None, bots: str, n: int, sq: int) -> str:
+    """What replaying a narrow deal at whole-pound prices on fresh games found (scripts/16_price_checks.py)."""
+    if checks is None:
+        return ""
+    c = checks[(checks.bots == bots) & (checks.n_players == n) & (checks.square == sq)]
+    if c.empty:
+        return ""
+    pounds = lambda d: ", ".join(f"£{int(x)}" for x in d.price.dropna())  # noqa: E731
+    good = c[c.verdict == "both gain (95%)"]
+    if len(good):
+        return f"replayed on fresh games: both clearly gain at {pounds(good)}"
+    if c.price.isna().all():
+        return "no whole-pound price inside the zone, so no payable deal"
+    return f"replayed on fresh games at {pounds(c)}: no price where both clearly gain"
 
 
 def property_trades():
     """Every property sold to the player it completes a set for (scripts/10_property_trades.py)."""
     ed = load_edition()
     curves, zones = [], []
+    checks = read("price_checks.csv")
     for bots, label in [("simple", "Simple bots"), ("meta", "Meta agents, official rules"),
                         ("championship", "Meta agents, championship rules")]:
         d = TAB / "property_trades" / bots
@@ -216,8 +265,9 @@ def property_trades():
         if vine is not None:
             parts.append(vine[vine.n_players.isin(sizes)].assign(square=19))
         c = pd.concat(parts)
-        for r in roles(c, ["n_players", "square"]):
-            curves.append({"opponents": label, **r})
+        unit = UNIT[bots]
+        for r in roles(c, ["n_players", "square"], scale=SCALE[unit]):
+            curves.append({"opponents": label, "unit": unit, **r})
         summary = read(f"property_trade_summary_{bots}.csv")
         if summary is None:
             continue
@@ -229,13 +279,15 @@ def property_trades():
             seller_note = ("gains even giving it away" if z.seller_gains_free else
                            "loses at every price tested" if pd.isna(z.seller_min_price_win) else "")
             buyer_note = "loses at every price, even free" if pd.isna(z.buyer_max_price_win) else ""
-            zones.append({"opponents": label, "n_players": n, "square": sq, "name": ed.names[sq],
+            zones.append({"opponents": label, "unit": unit, "n_players": n, "square": sq, "name": ed.names[sq],
                           "group": ed.group_names[ed.group_of[sq]], "price": ed.price[sq],
                           "seller_break_even": z["seller_min_price_win"], "buyer_maximum": z["buyer_max_price_win"],
-                          "seller_break_even_se": crossing_se(g, 1), "buyer_maximum_se": crossing_se(g, 0),
+                          "seller_break_even_se": crossing_se(g, 1, z["seller_min_price_win"]),
+                          "buyer_maximum_se": crossing_se(g, 0, z["buyer_max_price_win"]),
                           "buyer_maximum_is_all_cash": bool(z["buyer_max_censored"]),
                           "deal_zone": bool(z["deal_zone_exists"]), "deal_ranges": z["deal_ranges"],
                           "confident_deal_ranges": z["confident_deal_ranges"], "allowed": bool(z["legal"]),
+                          "evidence": z.get("evidence", ""), "price_check": price_check(checks, bots, n, sq),
                           "note": zone_note(z),
                           "seller_break_even_networth": z["seller_min_price_networth"],
                           "buyer_maximum_networth": z["buyer_max_price_networth"],

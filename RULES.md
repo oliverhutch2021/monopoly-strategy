@@ -39,7 +39,7 @@ only to validate the Markov chain.
     station doesn't count** towards that number. That is the engine's reading: the rules
     sheet doesn't settle it, and some players count every station owned.
     `Rules(mortgaged_count_for_rent=True)` plays it that way. The choice moves no tested
-    result by more than 2% (README, finding 18).
+    result by more than 2% ([FINDINGS.md](FINDINGS.md), finding 18).
   - Utilities pay 4× the dice roll for one owned, or 10× for both, with the same choice
     about a mortgaged one.
   - A street's double rent for a whole set applies even if another street in the set is
@@ -54,7 +54,9 @@ only to validate the Markov chain.
   lift. You can't mortgage while the colour set has buildings.
 - **Trades**: properties and cash can change hands. Every building in a colour set must be
   sold before any of its streets can be traded. Whoever receives a mortgaged property pays
-  the 10% interest straight away.
+  the 10% interest straight away, and keeps it mortgaged (lifting it later costs its value
+  + 10% again). The official rules also let them lift it at once for its value + 10%
+  instead: `Rules(mortgage_transfer_choice=True)` (see Simplifications).
 - **Bankruptcy**: buildings are sold to the bank first.
   - Owing a player: your cash, properties and Get Out of Jail Free cards go to that player,
     and they pay 10% on any mortgages they inherit.
@@ -66,20 +68,24 @@ only to validate the Markov chain.
 
 ## Simplifications (and how each is tested)
 
-Three of the simplifications below could bend the findings: two decide who gets houses,
-which several findings rest on, and one sets station and utility rent. Each has an engine
-switch that plays the official rule instead. `scripts/15_rule_sensitivity.py` (run by
-`make review`) replayed the housing comparisons under every switch, on games no search had
+Four of the simplifications below could bend the findings: two decide who gets houses,
+which several findings rest on, one sets station and utility rent, and one what receiving a
+mortgaged property costs. Each has an engine switch that plays the official rule instead.
+`scripts/15_rule_sensitivity.py` (run by `make review`, and again with the mortgage choice by
+`make review3`) replayed the housing comparisons under every switch, on games no search had
 seen, and counted how often each simplification binds. No verdict reverses under any of
-them, and house auctions change no edge by more than 1% (README, finding 18; details in
-`results/final/tables/sensitivity/summary.md`). The meta agents were still trained under
-the engine's rules.
+them, and house auctions change no edge by more than 1% ([FINDINGS.md](FINDINGS.md), finding
+18; details in `results/final/tables/sensitivity/summary.md`). A fifth, the shortage of
+hotels, has no switch yet: the same study counts how often it arises. The meta agents were
+still trained under the engine's rules.
 
 | Simplification | Effect, and the switch that removes it |
 |---|---|
 | Building, unmortgaging and trading happen once per turn, at the end of the player's own turn (the rules allow building at any time). | `Rules(build_any_time=True)`: after each turn, every other player in turn order may also build and unmortgage (trades stay on a player's own turn). Games run 2–3 times slower. Moves the tested agents' edges by 5% at most; helps the simple bot more (0.46× to 0.63× against the championship 4-player agents). |
 | During a housing shortage, the remaining houses go to whoever builds first. There's no auction for the last houses. | `Rules(house_auctions=True)`: whenever two or more players want more houses than the bank has, the houses are auctioned one at a time. Each bidder bids for one named house, the next it would build, with a limit of at least that house's price. The highest limit wins, pays the second-highest + £1 (at least the house's price, never more than its own limit) and puts the house on the square it named; ties go to the earliest in turn order. Demand is re-read after every sale. `Game.contested_houses` counts those moments (also without the switch, with `Game.track_housing`), and `Game.house_auctions_held` the houses sold. Between the final meta agents, houses are contested in 5% of official 4-player games, 1% of 2-player games and 43% of championship 4-player games (2.3 houses auctioned per game). |
 | A mortgaged station or utility doesn't count towards the rent of the others (see Rent above). | `Rules(mortgaged_count_for_rent=True)`. Moves no tested result by more than 2%. |
+| Whoever receives a mortgaged property (in a trade, or from a bankrupt player) pays the 10% interest then, and again when lifting it. | `Rules(mortgage_transfer_choice=True)`: they may lift it at once for its value + 10% instead; the bots do whenever their cash stays above their building reserve (`Policy.lift_on_transfer`). `Game.mortgaged_received` and `Game.lifted_on_receipt` count how often the choice arises and is taken. |
+| When hotels run short, they go to whoever builds first. The official rules auction them too, like houses. | No switch yet. With `Game.track_housing`, `Game.contested_hotels` counts the moments two or more players want more hotels than the bank has (`Policy.hotels_wanted`), so the study can say how often it would matter. |
 | Players buy only with cash on hand. They don't mortgage to fund a purchase. | Slightly fewer purchases by cash-poor players. |
 | If a hotel must be broken up and the bank lacks 4 houses, it is sold further down. The other streets in the set aren't forced down with it. | Very rare; counted in `Game.uneven_events` (which counts only this, not housing shortages in general). |
 | Rent is always collected (in the real game the owner must ask for it before the next roll). | Treats every player as attentive. |
@@ -88,9 +94,12 @@ the engine's rules.
 
 ## Time limit in meta-agent games
 
-The self-play games that train and test the meta agents stop after **150 full rounds**
-(`meta.tournament_rules`). That is well above the 90th-percentile game length at every
-table size (93 rounds at 2 players, 66 at 4, 55 at 6), so it only stops stalled games.
+The self-play games that train and test the meta agents stop after **150 rounds**
+(`meta.tournament_rules`), counted in total player-turns: 150 × the number of players at the
+start. After someone goes bankrupt the others take more turns each, so a player can take more
+than 150 turns of their own before the limit (up to about 230 in 6-player games). That is
+well above the 90th-percentile game length at every table size (93 rounds at 2 players, 66 at
+4, 55 at 6), so it only stops stalled games.
 
 How a stopped game is scored decides what self-play learns, so three rules were tried:
 
@@ -124,10 +133,15 @@ use it.
   (championship FAQ).
 - **No trades heads-up**: once only two players are left, no more trades (championship FAQ, for
   preliminary games).
-- **Time limit and scoring.** Games stop after 150 rounds. Players are then ranked by net
-  worth and score finishing points: 28 for an outright win; with 2 players left 25 and 14;
-  with 3 left 22, 12 and 6; with 4 left 19, 10, 5 and 3. The rules sheet stops at 4
-  survivors, so 5 and 6 survivors use an extrapolated 16/8/4/2/1 and 13/6/3/2/1/0.
+- **Time limit and scoring.** Games stop after 150 rounds (in total player-turns, as above).
+  Players are then ranked by net worth and score finishing points: 28 for an outright win;
+  with 2 players left 25 and 14; with 3 left 22, 12 and 6; with 4 left 19, 10, 5 and 3. The
+  rules sheet stops at 4 survivors, so 5 and 6 survivors use an extrapolated 16/8/4/2/1 and
+  13/6/3/2/1/0. That assumption decides most 5- and 6-player games between the championship
+  agents, which mostly end at the limit with everyone still in, so
+  `scripts/18_scoring_sensitivity.py` re-scores those conclusions under two other schedules
+  (`Rules(points_schedule=...)`: "extend_four", 19/10/5/3/1 and 19/10/5/3/1/0, and
+  "rank_linear", 19/14/10/5/0 and 19/15/11/8/4/0).
   Agents maximise points ÷ 28, and championship results report that credit, which is not a
   win probability: with two survivors the credits sum to 39/28. Win-rate tables count
   outright wins and time-limit leaders separately (`limit_wins`).

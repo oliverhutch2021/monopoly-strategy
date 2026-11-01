@@ -86,6 +86,21 @@ def test_search_is_deterministic_and_resumes_exactly(tmp_path):
     assert resumed["elites"] == straight["elites"] and resumed["history"] == straight["history"]
 
 
+def test_a_checkpoint_from_other_inputs_is_refused(tmp_path):
+    ck = tmp_path / "s.json"
+    tiny(ck, evals=8)
+    with pytest.raises(SystemExit, match="other inputs or code"):
+        search(META, 2, tournament_rules(2), seed=4, games=6, cells=5, init=12, batch=4, evals=12, workers=1,
+               ckpt=ck, log=lambda *a, **k: None)
+    state = json.loads(ck.read_text())
+    del state["fingerprint"]  # made before fingerprints: resumed, with a note
+    ck.write_text(json.dumps(state))
+    notes = []
+    search(META, 2, tournament_rules(2), seed=3, games=6, cells=5, init=12, batch=4, evals=12, workers=1,
+           ckpt=ck, log=notes.append)
+    assert any("no fingerprint" in n for n in notes)
+
+
 def test_finalists_validation_and_league():
     state = tiny()
     fins = pick_finalists(state, top=2)

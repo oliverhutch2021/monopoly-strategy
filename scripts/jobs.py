@@ -124,7 +124,8 @@ JOBS: dict[str, list[tuple]] = {
         ("rule-sensitivity", ["scripts/15_rule_sensitivity.py"], FINAL),
         ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
         ("figures", ["scripts/make_figures.py"], FINAL),
-        # which README numbers the re-runs moved (results/final/readme_claims.txt); never fails the job
+        # which numbers on the front page and in the findings the re-runs moved (results/final/readme_claims.txt);
+        # never fails the job
         ("readme-claims", ["scripts/claims.py", "--quiet", "--no-fail", "--report", "results/final/readme_claims.txt"],
          FINAL),
     ],
@@ -139,6 +140,27 @@ JOBS: dict[str, list[tuple]] = {
         ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], FINAL),
         ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], FINAL),
         ("rule-sensitivity", ["scripts/15_rule_sensitivity.py"], FINAL),
+        ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
+        ("figures", ["scripts/make_figures.py"], FINAL),
+        ("readme-claims", ["scripts/claims.py", "--quiet", "--no-fail", "--report", "results/final/readme_claims.txt"],
+         FINAL),
+    ],
+    # The deep review's fixes (about 3 hours). Every trade is priced against both baselines: keeping the deed for
+    # good (its own value) and carrying on as normal, later trades allowed (the decision to accept an offer today),
+    # with the bystanders' change measured game by game. Narrow deals are replayed at whole-pound prices, and the
+    # set-completing sale is priced in 100 positions from real games. The rule sensitivity gains the official
+    # choice on receiving a mortgaged deed, counts of contested hotels, equivalence readings, per-game records for
+    # paired before/after comparisons, and the housing lock taken apart into its two behaviours against four
+    # opponent populations. The championship conclusions at 5-6 players are re-scored under other points schedules.
+    "review3": [
+        ("trade-summaries", ["scripts/trade_summaries.py"], FINAL),
+        ("vine-street-simple", ["scripts/04_trade_curve.py"], FINAL),
+        ("vine-street-meta-standard", ["scripts/06_meta_trade_curve.py", "--mode", "standard"], FINAL),
+        ("vine-street-meta-championship", ["scripts/06_meta_trade_curve.py", "--mode", "championship"], FINAL),
+        ("price-checks", ["scripts/16_price_checks.py"], FINAL),
+        ("game-positions", ["scripts/17_game_positions.py"], FINAL),
+        ("rule-sensitivity", ["scripts/15_rule_sensitivity.py"], FINAL),
+        ("scoring-sensitivity", ["scripts/18_scoring_sensitivity.py"], FINAL),
         ("dashboard-data", ["scripts/08_dashboard_data.py"], FINAL),
         ("figures", ["scripts/make_figures.py"], FINAL),
         ("readme-claims", ["scripts/claims.py", "--quiet", "--no-fail", "--report", "results/final/readme_claims.txt"],

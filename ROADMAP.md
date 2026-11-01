@@ -96,10 +96,43 @@ left its conclusion as it was. With the auction fix, the house-auction results m
 results without house auctions reproduced exactly. On fresh seeds the housing-lock gain is 4.9% [4.3%, 5.5%]. After
 a Bonferroni adjustment, 11 of the 52 rule comparisons still show a change, all of them with building at any time.
 
+A third, deeper review (85/100, of 6e8a9f4) reproduced the corrected results and asked what each one means. Its
+points, each checked against the code before changing anything:
+
+- **Which decision a trade price prices.** A sale was compared with keeping the deed for good, which measures the
+  deed's own value to each side. Whether to accept an offer today depends on what happens otherwise, and the bots
+  often trade the deed later anyway (simple bots offer twice face value, £400 for Vine Street). Every Vine Street
+  curve is now played against both baselines, and records what the keep arm's later trades were
+  (`rollout.trade_price_curve(freeze=...)`). Narrow deals read between sampled prices are replayed at whole-pound
+  prices on fresh games (`scripts/16_price_checks.py`), and the set-completing sale is priced in 100 positions from
+  real games, not one hand-built position (`scripts/17_game_positions.py`).
+- **One setting, two decisions.** The housing lock defers hotels while houses are short *and*, when raising cash,
+  mortgages everything else before selling a building. These are now separate settings (`lock` and `protect`), and
+  a four-arm comparison against four opponent populations says which one carries the gain.
+- **Points are not wins.** Championship trade values are expected finishing points ÷ 28; the dashboard now shows
+  them as points. The 5- and 6-survivor points are an assumption that decides most games at those sizes, so those
+  conclusions are re-scored under two other schedules (`scripts/18_scoring_sensitivity.py`).
+- **Smaller fixes:** everyone else's change in a trade is measured game by game (a paired standard error); the
+  dashboard draws one band per deal range and the uncertainty of the end it shows; the official choice to lift a
+  received mortgage at once is a rule variant; hotel shortages are counted; "no detected change" now needs an
+  interval inside a tolerance set in advance (±3%) before it is called equivalent; before/after comparisons keep each
+  game's outcome so they can be paired; and search checkpoints refuse to resume on other inputs or code
+  (`provenance.fingerprint`).
+
+`make review3` runs the parts that need new games (about 3 hours).
+
+The review's three highest-return next steps are now part of the plan below: make the decision being priced explicit
+in every valuation (Phase 4), separate bundled decisions before attributing a strategy's gain and then search over
+them (Phase 5), and build a game-level holdout before training a value model (Phases 2 and 3).
+
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the
   eventual winner, finishing position and the turns remaining, keeping outright wins,
-  time-limit wins and finishing points as separate targets.
+  time-limit wins and finishing points as separate targets: a game stopped by the time limit
+  is its own outcome class, and championship finishing points get their own target.
+- **A game-level holdout, built first.** Sample snapshots across game phase, property
+  scarcity, cash, developed sets, players remaining and opponent policies, and keep every
+  snapshot of a source game on the same side of every split.
 - **Positions from real games.** The trade findings rest on one hand-built position per
   table size, and each extra player there also adds properties and cash. Sample positions
   from held-out games instead, stratified by cash, property ownership, development, game
@@ -137,11 +170,17 @@ a Bonferroni adjustment, 11 of the 52 rule comparisons still show a change, all 
   - a held-out **valuation benchmark** of positions whose indifference prices have also
     been computed by rollouts (like `scripts/04_trade_curve.py`), comparing the model's £
     values against the rollout £ values;
-  - **decision regret**: how much win chance the model's choices (buy, bid, build, trade)
-    give up against the rollout's best choice, which matters more than calibration alone.
+  - **decision regret**: how much win chance (or finishing points) the model's choices (buy,
+    bid, build, trade) give up against the rollout's best choice, with the benchmark's
+    continuations on seeds of their own, which matters more than calibration or price error
+    alone.
 - SHAP explains every valuation: "why is Vine Street worth £900 to you right now?"
 
 ## Phase 4: instant valuations
+- **Name the decision being priced.** Every valuation says what it is compared with: the
+  deed kept for good (its own value to each side) or play carrying on as normal, later trades
+  included (whether to accept an offer now). Recommendations to accept or decline use the
+  second; both sides' outcomes and the later deals the baseline makes are shown.
 - **The marginal value of cash**, dP(win)/d£, which turns any Δwin% into pounds.
 - **Indifference price** of any property, for any player, in any state, compared with the
   same property in a fresh game. Break it into standalone rent, set-completion premium,
@@ -170,6 +209,11 @@ a Bonferroni adjustment, 11 of the 52 rule comparisons still show a change, all 
 - Retrain under the official building rules: the rule-sensitivity study (finding 18)
   tested the existing agents under them, which is not the same as the best play there.
   House-auction bidding is one heuristic today; search over it like any other setting.
+- **Separate decisions before attributing a gain.** The housing lock bundled hotel timing
+  with the order buildings are sold in; they are now separate settings (`lock`, `protect`).
+  Search over them separately, validate the selected policies against fresh mixtures of
+  opponents, and report absolute and relative gains with the outcome scored. Do the same for
+  any other setting that changes more than one action.
 - Report win rates against the hand-written bots, with confidence intervals.
 
 ## Phase 6: showcase

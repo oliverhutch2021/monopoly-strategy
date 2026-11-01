@@ -30,6 +30,8 @@ from monopoly_meta.rollout import rollout, trade_price_curve  # noqa: E402
 from monopoly_meta.tournament import run_games  # noqa: E402
 
 PLAYERS = [2, 3, 4, 5, 6]
+V03_CURVE = ["price", "player", "p_win_base", "p_win_trade", "d_win", "d_win_se", "d_networth", "d_networth_se",
+             "capped_share_base", "capped_share_trade"]
 MIX = ["balanced", "aggressive", "cautious", "three_house", "hoarder", "jail_short", "jail_long",
        "take_chance", "no_trade", "hard_bargain", "random"]
 GAME_SETS = {  # name: (rules factory, lineup kind, seeds per table size)
@@ -91,6 +93,9 @@ def pipeline_digests(genomes: dict) -> dict:
     out["rollout"] = hashlib.sha256(_dump([_r(credit.ravel()), _r(worth.ravel()), capped.tolist()])).hexdigest()
     curve = trade_price_curve(state, ["balanced"] * 4, seller=1, buyer=0, squares=[19], prices=[0, 400, 800],
                               n=16, seed0=777, workers=1)
+    # v0.3's rows and columns, in v0.3's order: what was added since (outright wins, the bystanders summed game by
+    # game) doesn't move the digest, and a changed value still does
+    curve = curve[curve.player >= 0][V03_CURVE]
     out["trade_price_curve"] = hashlib.sha256(_dump(curve.round(10).astype(str).values.tolist())).hexdigest()
     meta = genomes["meta_standard"]["4"]
     evaluate([meta, BALANCED], [meta], 4, 24, seed=11, rules=tournament_rules(4), workers=1, fixed_opponents=True)

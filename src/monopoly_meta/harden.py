@@ -41,6 +41,7 @@ from .engine import Rules
 from .meta import evaluate, evolve, paired_ratio
 from .unconventional import (TACTIC_NAMES, TACTICS, Arena, random_genome_ext, search, tactics_on, validate, vary,
                              with_tactics)
+from .provenance import check_resume, fingerprint
 
 MAX_SELF_CAPPED = 0.15  # share of an agent's own games stopped by the time limit, above which it isn't picked
 
@@ -147,16 +148,19 @@ def harden(meta: dict, pool: dict[str, dict], n_players: int, rules: Rules, *, s
     """Best-response iteration from `meta` against the known exploits in `pool` (see the module notes).
     Returns {"meta", "selected_round" (0: the starting agent was kept, k: round k's), "rounds", "final", "pool"}."""
     b = budget
+    fp = fingerprint(meta=meta, pool=pool, n_players=n_players, rules=asdict(rules), seed=seed, budget=asdict(b),
+                     rounds=rounds, threshold=threshold)
     if ckpt is not None and ckpt.exists():
         state = json.loads(ckpt.read_text())
         if state["budget"] != asdict(b) or state["seed"] != seed:
             raise SystemExit(f"{ckpt} was made with another budget or seed: delete it to start again")
+        check_resume(state, fp, ckpt, log)
         log(f"  [{n_players}p] resuming hardening at round {state['round']}")
     else:
         state = {"version": 1, "n_players": n_players, "seed": seed, "budget": asdict(b), "threshold": threshold,
                  "start": with_tactics(meta), "meta": with_tactics(meta),
                  "pool": {k: with_tactics(v) for k, v in pool.items()}, "round": 0, "rounds": [], "work": {},
-                 "final": None}
+                 "final": None, "fingerprint": fp}
 
     def save():
         if ckpt is not None:

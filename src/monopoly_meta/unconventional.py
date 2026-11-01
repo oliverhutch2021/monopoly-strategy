@@ -26,6 +26,7 @@ strategies a careful player has to be ready for.
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 import os
 import random
 from concurrent.futures import ProcessPoolExecutor
@@ -38,6 +39,7 @@ from .engine import (ST_AUCTION, ST_BOUGHT, ST_BUILT, ST_CASH, ST_HOTELS, ST_JAI
                      ST_TRADES, ST_TURNS, STAT_FIELDS, Game, Rules)
 from .meta import BALANCED, CONTINUOUS, mutate, paired_ratio, random_genome, to_spec
 from .policies import make_bot
+from .provenance import check_resume, fingerprint
 
 # ---------------------------------------------------------------------- the tactic genes
 TACTICS = {  # gene: (off, low, high). A tactic is either off or somewhere in [low, high].
@@ -290,17 +292,21 @@ def summary(state: dict) -> dict:
 def search(meta: dict, n_players: int, rules: Rules, *, seed: int, games: int, cells: int, init: int, batch: int,
            evals: int, workers: int | None = None, ckpt: Path | None = None, log=print) -> dict:
     """CVT-MAP-Elites against a table of meta agents. Returns the archive state (also saved to `ckpt`
-    after every batch, from which an interrupted search resumes exactly)."""
+    after every batch, from which an interrupted search resumes exactly). `evals` is the budget, not an input to
+    the archive: a finished search can be resumed with a bigger one to search further, so it isn't fingerprinted."""
+    fp = fingerprint(meta=meta, n_players=n_players, rules=asdict(rules), seed=seed, games=games, cells=cells,
+                     init=init, batch=batch)
     if ckpt is not None and ckpt.exists():
         state = json.loads(ckpt.read_text())
         if (state["games"], state["cells"]) != (games, cells):
             raise SystemExit(f"{ckpt} was made with {state['games']} games and {state['cells']} regions, not "
                              f"{games} and {cells}: delete it to start this search again")
+        check_resume(state, fp, ckpt, log)
         log(f"  [{n_players}p] resuming the search at {state['evals']} strategies tried")
     else:
         state = {"version": 1, "n_players": n_players, "seed": seed, "games": games, "cells": cells,
                  "meta": meta, "meta_credit": None, "centroids": None, "pending": [], "elites": {},
-                 "evals": 0, "iteration": 0, "history": []}
+                 "evals": 0, "iteration": 0, "history": [], "fingerprint": fp}
 
     def save():
         if ckpt is not None:

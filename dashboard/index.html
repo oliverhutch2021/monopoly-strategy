@@ -61,8 +61,8 @@
       </div>
       <div class="mm-card mm-tile mm-banded" id="tile-deal" style="--band: var(--mm-yellow)">
         <span class="mm-tile-label">Vine Street deal zone</span>
-        <span class="mm-big"><span data-draw="kpi-deal-lo" data-source="deal_zones" data-field="seller_break_even">—</span>–<span data-draw="kpi-deal-hi" data-source="deal_zones" data-field="buyer_maximum">—</span></span>
-        <span class="mm-sub">prices where buyer and seller both gain, simple bots</span>
+        <span class="mm-big" data-draw="kpi-deal" data-source="deal_zones" data-field="deal_ranges">—</span>
+        <span class="mm-sub">prices where both gain, against keeping it for good, simple bots</span>
       </div>
       <div class="mm-card mm-tile mm-banded" id="tile-meta" style="--band: var(--mm-dark-blue)">
         <span class="mm-tile-label">Meta agent vs a simple bot</span>
@@ -203,7 +203,7 @@
     <div class="mm-card" id="property-trade-card">
       <span class="mm-kicker">Trading floor</span>
         <h2>What is a property worth to the player it completes a set for?</h2>
-      <p class="mm-note">Ten rounds in, the seller owns the chosen property and the buyer owns the rest of its group; everyone else holds unrelated properties. Each price was played out 10,000 times (5,000 under championship rules, 20,000 for Vine Street), each sale paired with keeping the property on the same dice. The shaded band is the deal zone, where both sides gain. Some bots do better after paying more, which says more about the bot than the property, and championship rules allow no trades heads-up: the tooltip says when.</p>
+      <p class="mm-note">Ten rounds in, the seller owns the chosen property and the buyer owns the rest of its group; everyone else holds unrelated properties. Each price was played out 10,000 times (5,000 under championship rules, 20,000 for Vine Street), each sale paired with the seller keeping the property for good on the same dice, so the curves measure what the deed itself is worth to each side. The shaded bands are the deal zone, where both sides gain. Under championship rules games are scored by finishing points, so those curves show expected points rather than win chance. Some bots do better after paying more, which says more about the bot than the property, and championship rules allow no trades heads-up: the tooltip says when.</p>
       <div class="mm-bar">
         <label class="mm-ctl mm-grow"><span class="mm-label">Property</span>
           <select data-draw="property-select" data-source="squares" aria-label="Property"></select>
@@ -221,9 +221,9 @@
         </label>
       </div>
       <div class="mm-readouts">
-        <div class="mm-readout"><span class="mm-label">Buyer's win chance</span><span class="mm-big" data-draw="pro-buyer" data-source="property_trades" data-field="d_win_pp">—</span></div>
-        <div class="mm-readout"><span class="mm-label">Seller's win chance</span><span class="mm-big" data-draw="pro-seller" data-source="property_trades" data-field="d_win_pp">—</span></div>
-        <div class="mm-readout"><span class="mm-label">Everyone else's</span><span class="mm-big" data-draw="pro-others" data-source="property_trades" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label" data-draw="pro-buyer-label">Buyer's win chance</span><span class="mm-big" data-draw="pro-buyer" data-source="property_trades" data-field="change">—</span></div>
+        <div class="mm-readout"><span class="mm-label" data-draw="pro-seller-label">Seller's win chance</span><span class="mm-big" data-draw="pro-seller" data-source="property_trades" data-field="change">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Everyone else's</span><span class="mm-big" data-draw="pro-others" data-source="property_trades" data-field="change">—</span></div>
         <div class="mm-readout"><span class="mm-label">Seller's net worth 40 turns later</span><span class="mm-big" data-draw="pro-networth" data-source="property_trades" data-field="d_networth">—</span></div>
       </div>
       <div class="mm-legend"><span><i style="background: var(--mm-c0)"></i>Buyer</span><span><i style="background: var(--mm-c1)"></i>Seller</span><span><i style="background: var(--mm-muted)"></i>Everyone else</span><span><i style="background: var(--mm-c2); opacity: .35"></i>Deal zone</span></div>
@@ -242,7 +242,7 @@
     <div class="mm-card" id="trade-card">
       <span class="mm-kicker">Vine Street</span>
         <h2>Vine Street in depth: who plays on, and who buys</h2>
-      <p class="mm-note">The same Vine Street sale with 20,000 rollouts per price, played out by simple bots or by meta agents under either rule set, and sold to a player who needs it or one who doesn't.</p>
+      <p class="mm-note">The same Vine Street sale with 20,000 rollouts per price, played out by simple bots or by meta agents under either rule set, and sold to a player who needs it or one who doesn't. Two questions, two comparisons. Against keeping it for good, the curves measure what the deed itself is worth to each side. Against carrying on as normal, they say whether to accept the offer today: the bots may well trade it later anyway, and the dotted line marks the usual price when they did.</p>
       <div class="mm-bar">
         <label class="mm-ctl mm-grow"><span class="mm-label">Rest of the game played by</span>
           <select id="sel-opponents" aria-label="Rest of the game played by">
@@ -257,31 +257,39 @@
             <option value="Buyer doesn't need it">A player who doesn't need it</option>
           </select>
         </label>
+        <label class="mm-ctl mm-grow"><span class="mm-label">If it isn't sold now</span>
+          <select id="sel-baseline" aria-label="If it isn't sold now">
+            <option value="Kept for good">The seller keeps it for good</option>
+            <option value="Later trades allowed">Trading carries on as normal</option>
+          </select>
+        </label>
         <label class="mm-ctl mm-grow"><span class="mm-label">Price</span>
           <input id="price" class="mm-range" type="range" min="0" max="1200" step="50" value="650" aria-label="Price">
           <b data-draw="price-label">—</b>
         </label>
       </div>
       <div class="mm-readouts">
-        <div class="mm-readout"><span class="mm-label">Buyer's win chance</span><span class="mm-big" data-draw="ro-buyer" data-source="trade_curves" data-field="d_win_pp">—</span></div>
-        <div class="mm-readout"><span class="mm-label">Seller's win chance</span><span class="mm-big" data-draw="ro-seller" data-source="trade_curves" data-field="d_win_pp">—</span></div>
-        <div class="mm-readout"><span class="mm-label">Everyone else's</span><span class="mm-big" data-draw="ro-others" data-source="trade_curves" data-field="d_win_pp">—</span></div>
+        <div class="mm-readout"><span class="mm-label" data-draw="ro-buyer-label">Buyer's win chance</span><span class="mm-big" data-draw="ro-buyer" data-source="trade_curves" data-field="change">—</span></div>
+        <div class="mm-readout"><span class="mm-label" data-draw="ro-seller-label">Seller's win chance</span><span class="mm-big" data-draw="ro-seller" data-source="trade_curves" data-field="change">—</span></div>
+        <div class="mm-readout"><span class="mm-label">Everyone else's</span><span class="mm-big" data-draw="ro-others" data-source="trade_curves" data-field="change">—</span></div>
         <div class="mm-readout"><span class="mm-label">Seller's net worth 40 turns later</span><span class="mm-big" data-draw="ro-networth" data-source="trade_curves" data-field="d_networth">—</span></div>
       </div>
       <div class="mm-chart mm-tall" id="vine-trade-chart" data-draw="trade-chart" data-source="trade_curves deal_zones"></div>
       <p class="mm-note mm-trade-empty" hidden>No rollouts for this combination. A buyer who doesn't need Vine Street was only tested with simple bots, at 3 or more players.</p>
       <h3>Vine Street deal zones at every table size</h3>
-      <p class="mm-note">Seller's break-even and buyer's maximum, judged by win chance and by expected net worth 40 player-turns later. "+" means the buyer still gains at £1,200. Valuing in pounds underprices the set-completing property at every size. Championship rules allow no trades once two players are left.</p>
+      <p class="mm-note">For the comparison chosen above: the price ranges where both sides gain, the seller's break-even and the buyer's maximum, judged by win chance (expected points under championship rules) and by expected net worth 40 player-turns later. "+" means the buyer still gains at £1,200. With trading carrying on, the last column says how often the buyer got Vine Street later anyway, and at what median price. Championship rules allow no trades once two players are left.</p>
       <div class="mm-tablewrap">
         <table class="mm-table" data-source="deal_zones" data-row-key="key">
           <thead><tr>
             <th data-field="n_players">Players</th>
+            <th class="num" data-field="deal_ranges">Both gain at</th>
             <th class="num" data-field="seller_break_even">Seller break-even</th>
             <th class="num" data-field="buyer_maximum">Buyer maximum</th>
             <th class="num" data-field="seller_break_even_networth">Break-even, net worth</th>
             <th class="num" data-field="buyer_maximum_networth">Maximum, net worth</th>
-            <th class="num" data-field="buyer_win_pct_without">Buyer wins without it</th>
-            <th class="num" data-field="buyer_win_pct_if_free">Buyer wins if free</th>
+            <th class="num" data-field="buyer_win_pct_without">Buyer if not sold now</th>
+            <th class="num" data-field="buyer_win_pct_if_free">Buyer if free</th>
+            <th class="num" data-field="later_to_buyer_pct">Otherwise bought later</th>
           </tr></thead>
           <tbody data-draw="zones-body"></tbody>
         </table>
@@ -376,6 +384,7 @@ window.mm = (() => {
       n: +(p.players ?? 4), rules: p.rules ?? 'Official rules', opp: p.opponents ?? 'Simple bots',
       deal: p.deal ?? "Completes the buyer's set", price: +(p.price ?? 650), square: +(p.square ?? 24),
       view: p.view ?? '3d', bmode: p.bmode ?? 'towers', property: +(p.property ?? 19), popp: p.popp ?? 'Simple bots', pprice: +(p.pprice ?? 600),
+      baseline: p.baseline ?? 'Kept for good',
     };
   };
   const GROUP = { brown: 'Brown', light_blue: 'Light blue', pink: 'Pink', orange: 'Orange', red: 'Red',
@@ -458,25 +467,43 @@ window.mm = (() => {
     const a = rgb(el, 'var(--mm-board-paper)', 'rgb(239, 230, 204)'), b = rgb(el, to, 'rgb(236, 138, 44)');
     return d3.scaleLinear().domain([lo, hi]).range([d3.interpolateRgb(a, b)(0.12), b]).interpolate(d3.interpolateRgb).clamp(true);
   };
-  // the price curve shared by both trade cards: Δ win chance for buyer, seller and everyone else
+  // the price curve shared by both trade cards: the change for buyer, seller and everyone else. Championship rollouts
+  // score finishing points ÷ 28, so their curves are in expected points ("points"), the others in win chance ("pp").
   const ROLES = [['Buyer', 'var(--mm-c0)'], ['Seller', 'var(--mm-c1)'], ['Everyone else', 'var(--mm-muted)']];
+  const unitOf = (data) => (data.length && data[0].unit === 'points' ? 'points' : 'pp');
+  const change = (v, unit) => (unit === 'points' ? signed(v, 2) + ' pts' : signed(v) + ' pp');
+  const AXIS = { pp: 'Change in win chance, percentage points', points: 'Change in expected championship points' };
+  // "88-125; 175-1200" -> [[88, 125], [175, 1200]]: every price range where both sides gain
+  const rangesOf = (v) => String(v || '').split('; ').filter((x) => x.includes('-')).map((x) => x.split('-').map(Number));
+  const rangesText = (v, open) => rangesOf(v).map(([a, b], i, all) => (a === b ? money(a) : `${money(a)}–${money(b)}`) + (open && i === all.length - 1 ? '+' : '')).join(', ');
   const nearest = (values, v) => (values.length ? values.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a)) : null);
   const tradeChart = (el, data, zone, price, pick) => {
     const H = el.clientWidth < 480 ? 300 : 360, T = 26;
     const { svg, w } = svgFor(el, H);
-    const yMax = d3.max(data, (r) => +r.d_win_pp + 2 * +r.d_win_se_pp), yMin = d3.min(data, (r) => +r.d_win_pp - 2 * +r.d_win_se_pp);
-    const y = d3.scaleLinear([Math.min(yMin, -5), Math.max(yMax, 5)], [H - 28, T]).nice();
+    const unit = unitOf(data), pad = unit === 'points' ? 1 : 5;
+    const yMax = d3.max(data, (r) => +r.change + 2 * +r.change_se), yMin = d3.min(data, (r) => +r.change - 2 * +r.change_se);
+    const y = d3.scaleLinear([Math.min(yMin, -pad), Math.max(yMax, pad)], [H - 28, T]).nice();
     const left = textWidth(svg, y.ticks(6).map((v) => (v > 0 ? '+' : '') + v)) + 12;
     const x = d3.scaleLinear(d3.extent(data, (r) => +r.price), [left, w - 10]);
     svg.append('g').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => (v > 0 ? '+' : '') + v).tickSize(-(w - left - 10))).call(axisStyle).call((g) => g.select('.domain').remove());
     svg.append('g').attr('transform', `translate(0,${H - 28})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((w - left) / 80))).tickFormat((v) => '£' + d3.format(',')(v))).call(axisStyle);
-    if (zone && String(zone.deal_zone) === 'True' && zone.seller_break_even !== '' && zone.buyer_maximum !== '') {
-      const a = Math.max(+zone.seller_break_even, x.domain()[0]), b = Math.min(+zone.buyer_maximum, x.domain()[1]);
-      svg.append('rect').attr('x', x(a)).attr('y', T).attr('width', Math.max(0, x(b) - x(a))).attr('height', H - 28 - T).attr('fill', 'var(--mm-c2)').attr('opacity', 0.13);
+    if (zone && String(zone.deal_zone) === 'True' && String(zone.allowed) !== 'False') {
+      rangesOf(zone.deal_ranges).forEach(([lo, hi]) => {  // one band per range: a gap between two is not a deal
+        const a = Math.max(lo, x.domain()[0]), b = Math.min(hi, x.domain()[1]);
+        svg.append('rect').attr('x', x(a)).attr('y', T).attr('width', Math.max(2, x(b) - x(a))).attr('height', H - 28 - T).attr('fill', 'var(--mm-c2)').attr('opacity', 0.13);
+      });
+    }
+    // trading carries on: where the keep arm's later sale usually landed
+    if (zone && zone.later_median_price !== '' && zone.later_median_price != null && +zone.later_to_buyer_pct > 0) {
+      const lp = +zone.later_median_price;
+      if (lp >= x.domain()[0] && lp <= x.domain()[1]) {
+        svg.append('line').attr('x1', x(lp)).attr('x2', x(lp)).attr('y1', T).attr('y2', H - 28).attr('stroke', 'var(--mm-c2)').attr('stroke-width', 1.5).attr('stroke-dasharray', '1 3');
+        svg.append('text').attr('x', x(lp) + 4).attr('y', T + 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(`bought later: ${money(lp)}`);
+      }
     }
     svg.append('line').attr('x1', left).attr('x2', w - 10).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-reference)');
     ROLES.forEach(([role, col]) => {
-      const pts = data.filter((r) => r.role === role).map((r) => ({ p: +r.price, v: +r.d_win_pp, se: +r.d_win_se_pp })).sort((a, b) => a.p - b.p);
+      const pts = data.filter((r) => r.role === role).map((r) => ({ p: +r.price, v: +r.change, se: +r.change_se })).sort((a, b) => a.p - b.p);
       if (!pts.length) return;
       svg.append('path').attr('d', d3.area().x((d) => x(d.p)).y0((d) => y(d.v - 1.96 * d.se)).y1((d) => y(d.v + 1.96 * d.se))(pts)).attr('fill', col).attr('opacity', 0.14);
       svg.append('path').attr('d', d3.line().x((d) => x(d.p)).y((d) => y(d.v))(pts)).attr('fill', 'none').attr('stroke', col).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
@@ -486,16 +513,16 @@ window.mm = (() => {
     svg.append('line').attr('x1', x(p)).attr('x2', x(p)).attr('y1', T).attr('y2', H - 28).attr('stroke', 'var(--color-fg)').attr('stroke-dasharray', '3 3');
     ROLES.forEach(([role, col]) => {
       const r = data.find((d) => d.role === role && +d.price === p);
-      if (r) svg.append('circle').attr('cx', x(p)).attr('cy', y(+r.d_win_pp)).attr('r', 4.5).attr('fill', col).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2);
+      if (r) svg.append('circle').attr('cx', x(p)).attr('cy', y(+r.change)).attr('r', 4.5).attr('fill', col).attr('stroke', 'var(--mm-card)').attr('stroke-width', 2);
     });
-    svg.append('text').attr('x', 0).attr('y', 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Change in win chance, percentage points');
+    svg.append('text').attr('x', 0).attr('y', 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(AXIS[unit]);
     const t = tip(el);
     const at = (event) => prices[d3.minIndex(prices, (v) => Math.abs(x(v) - d3.pointer(event)[0]))];
     svg.append('rect').attr('x', left).attr('y', T).attr('width', w - left - 10).attr('height', H - 28 - T).attr('fill', 'transparent').style('cursor', 'pointer')
       .on('pointermove', (event) => {
         const q = at(event);
         t.show(event, [line(`Price £${d3.format(',')(q)}`, 'mm-tip-head'),
-          ...ROLES.map(([role, col]) => { const r = data.find((d) => d.role === role && +d.price === q); return r ? swatchLine(col, `${role} ${signed(+r.d_win_pp)} pp`) : null; }).filter(Boolean)]);
+          ...ROLES.map(([role, col]) => { const r = data.find((d) => d.role === role && +d.price === q); return r ? swatchLine(col, `${role} ${change(+r.change, unit)}`) : null; }).filter(Boolean)]);
       })
       .on('pointerleave', () => t.hide())
       .on('click', (event) => pick(at(event)));
@@ -511,7 +538,7 @@ window.mm = (() => {
     if (Math.abs(v) > 1e-9) el.classList.add(v > 0 ? 'mm-pos' : 'mm-neg');
     return r;
   };
-  return { P, GROUP, BOARD, STREETS, SHORT, ok, rows, where, f1, f2, money, signed, svgFor, tip, line, swatchLine, axisStyle, textWidth, rgb, ink, clip, heat, ROLES, nearest, tradeChart, readout };
+  return { P, GROUP, BOARD, STREETS, SHORT, ok, rows, where, f1, f2, money, signed, svgFor, tip, line, swatchLine, axisStyle, textWidth, rgb, ink, clip, heat, ROLES, nearest, tradeChart, readout, unitOf, change, rangesOf, rangesText };
 })();
 </script>
 
@@ -530,6 +557,7 @@ window.mm = (() => {
     dash.setParams(p);
   }));
   document.querySelectorAll('#sel-deal').forEach((s) => s.addEventListener('change', () => dash.setParams({ deal: s.value })));
+  document.querySelectorAll('#sel-baseline').forEach((s) => s.addEventListener('change', () => dash.setParams({ baseline: s.value })));
   document.querySelectorAll('#price').forEach((r) => r.addEventListener('input', () => dash.setParams({ price: +r.value })));
   document.querySelectorAll('#sel-popp').forEach((s) => s.addEventListener('change', () => dash.setParams({ popp: s.value })));
   document.querySelectorAll('#pprice').forEach((r) => r.addEventListener('input', () => dash.setParams({ pprice: +r.value })));
@@ -543,7 +571,7 @@ window.mm = (() => {
   if (['overview', 'properties', 'trades', 'strategies', 'meta'].includes(start)) show(start);
   dash.onData(() => {
     setColors();
-    const { n, rules, opp, deal, price, view, popp, pprice } = mm.P();
+    const { n, rules, opp, deal, price, view, popp, pprice, baseline } = mm.P();
     document.querySelectorAll('[data-players]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.players === n)));
     document.querySelectorAll('[data-rules]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.rules === rules)));
     document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
@@ -568,6 +596,7 @@ window.mm = (() => {
     document.querySelectorAll('#sel-deal').forEach((s) => { s.value = deal; s.disabled = opp !== 'Simple bots'; });
     document.querySelectorAll('#price').forEach((r) => { if (r !== document.activeElement) r.value = String(price); });
     document.querySelectorAll('#sel-popp').forEach((s) => { s.value = popp; });
+    document.querySelectorAll('#sel-baseline').forEach((s) => { s.value = baseline; });
     document.querySelectorAll('#pprice').forEach((r) => { if (r !== document.activeElement) r.value = String(pprice); });
   });
 })();
@@ -609,16 +638,12 @@ window.mm = (() => {
     const { n, rules } = P(); const g = ok('game_length') && rows('game_length').find((r) => +r.n_players === n && r.rules === rules);
     fill(el, g, g && f1(+g.median_rounds), g && where({ rules: g.rules, n_players: g.n_players }));
   });
-  const zone = (n) => rows('deal_zones').find((r) => r.opponents === 'Simple bots' && r.deal === "Completes the buyer's set" && +r.n_players === n);
-  dash.draw('kpi-deal-lo', (el) => {
+  const zone = (n) => rows('deal_zones').find((r) => r.opponents === 'Simple bots' && r.deal === "Completes the buyer's set"
+    && (r.baseline || 'Kept for good') === 'Kept for good' && +r.n_players === n);
+  dash.draw('kpi-deal', (el) => {
     const z = ok('deal_zones') && zone(P().n);
-    const has = z && z.seller_break_even !== '' && z.seller_break_even != null;
-    fill(el, has, has && money(+z.seller_break_even), has && where({ key: z.key }));
-  });
-  dash.draw('kpi-deal-hi', (el) => {
-    const z = ok('deal_zones') && zone(P().n);
-    const has = z && z.buyer_maximum !== '' && z.buyer_maximum != null;
-    fill(el, has, has && money(+z.buyer_maximum) + (String(z.buyer_maximum_is_all_cash) === 'True' ? '+' : ''), has && where({ key: z.key }));
+    const text = z && (String(z.deal_zone) === 'True' ? mm.rangesText(z.deal_ranges, String(z.buyer_maximum_is_all_cash) === 'True') : 'none');
+    fill(el, z, text, z && where({ key: z.key }));
   });
   dash.draw('kpi-meta', (el) => {
     const { n, rules } = P();
@@ -954,7 +979,10 @@ window.mm = (() => {
 <script>
 // ---------------------------------------------------------------- trades: every property, and Vine Street in depth
 (() => {
-  const { P, GROUP, BOARD, SHORT, STREETS, ok, rows, where, f1, money, signed, svgFor, tip, line, axisStyle, textWidth, clip, tradeChart, readout, nearest } = mm;
+  const { P, GROUP, BOARD, SHORT, STREETS, ok, rows, where, f1, money, signed, svgFor, tip, line, axisStyle, textWidth, clip, tradeChart, readout, nearest, unitOf, change, rangesOf, rangesText } = mm;
+  const isPoints = (r) => r && r.unit === 'points';
+  // credit × 100 as the unit shown: a win chance, or expected championship points (credit is points ÷ 28)
+  const level = (v, points) => (points ? f1(+v * 0.28) + ' pts' : f1(+v) + '%');
 
   // ---- every property
   const propCurve = () => {
@@ -981,14 +1009,22 @@ window.mm = (() => {
     const p = nearest([...new Set(data.map((r) => +r.price))].sort((a, b) => a - b), P().pprice);
     el.textContent = money(p == null ? P().pprice : p);
   });
-  const pro = (role, field, fmt) => (el) => {
-    const r = readout(el, ok('property_trades') ? propCurve() : [], P().pprice, role, field, fmt);
+  // "Buyer's win chance", or "Buyer's expected points" for curves scored by championship points
+  const roleLabel = (who, data) => (el) => { el.textContent = `${who} ${unitOf(data()) === 'points' ? 'expected points' : 'win chance'}`; };
+  const propData = () => (ok('property_trades') ? propCurve() : []);
+  dash.draw('pro-buyer-label', roleLabel("Buyer's", propData));
+  dash.draw('pro-seller-label', roleLabel("Seller's", propData));
+  const pro = (role, field) => (el) => {
+    const data = ok('property_trades') ? propCurve() : [];
+    const unit = unitOf(data);
+    const fmt = field === 'd_networth' ? (v) => (v >= 0 ? '+' : '−') + money(Math.abs(v)) : (v) => change(v, unit);
+    const r = readout(el, data, P().pprice, role, field, fmt);
     if (r) el.dataset.where = where({ opponents: r.opponents, n_players: r.n_players, square: r.square, price: r.price, role: r.role });
   };
-  dash.draw('pro-buyer', pro('Buyer', 'd_win_pp', (v) => signed(v) + ' pp'));
-  dash.draw('pro-seller', pro('Seller', 'd_win_pp', (v) => signed(v) + ' pp'));
-  dash.draw('pro-others', pro('Everyone else', 'd_win_pp', (v) => signed(v) + ' pp'));
-  dash.draw('pro-networth', pro('Seller', 'd_networth', (v) => (v >= 0 ? '+' : '−') + money(Math.abs(v))));
+  dash.draw('pro-buyer', pro('Buyer', 'change'));
+  dash.draw('pro-seller', pro('Seller', 'change'));
+  dash.draw('pro-others', pro('Everyone else', 'change'));
+  dash.draw('pro-networth', pro('Seller', 'd_networth'));
   dash.draw('property-chart', (el) => {
     el.replaceChildren();
     const data = ok('property_trades') ? propCurve() : [];
@@ -1028,7 +1064,8 @@ window.mm = (() => {
         clip(row.append('text').attr('x', sw - 6).attr('y', yc).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(name(r)), sw - 8);
       }
       if (lo != null && hi != null && !banned) {
-        if (zone) row.append('rect').attr('x', x(lo)).attr('y', yc - 4).attr('width', Math.max(2, x(hi) - x(lo))).attr('height', 8).attr('rx', 4).attr('fill', 'var(--mm-c2)').attr('opacity', 0.45);
+        // one bar per price range where both gain: a gap between two ranges is not a deal
+        if (zone) rangesOf(r.deal_ranges).forEach(([a, b]) => row.append('rect').attr('x', x(a)).attr('y', yc - 4).attr('width', Math.max(2, x(b) - x(a))).attr('height', 8).attr('rx', 4).attr('fill', 'var(--mm-c2)').attr('opacity', 0.45));
         else row.append('line').attr('x1', x(Math.min(lo, hi))).attr('x2', x(Math.max(lo, hi))).attr('y1', yc).attr('y2', yc).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-dasharray', '2 2');
       }
       // a seller who rarely wins either way has a flat curve, so its break-even is shown hollow
@@ -1041,41 +1078,52 @@ window.mm = (() => {
         else if (r.seller_note) arrow(1200, 'var(--mm-c1)');
         if (hi != null) { if (cens) arrow(hi, 'var(--mm-c0)'); else dot(hi, 'var(--mm-c0)', false); } else if (r.buyer_note) dot(0, 'var(--mm-c0)', true);
       }
-      const ranges = (v) => String(v || '').split('; ').filter(Boolean).map((x) => x.split('-').map((m) => money(+m)).join('–')).join(', ');
       const verdict = banned ? 'Not allowed: no trades once two players are left'
-        : zone ? `Both gain at ${ranges(r.deal_ranges) || 'prices in between'}` : 'No price suits both';
+        : zone ? `Both gain at ${rangesText(r.deal_ranges, cens) || 'prices in between'}` : 'No price suits both';
       const flaw = !banned && r.note ? [line(String(r.note).replace(/^not monotone:/, 'Not monotone:'))] : [];
+      // a zone read only between the prices played was replayed at whole-pound prices on fresh games
+      const narrowZone = !banned && zone && r.evidence === 'between sampled prices only'
+        ? [line('Both gain only between the prices played' + (r.price_check ? `; ${r.price_check}` : ''))]
+        : !banned && r.evidence === 'no whole-pound price' ? [line(r.price_check || 'No whole-pound price inside the zone')] : [];
       const fmt = (v, se) => (v == null ? 'none' : money(v) + (se && +se > 0 ? ` (±${money(+se)})` : ''));
-      const sellerLine = r.seller_note && lo == null ? `Seller ${r.seller_note}` : r.seller_note ? `Seller ${r.seller_note}` : `Seller breaks even at ${fmt(lo, r.seller_break_even_se)}`;
+      const sellerLine = r.seller_note ? `Seller ${r.seller_note}` : `Seller breaks even at ${fmt(lo, r.seller_break_even_se)}`;
       const buyerLine = r.buyer_note ? `Buyer ${r.buyer_note}` : `Buyer gains up to ${fmt(hi, cens ? null : r.buyer_maximum_se)}${cens ? '+' : ''}`;
+      const without = isPoints(r) ? `Seller's expected points without the sale: ${level(r.seller_win_pct_without, true)}`
+        : `Seller wins ${f1(+r.seller_win_pct_without)}% without the sale`;
       row.on('pointermove', (event) => t.show(event, [line(r.name, 'mm-tip-head'), line(sellerLine), line(buyerLine),
-        line(`Seller wins ${f1(+r.seller_win_pct_without)}% without the sale${shaky ? ', so its break-even is uncertain' : ''}`), line(verdict), ...flaw]))
+        line(without + (shaky ? ', so its break-even is uncertain' : '')), line(verdict), ...narrowZone, ...flaw]))
         .on('pointerleave', () => t.hide());
     });
   });
 
   // ---- Vine Street in depth
   const curve = () => {
-    const { n, opp, deal } = P();
-    return rows('trade_curves').filter((r) => r.opponents === opp && r.deal === deal && +r.n_players === n);
+    const { n, opp, deal, baseline } = P();
+    return rows('trade_curves').filter((r) => r.opponents === opp && r.deal === deal && (r.baseline || 'Kept for good') === baseline && +r.n_players === n);
   };
   const zoneRow = () => {
-    const { n, opp, deal } = P();
-    return rows('deal_zones').find((r) => r.opponents === opp && r.deal === deal && +r.n_players === n);
+    const { n, opp, deal, baseline } = P();
+    return rows('deal_zones').find((r) => r.opponents === opp && r.deal === deal && (r.baseline || 'Kept for good') === baseline && +r.n_players === n);
   };
+  const vineData = () => (ok('trade_curves') ? curve() : []);
+  dash.draw('ro-buyer-label', roleLabel("Buyer's", vineData));
+  dash.draw('ro-seller-label', roleLabel("Seller's", vineData));
   dash.draw('price-label', (el) => {
     const data = ok('trade_curves') ? curve() : [];
     const p = nearest([...new Set(data.map((r) => +r.price))].sort((a, b) => a - b), P().price);
     el.textContent = money(p == null ? P().price : p);
   });
-  const ro = (role, field, fmt) => (el) => {
-    const r = readout(el, ok('trade_curves') ? curve() : [], P().price, role, field, fmt);
-    if (r) el.dataset.where = where({ opponents: r.opponents, deal: r.deal, n_players: r.n_players, price: r.price, role: r.role });
+  const ro = (role, field) => (el) => {
+    const data = ok('trade_curves') ? curve() : [];
+    const unit = unitOf(data);
+    const fmt = field === 'd_networth' ? (v) => (v >= 0 ? '+' : '−') + money(Math.abs(v)) : (v) => change(v, unit);
+    const r = readout(el, data, P().price, role, field, fmt);
+    if (r) el.dataset.where = where({ opponents: r.opponents, deal: r.deal, baseline: r.baseline, n_players: r.n_players, price: r.price, role: r.role });
   };
-  dash.draw('ro-buyer', ro('Buyer', 'd_win_pp', (v) => signed(v) + ' pp'));
-  dash.draw('ro-seller', ro('Seller', 'd_win_pp', (v) => signed(v) + ' pp'));
-  dash.draw('ro-others', ro('Everyone else', 'd_win_pp', (v) => signed(v) + ' pp'));
-  dash.draw('ro-networth', ro('Seller', 'd_networth', (v) => (v >= 0 ? '+' : '−') + money(Math.abs(v))));
+  dash.draw('ro-buyer', ro('Buyer', 'change'));
+  dash.draw('ro-seller', ro('Seller', 'change'));
+  dash.draw('ro-others', ro('Everyone else', 'change'));
+  dash.draw('ro-networth', ro('Seller', 'd_networth'));
   dash.draw('trade-chart', (el) => {
     el.replaceChildren();
     const data = ok('trade_curves') ? curve() : [];
@@ -1087,19 +1135,23 @@ window.mm = (() => {
   dash.draw('zones-body', (el) => {
     el.replaceChildren();
     if (!ok('deal_zones')) return;
-    const { opp, deal } = P();
+    const { opp, deal, baseline } = P();
     const fmt = (v, cens) => (v === '' || v == null ? 'none' : money(+v) + (cens ? '+' : ''));
-    rows('deal_zones').filter((r) => r.opponents === opp && r.deal === deal).sort((a, b) => +a.n_players - +b.n_players).forEach((r) => {
-      const tr = document.createElement('tr');
-      tr.dataset.key = r.key;
-      const cens = String(r.buyer_maximum_is_all_cash) === 'True', banned = String(r.allowed) === 'False';
-      [String(+r.n_players), banned ? 'not allowed' : fmt(r.seller_break_even), banned ? '—' : fmt(r.buyer_maximum, cens),
-        banned ? '—' : fmt(r.seller_break_even_networth), banned ? '—' : fmt(r.buyer_maximum_networth),
-        f1(+r.buyer_win_pct_without) + '%', f1(+r.buyer_win_pct_if_free) + '%'].forEach((v, i) => {
-        const td = document.createElement('td'); if (i) td.className = 'num'; td.textContent = v; tr.appendChild(td);
+    rows('deal_zones').filter((r) => r.opponents === opp && r.deal === deal && (r.baseline || 'Kept for good') === baseline)
+      .sort((a, b) => +a.n_players - +b.n_players).forEach((r) => {
+        const tr = document.createElement('tr');
+        tr.dataset.key = r.key;
+        const cens = String(r.buyer_maximum_is_all_cash) === 'True', banned = String(r.allowed) === 'False', points = isPoints(r);
+        const later = r.later_to_buyer_pct === '' || r.later_to_buyer_pct == null ? '—'
+          : `${f1(+r.later_to_buyer_pct)}%` + (+r.later_to_buyer_pct > 0 && r.later_median_price !== '' ? `, ${money(+r.later_median_price)}` : '');
+        [String(+r.n_players), banned ? 'not allowed' : String(r.deal_zone) === 'True' ? rangesText(r.deal_ranges, cens) : 'none',
+          banned ? '—' : fmt(r.seller_break_even), banned ? '—' : fmt(r.buyer_maximum, cens),
+          banned ? '—' : fmt(r.seller_break_even_networth), banned ? '—' : fmt(r.buyer_maximum_networth),
+          level(r.buyer_win_pct_without, points), level(r.buyer_win_pct_if_free, points), later].forEach((v, i) => {
+          const td = document.createElement('td'); if (i) td.className = 'num'; td.textContent = v; tr.appendChild(td);
+        });
+        el.appendChild(tr);
       });
-      el.appendChild(tr);
-    });
   });
 })();
 </script>

@@ -1,6 +1,6 @@
-"""The README's numbers match the result tables they come from (scripts/claims.py).
+"""The front page's and the full findings' numbers match the result tables they come from (scripts/claims.py).
 
-When a re-run moves a number, test_readme_matches_tables fails and names the claim, until the README is updated."""
+When a re-run moves a number, test_pages_match_tables fails and names the claim, until the page is updated."""
 import importlib
 import sys
 from pathlib import Path
@@ -17,20 +17,22 @@ def items():
     return claims.Claims().all()
 
 
-def test_readme_matches_tables(items):
-    missing = claims.check(claims.README.read_text(), items)
-    assert not missing, "README claims that no longer match the tables (python scripts/claims.py):\n" + "\n".join(
+def test_pages_match_tables(items):
+    missing = claims.check_pages(items)
+    assert not missing, "Claims that no longer match the tables (python scripts/claims.py):\n" + "\n".join(
         f"  finding {f}, {what}: {text}" for f, what, text, _ in missing)
-    assert len(items) >= 70
+    assert len(items) >= 70 and sum(map(claims.on_front_page, items)) >= 7
 
 
 def test_a_changed_number_is_caught(items):
-    readme = claims.README.read_text()
-    wrong = readme.replace("£594–£1,144", "£594–£1,145", 1)
-    names = {what for _, what, _, _ in claims.check(wrong, items)}
+    findings = claims.FINDINGS.read_text()
+    wrong = findings.replace("£594–£1,144", "£594–£1,145", 1)
+    names = {what for _, what, _, _ in claims.check_pages(items, findings=wrong)}
     assert "deal zone, 4 players" in names
-    wrong = readme.replace("costs 10–11% of", "costs 10–12% of")
-    assert {what for _, what, _, _ in claims.check(wrong, items)} == {"cash"}
+    wrong = findings.replace("costs 10–11% of", "costs 10–12% of")
+    assert {what for _, what, _, _ in claims.check_pages(items, findings=wrong)} == {"cash"}
+    front = claims.README.read_text().replace("(3.48 and 2.36 landings", "(3.47 and 2.36 landings")
+    assert {c[0] for c in claims.check_pages(items, front=front)} == {"L1"}
 
 
 def test_line_breaks_and_formatting():

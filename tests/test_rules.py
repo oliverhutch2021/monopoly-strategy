@@ -419,3 +419,88 @@ def test_a_bid_is_for_the_house_it_names():
     want, limit, sq = g.policies[1].house_bid(g, 1)
     assert sq in (1, 3) and 50 <= limit <= 150
     assert make_bot("balanced").house_bid(g, 0) == (0, 0, None)  # owns no set
+
+
+# ------------------------------------------------------------------ 2026-10-31 review
+def test_receiving_a_mortgaged_property_can_be_lifted_at_once_for_ten_percent():
+    """Official rule: lift it at once for its mortgage + 10%, or pay the 10% now and keep it mortgaged. Without the
+    choice the engine charged the 10% on receipt, so a bot that then lifted it paid 20%."""
+    from monopoly_meta.engine import Rules
+    from monopoly_meta.policies import make_bot
+    for choice in (False, True):
+        g = game([(4, 5)], policies=[make_bot("balanced"), make_bot("balanced")],
+                 rules=Rules(mortgage_transfer_choice=choice))
+        give(g, 1, 19)
+        g.s.mortgaged[19] = True  # Vine Street: mortgage £100, lifting costs £110
+        g.trade_log = []
+        assert g.execute_trade(1, 0, (19,), (), 0)
+        if choice:
+            assert not g.s.mortgaged[19] and g.s.cash[0] == 1500 - 110
+        else:
+            assert g.s.mortgaged[19] and g.s.cash[0] == 1500 - 10
+        assert g.trade_log == [(g.s.turn, 1, 0, (19,), (), 0)]
+
+
+def test_lifting_at_once_never_leaves_the_fees_on_other_deeds_unpaid():
+    """Two mortgaged deeds received together: the first is lifted only if the 10% on the second can still be paid."""
+    from monopoly_meta.engine import Rules
+    from monopoly_meta.policies import make_bot
+    g = game([(4, 5)], policies=[make_bot("aggressive"), make_bot("balanced")],
+             rules=Rules(mortgage_transfer_choice=True))
+    give(g, 1, 16, 18)  # Bow Street and Marlborough Street: mortgages £90 each, lifting costs £99, the fee £9
+    g.s.mortgaged[16] = g.s.mortgaged[18] = True
+    g.s.cash[0] = 100  # lifting Bow Street (£99) would leave £1, short of Marlborough Street's £9
+    assert g.execute_trade(1, 0, (16, 18), (), 0)
+    assert g.s.cash[0] == 100 - 9 - 9 and g.s.mortgaged[16] and g.s.mortgaged[18]
+    assert (g.mortgaged_received, g.lifted_on_receipt) == (2, 0)
+    g = game([(4, 5)], policies=[make_bot("aggressive"), make_bot("balanced")],
+             rules=Rules(mortgage_transfer_choice=True))
+    give(g, 1, 16, 18)
+    g.s.mortgaged[16] = g.s.mortgaged[18] = True
+    g.s.cash[0] = 120  # enough to lift one and still pay the other's fee
+    assert g.execute_trade(1, 0, (16, 18), (), 0)
+    assert g.s.cash[0] == 120 - 99 - 9 and not g.s.mortgaged[16] and g.s.mortgaged[18]
+    assert (g.mortgaged_received, g.lifted_on_receipt) == (2, 1)
+
+
+def test_the_bankruptcy_that_ends_the_game_counts_no_mortgaged_deeds():
+    """The winner inherits the loser's deeds as the game ends: no choice arises, so none is counted (or lifted)."""
+    from monopoly_meta.engine import Rules
+    from monopoly_meta.policies import make_bot
+    g = game([(4, 5)], policies=[make_bot("balanced"), make_bot("balanced")],
+             rules=Rules(mortgage_transfer_choice=True))
+    give(g, 1, 19)
+    g.s.mortgaged[19] = True
+    g.bankrupt(1, 0)
+    assert g.done and g.mortgaged_received == 0 and g.lifted_on_receipt == 0 and g.s.mortgaged[19]
+    g = game([(4, 5)], policies=[make_bot("balanced") for _ in range(3)], rules=Rules(mortgage_transfer_choice=True))
+    give(g, 1, 19)
+    g.s.mortgaged[19] = True
+    g.bankrupt(1, 0)  # two players left: the game goes on, so the choice arises
+    assert not g.done and g.mortgaged_received == 1 and g.lifted_on_receipt == 1 and not g.s.mortgaged[19]
+
+
+def test_alternative_points_schedules_for_five_and_six_survivors():
+    from monopoly_meta.engine import GameResult, championship_points
+    assert championship_points(5) == [16, 8, 4, 2, 1] and championship_points(4, "extend_four") == [19, 10, 5, 3]
+    assert championship_points(5, "extend_four") == [19, 10, 5, 3, 1]
+    assert championship_points(6, "rank_linear") == [19, 15, 11, 8, 4, 0]
+    r = GameResult(winner=0, capped=True, turns=750, net_worth=[500, 400, 300, 200, 100], elimination_order=[],
+                   stalemate="championship", points_schedule="extend_four")
+    assert r.credit(0) == 19 / 28 and r.credit(4) == 1 / 28
+
+
+def test_contested_hotels_are_counted():
+    """Hotels in short supply aren't auctioned here; how often two players want more hotels than the bank has is
+    counted (track_housing), to show how much that simplification matters."""
+    from monopoly_meta.policies import make_bot
+    g = game([(4, 5)], n=3, policies=[Passive(), make_bot("balanced"), make_bot("balanced")])
+    give(g, 1, 1, 3)
+    give(g, 2, 6, 8, 9)
+    for sq in (1, 3, 6, 8, 9):
+        g.s.level[sq] = 4
+    g.s.bank_houses = 32 - 20
+    g.s.bank_hotels = 1
+    g.track_housing = True
+    g.housing_check()
+    assert g.contested_hotels == 1

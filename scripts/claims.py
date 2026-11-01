@@ -1,15 +1,17 @@
-"""Check the README's numbers against the result tables they come from.
+"""Check the numbers on the front page (README.md) and in the full findings (FINDINGS.md) against the result tables
+they come from.
 
     python scripts/claims.py              # every claim, with OK or MISSING; exits 1 if any is missing
     python scripts/claims.py --quiet      # only the missing ones
 
-Each claim recomputes a number, or a row of a table, from results/final/tables and writes it the way the README
-does. It passes when that text is in the README (line breaks and repeated spaces ignored). So when a re-run moves a
-number, the claim fails until the prose is updated, and a README edit that mistypes a number fails too.
+Each claim recomputes a number, or a row of a table, from results/final/tables and writes it the way the page does.
+It passes when that text is on its page (line breaks and repeated spaces ignored): the front page's plain-English
+summary (claims "L1"-"L7") or the full findings (the rest). So when a re-run moves a number, the claim fails until the
+prose is updated, and an edit that mistypes a number fails too.
 
-Covered: findings 1-7 (simple bots), 13-14 (the final meta agents) and 16-17 (trades under meta play), the ones
-the deep run measured and the methodology review checked. Findings 8-12 quote v0.4 and v0.5's summaries, which link
-to their own tables.
+Covered: the front page; findings 1-7 (simple bots), 13-14 (the final meta agents), 16-17 (trades under meta play)
+and 18 (rule sensitivity), the ones the deep run measured and the reviews checked. Findings 8-12 quote v0.4 and
+v0.5's summaries, which link to their own tables.
 """
 import argparse
 import re
@@ -20,12 +22,13 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-README = ROOT / "README.md"
+README = ROOT / "README.md"      # the front page: the plain-English summary
+FINDINGS = ROOT / "FINDINGS.md"  # the full findings
 TABLES = ROOT / "results" / "final" / "tables"
-DASH = "–"  # the README's range dash
+DASH = "–"  # the pages' range dash
 
 
-# ---------------------------------------------------------------- formatting, as the README writes numbers
+# ---------------------------------------------------------------- formatting, as the pages write numbers
 def money(x: float, censored: bool = False) -> str:
     if not np.isfinite(x):
         return "£?"
@@ -64,13 +67,15 @@ def zone(r) -> str:
 
 
 def row(*cells: str | None) -> tuple[str, str]:
-    """A README table row whose cells start with these texts (None = any cell): (readable text, regex)."""
+    """A table row whose cells start with these texts (None = any cell): (readable text, regex)."""
     parts = [r"[^|\n]*" if c is None else re.escape(c) + r"[^|\n]*" for c in cells]
     return "| " + " | ".join("…" if c is None else c + "…" for c in cells) + " |", r"\| " + r"\| ".join(parts) + r"\|"
 
 
 # ---------------------------------------------------------------- claims
 Claim = tuple[str, str, str, str | None]  # finding, what, the text expected, a regex for it (None: the text itself)
+FRACTION = {2: "half", 3: "third", 4: "quarter", 5: "fifth", 6: "sixth", 7: "seventh", 8: "eighth", 9: "ninth",
+            10: "tenth"}
 
 
 class Claims:
@@ -88,6 +93,53 @@ class Claims:
 
     def regex(self, finding: str, what: str, row_: tuple[str, str]) -> None:
         self.items.append((finding, what, *row_))
+
+    # the front page: its seven findings in plain words
+    def landing(self) -> None:
+        lp = self.read("landing_probabilities.csv").set_index("name")
+        props = lp[lp.type.isin(["street", "station", "utility"])].landings_per_turn_long * 100
+        top, low = props.idxmax(), props.idxmin()
+        self.text("L1", "most and least visited", f"**{top} is the most-visited property, {low} the least** "
+                  f"({props[top]:.2f} and {props[low]:.2f} landings per 100 turns)")
+        ge = self.read("group_economics_4p.csv")
+        streets = ge[~ge.group.isin(["stations", "utilities"])]
+        hotel = streets[streets.level == "hotel"].set_index("group").payback_rounds
+        best = hotel.idxmin()
+        self.text("L2", "best investment", f"**The {best.replace('_', ' ')} set is the best investment.** With hotels "
+                  f"it pays for itself fastest: in about {hotel[best]:.0f} rounds of play at 4 players")
+        top_level = streets.dropna(subset=["marginal_roi_per_round"]).groupby("group").apply(
+            lambda d: d.loc[d.marginal_roi_per_round.idxmax(), "level"], include_groups=False)
+        others = sorted(g for g, lv in top_level.items() if lv != "3 houses")
+        if others == ["brown"]:
+            self.text("L2", "third house", "On every set but the browns, the third house earns the most rent for its "
+                      "price")
+        else:
+            self.text("L2", "third house", f"the third house is best on every set except {', '.join(others)}")
+        s = self.read("trade_curve_summary.csv")
+        r = s[(s.buyer == 0) & (s.n_players == 4)].iloc[0]
+        ratio = r.buyer_max_price_win / 200  # Vine Street's printed price
+        size = (f"almost {words(int(np.ceil(ratio)))}" if np.ceil(ratio) - ratio < 0.5 else
+                f"over {words(int(ratio))}")
+        self.text("L3", "the last piece of a set", f"wins {pct(r.p_win_base_buyer)} of the time without the third, "
+                  f"and {pct(r.p_win_buyer_if_free)} if given it. Compared with never getting it, it's worth up to "
+                  f"{money(r.buyer_max_price_win, bool(r.buyer_max_censored))} to them: {size} times the £200")
+        a = self.read("meta_ablations_standard.csv").set_index(["name", "n_players"]).relative
+        nt = a["no trading at all"]
+        frac = FRACTION.get(int(np.floor(1 / nt[4] + 0.5)), f"{nt[4]:.2f}x")
+        heads_up = ("With 2 players, trading barely matters" if abs(nt[2] - 1) < 0.05 else
+                    f"With 2 players, refusing trades costs {pct(1 - nt[2])}")
+        self.text("L4", "trading", f"a {frac} as often at 4 players. {heads_up}")
+        sa = self.read("seat_advantage.csv")
+        six = sa[sa.n_players == 6].set_index("seat")
+        first, last = six.win_rate[0] / six.fair_share[0], six.win_rate[5] / six.fair_share[5]
+        self.text("L5", "seat order", f"At 6 players the first player wins {pct(first - 1)} more often than an equal "
+                  f"share, and the last player {pct(1 - last)} less")
+        cash = 1 - a["keep £200 more cash"]
+        self.text("L6", "cash", f"keeping £200 more in hand costs {span(cash.min(), cash.max())} of their wins")
+        v = pd.concat([self.read(f"meta_validation_{m}.csv") for m in ("standard", "championship")])
+        best_c = v[v.name == "best challenger vs meta agents"].relative
+        self.text("L7", "no strategy unbeatable", f"which scores {pct(best_c.min() - 1)} to {pct(best_c.max() - 1)} "
+                  "more against them")
 
     # 1. landing rates (per 100 turns, rolling for doubles in jail; "short" = leaving jail at once)
     def landings(self) -> None:
@@ -390,7 +442,7 @@ class Claims:
         self.text("18", "Bonferroni", f"After a Bonferroni adjustment {len(adj)} still show a change, "
                   + ("every one of them with building at any time" if only_any_time else "(not all with building "
                      "at any time)"))
-        before = self.read("sensitivity/candidates_before.csv")
+        before = self.read("sensitivity/candidates_pre_auction_fix.csv")  # the first review's run, kept as it was
         keys = ["mode", "n_players", "variant", "candidate"]
         both = rest.merge(before[keys + ["ratio"]], on=keys, suffixes=("", "_before"))
         auction = both.variant.isin(["house auctions", "any time + auctions"])
@@ -404,8 +456,8 @@ class Claims:
         self.text("18", "seat order", f"the first player's edge with simple bots moves by about {moved:.2f} at most")
 
     def all(self) -> list[Claim]:
-        for step in (self.landings, self.payback, self.vine_simple, self.strategies, self.seats, self.lengths,
-                     self.validation, self.ablations, self.vine_meta, self.properties, self.sensitivity):
+        for step in (self.landing, self.landings, self.payback, self.vine_simple, self.strategies, self.seats,
+                     self.lengths, self.validation, self.ablations, self.vine_meta, self.properties, self.sensitivity):
             step()
         return self.items
 
@@ -436,35 +488,49 @@ def flatten(text: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
-def check(readme: str, items: list[Claim]) -> list[Claim]:
-    """The claims not found in the README."""
-    flat = flatten(readme)
+def check(text: str, items: list[Claim]) -> list[Claim]:
+    """The claims not found in this text."""
+    flat = flatten(text)
     return [c for c in items if not (re.search(c[3], flat) if c[3] else flatten(c[2]) in flat)]
+
+
+def on_front_page(item: Claim) -> bool:
+    return item[0].startswith("L")
+
+
+def check_pages(items: list[Claim], front: str | None = None, findings: str | None = None) -> list[Claim]:
+    """The claims missing from their page: the front page's ("L…") from README.md, the rest from FINDINGS.md."""
+    front = README.read_text() if front is None else front
+    findings = FINDINGS.read_text() if findings is None else findings
+    return (check(front, [c for c in items if on_front_page(c)])
+            + check(findings, [c for c in items if not on_front_page(c)]))
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--quiet", action="store_true", help="print only the claims missing from the README")
+    ap.add_argument("--quiet", action="store_true", help="print only the claims missing from their page")
     ap.add_argument("--tables", type=Path, default=TABLES)
     ap.add_argument("--report", type=Path, help="also write the output to this file")
     ap.add_argument("--no-fail", action="store_true", help="exit 0 even if claims are missing (after a re-run, "
-                    "before the README is updated)")
+                    "before the pages are updated)")
     args = ap.parse_args(argv)
     try:
         items = Claims(args.tables).all()
     except Exception as e:  # e.g. a table a partial re-run hasn't written yet
-        msg = f"Could not recompute the README claims: {type(e).__name__}: {e}"
+        msg = f"Could not recompute the claims: {type(e).__name__}: {e}"
         print(msg)
         if args.report:
             (args.report if args.report.is_absolute() else ROOT / args.report).write_text(msg + "\n")
         return 0 if args.no_fail else 1
-    missing = check(README.read_text(), items)
+    missing = check_pages(items)
     lines = []
     for item in items:
         bad = any(item is m for m in missing)
         if bad or not args.quiet:
-            lines.append(f"{'MISSING' if bad else 'ok':7} finding {item[0]:>2}, {item[1]}: {item[2]}")
-    lines.append(f"{len(items) - len(missing)} of {len(items)} README claims match the tables")
+            where = "front page" if on_front_page(item) else f"finding {item[0]:>2}"
+            lines.append(f"{'MISSING' if bad else 'ok':7} {where}, {item[1]}: {item[2]}")
+    lines.append(f"{len(items) - len(missing)} of {len(items)} claims match the tables "
+                 f"({sum(map(on_front_page, items))} on the front page, the rest in the full findings)")
     print("\n".join(lines))
     if args.report:
         path = args.report if args.report.is_absolute() else ROOT / args.report

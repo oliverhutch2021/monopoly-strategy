@@ -46,7 +46,23 @@ def test_free_set_helps_buyer_and_hurts_bystanders():
     c = trade_price_curve(s, ["balanced"] * 4, seller=1, buyer=0, squares=[19], prices=[0], n=150, workers=1)
     d = c.set_index("player").d_win
     assert d[0] > 0.3 and d[2] + d[3] < 0
-    assert np.isclose(d.sum(), 0, atol=1e-9)  # win probabilities still sum to one
+    assert np.isclose(d[[0, 1, 2, 3]].sum(), 0, atol=1e-9)  # win probabilities still sum to one
+    assert np.isclose(d[-1], d[2] + d[3])  # the bystanders summed game by game (player -1)
+
+
+def test_live_continuation_records_the_later_deal():
+    """The 2026-10-31 review: with the deed frozen, keeping it means never trading it; carrying on as normal, the
+    seller usually sells it to the buyer a few turns later anyway (the bots offer twice face value, £400)."""
+    s = orange_squeeze()
+    kw = dict(seller=1, buyer=0, squares=[19], prices=[400, 800], n=60, workers=1, seed0=5)
+    frozen = trade_price_curve(s, ["balanced"] * 4, **kw)
+    live = trade_price_curve(s, ["balanced"] * 4, freeze=False, **kw)
+    assert frozen.attrs["frozen"] and "later_deals" not in frozen.attrs
+    deals = live.attrs["later_deals"]
+    assert deals["games"] == 60 and deals["to_buyer"] > 0.5 and deals["price_mode"] == 400
+    buyer = lambda c, price: c[(c.player == 0) & (c.price == price)].d_win.iloc[0]  # noqa: E731
+    assert buyer(live, 800) < buyer(frozen, 800)  # paying £800 now is worse when £400 later was on the table
+    assert {"d_outright", "d_outright_se"} <= set(live.columns)
 
 
 def test_indifference_price_interpolates():
@@ -227,3 +243,20 @@ def test_outright_win_rates_are_shares_of_decided_games():
     seats = win_rates(df, by="seat")
     assert np.isclose(seats.win_rate.sum(), 1.0) and (seats.decided == len(df) - df.capped.sum()).all()
     assert np.isclose(seats.game_win_rate.sum(), 1.0)
+
+
+def test_deal_evidence_at_sampled_and_whole_pound_prices():
+    """The 2026-10-31 review: a zone found only between sampled prices, or narrower than a pound, isn't a price
+    anyone was shown to gain at. The summary says which kind each deal is."""
+    from monopoly_meta.rollout import deal_summary
+    prices = [300, 350]
+    narrow = _curve(prices, [0.004, -0.03], [-0.003, 0.03])  # crossings at about £304.5 and £305.9
+    z = deal_summary(narrow, seller=1, buyer=0)
+    assert z["deal_zone_exists"] and z["sampled_deal_prices"] == "" and z["evidence"] == "between sampled prices only"
+    assert z["whole_pound_ranges"] == "305-305"
+    tiny = _curve(prices, [0.0004, -0.03], [-0.0001, 0.03])  # a deal from about £300.17 to £300.66: no whole pound
+    assert deal_summary(tiny, seller=1, buyer=0)["evidence"] == "no whole-pound price"
+    wide = _curve([0, 600, 1200], [0.5, 0.2, 0.1], [-0.5, 0.1, 0.4], se=0.01)
+    w = deal_summary(wide, seller=1, buyer=0)
+    assert w["confident_sampled_prices"] == "600; 1200" and w["evidence"] == "confident at a sampled price"
+    assert w["whole_pound_ranges"].endswith("-1200")  # the top price played counts when both gain there

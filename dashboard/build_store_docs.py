@@ -33,13 +33,19 @@ D = {
                     "Median and 90th-percentile rounds per game with simple bots, by rule set and table size, and "
                     "the share of games stopped by the time limit."),
     "trade_curves": ("Vine Street price curves",
-                     "Change in win chance (percentage points, with standard errors) and in net worth 40 "
-                     "player-turns later for the buyer, the seller and everyone else when Vine Street is sold at "
-                     "each price, from 20,000 paired rollouts per price."),
+                     "The change for the buyer, the seller and everyone else when Vine Street is sold at each price, "
+                     "from 20,000 paired rollouts per price, against two baselines: the seller keeping it for good "
+                     "(the deed's own value) and trading carrying on as normal (whether to accept the offer today). "
+                     "change and change_se are in the row's unit: percentage points of win chance (pp), or expected "
+                     "championship points (points) under championship rules; outright_pp is the change in outright "
+                     "wins; d_networth the change in net worth 40 player-turns later. Everyone else's standard error "
+                     "is paired, from their summed outcome game by game."),
     "deal_zones": ("Vine Street deal zones",
-                   "Seller's break-even price and buyer's maximum for the Vine Street sale, judged by win chance and "
-                   "by net worth, for each opponent type and table size: every price range where both sides gain, "
-                   "and whether the rules allow the trade."),
+                   "Seller's break-even price and buyer's maximum for the Vine Street sale, judged by the rules' "
+                   "score (win chance, or championship points) and by net worth, for each opponent type, baseline "
+                   "and table size: every price range where both sides gain, whether the rules allow the trade, "
+                   "and, with trading carrying on, how often the buyer got Vine Street later anyway and at what "
+                   "median price."),
     "meta_agents": ("Meta agent settings",
                     "The settings of the final meta agents (v0.3's, or v0.5's hardened ones) for each rule set and "
                     "table size."),
@@ -52,15 +58,18 @@ D = {
                        "same 40,000 games as an unchanged meta agent: credit relative to it, with 95% intervals; "
                        "no_effect marks a change that never altered a decision."),
     "property_trades": ("Every property's price curves",
-                        "Change in win chance and net worth for buyer, seller and everyone else when each of the 28 "
-                        "properties is sold to the player it completes a set for, at 2 to 6 players: 10,000 paired "
-                        "rollouts per price (5,000 under championship rules, 20,000 for Vine Street). From "
-                        "scripts/10_property_trades.py."),
+                        "The change for buyer, seller and everyone else, against the seller keeping it for good, when "
+                        "each of the 28 properties is sold to the player it completes a set for, at 2 to 6 players: "
+                        "10,000 paired rollouts per price (5,000 under championship rules, 20,000 for Vine Street). "
+                        "change is in percentage points of win chance (unit pp) or expected championship points "
+                        "(unit points). From scripts/10_property_trades.py."),
     "property_zones": ("Every property's deal zone",
                        "For each property, opponent type and table size: the seller's break-even price and the "
                        "buyer's maximum, by win chance and by net worth, with rough standard errors; every price "
                        "range where both sides gain, whether the rules allow the trade, and notes where a curve "
-                       "isn't monotone or never crosses zero."),
+                       "isn't monotone or never crosses zero. evidence says whether a zone rests on a price actually "
+                       "played; price_check what replaying a narrow zone at whole-pound prices on fresh games found "
+                       "(scripts/16_price_checks.py)."),
     "meta_vs_simple": ("Meta agent vs simple bots",
                        "The official-rules final meta agent at a table of simple bots, alone and with one group of "
                        "its settings copied from the simple bot: wins relative to a simple bot in the same seat, "
@@ -82,7 +91,8 @@ if "--params" in sys.argv:
     writes.append({"op": "set", "collection": "dash", "doc_id": "params",
                    "data": {"players": 4, "rules": "Official rules", "opponents": "Simple bots",
                             "deal": "Completes the buyer's set", "price": 650, "square": 24, "view": "3d",
-                            "property": 19, "popp": "Simple bots", "pprice": 600, "bmode": "towers"}})
+                            "property": 19, "popp": "Simple bots", "pprice": 600, "bmode": "towers",
+                            "baseline": "Kept for good"}})
 versions = json.loads((HERE / "versions.json").read_text()) if (HERE / "versions.json").exists() else {}
 only = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
 for ds, (title, desc) in D.items():

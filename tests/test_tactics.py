@@ -169,3 +169,25 @@ def test_endgame_sits_in_jail_and_keeps_its_reserve():
     assert bot.jail_decision(g, 0) == "pay" and bot.buy(g, 0, mayfair)
     g.s.turn = 195  # 2.5 own turns left each
     assert bot.jail_decision(g, 0) == "roll" and not bot.buy(g, 0, mayfair)
+
+
+def test_protecting_buildings_is_separate_from_the_housing_lock():
+    """The 2026-10-31 review: the lock setting also changed the order of raising cash. The two are now separate
+    settings; an agent that only sets lock keeps both, as before."""
+    from helpers import Passive, ScriptedGame
+
+    def after_raising(**kw):
+        g = ScriptedGame([Passive(), Passive()], [(4, 5)], seed=1)
+        bot = make_bot({"name": "x", **kw})
+        for sq in (1, 3, 6, 8, 9):  # the browns with a house each, and the light blues with none
+            g.s.owner[sq] = 0
+        g.s.level[1] = g.s.level[3] = 1
+        g.s.bank_houses -= 2
+        g.s.cash[0] = 0
+        bot.raise_cash(g, 0, 100)
+        return g.s.level[1] + g.s.level[3], sum(g.s.mortgaged[x] for x in (6, 8, 9))
+
+    assert after_raising()[0] < 2                     # by default it sells the browns' houses first
+    assert after_raising(protect=True) == (2, 2)      # protecting: mortgages two light blues, keeps both houses
+    assert after_raising(lock=14) == after_raising(lock=14, protect=True)  # lock alone keeps both, as before
+    assert after_raising(lock=14, protect=False) == after_raising()
