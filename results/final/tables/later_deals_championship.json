@@ -1,0 +1,32 @@
+{
+ "2p": {
+  "games": 20000,
+  "traded_later": 0.0,
+  "to_buyer": 0.0
+ },
+ "3p": {
+  "games": 20000,
+  "traded_later": 0.0,
+  "to_buyer": 0.0
+ },
+ "4p": {
+  "games": 20000,
+  "traded_later": 0.99385,
+  "to_buyer": 0.99005,
+  "median_wait": 2.0,
+  "median_price": 293.0,
+  "price_mode": 293,
+  "price_mode_share": 0.9993434675016414,
+  "swap_share": 0.0006565324983586687
+ },
+ "5p": {
+  "games": 20000,
+  "traded_later": 0.0,
+  "to_buyer": 0.0
+ },
+ "6p": {
+  "games": 20000,
+  "traded_later": 0.0,
+  "to_buyer": 0.0
+ }
+}

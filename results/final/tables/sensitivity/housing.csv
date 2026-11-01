@@ -1,10 +1,13 @@
-mode,n_players,variant,games,games_with_contested_houses,contested_checks_per_game,houses_auctioned_per_game,capped_share
-standard,4,engine rules,5000,0.0498,0.1522,0.0,0.0042
-standard,4,house auctions,5000,0.0498,0.0682,0.1544,0.0046
-standard,4,any time + auctions,5000,0.0104,0.0128,0.023,0.0022
-standard,2,engine rules,5000,0.0106,0.0258,0.0,0.0022
-standard,2,house auctions,5000,0.0106,0.012,0.0286,0.0022
-standard,2,any time + auctions,5000,0.0034,0.0038,0.01,0.002
-championship,4,engine rules,5000,0.4276,3.2076,0.0,0.0104
-championship,4,house auctions,5000,0.4276,1.0174,2.2866,0.0062
-championship,4,any time + auctions,5000,0.247,0.4682,0.984,0.0056
+mode,n_players,variant,games,games_with_contested_houses,contested_checks_per_game,houses_auctioned_per_game,games_with_contested_hotels,mortgaged_received_per_game,lifted_at_once_per_game,capped_share
+standard,4,engine rules,5000,0.0498,0.1522,0.0,0.0,14.1246,0.0,0.0042
+standard,4,house auctions,5000,0.0498,0.0682,0.1544,0.0,14.1328,0.0,0.0046
+standard,4,any time + auctions,5000,0.0104,0.0128,0.023,0.0004,13.6632,0.0,0.0022
+standard,4,mortgage choice on transfer,5000,0.0524,0.1482,0.0,0.0,13.983,10.727,0.005
+standard,2,engine rules,5000,0.0106,0.0258,0.0,0.0,0.243,0.0,0.0022
+standard,2,house auctions,5000,0.0106,0.012,0.0286,0.0,0.2428,0.0,0.0022
+standard,2,any time + auctions,5000,0.0034,0.0038,0.01,0.0,0.2024,0.0,0.002
+standard,2,mortgage choice on transfer,5000,0.011,0.0272,0.0,0.0,0.243,0.2346,0.0022
+championship,4,engine rules,5000,0.4276,3.2076,0.0,0.001,14.6896,0.0,0.0104
+championship,4,house auctions,5000,0.4276,1.0174,2.2866,0.0004,14.6732,0.0,0.0062
+championship,4,any time + auctions,5000,0.247,0.4682,0.984,0.0002,14.5002,0.0,0.0056
+championship,4,mortgage choice on transfer,5000,0.4554,3.359,0.0,0.0004,14.628,11.8404,0.0108

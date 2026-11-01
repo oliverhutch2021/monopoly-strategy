@@ -1,1 +1,1 @@
-{"deal_share_of_resamples": 1.0, "deal_low_ci_low": 227.3464707307169, "deal_low_ci_high": 269.7855819809936, "deal_high_ci_low": 724.1810348821308, "deal_high_ci_high": 746.2467868004155, "resamples": 1000}
+{"deal_bootstrap": {"deal_share_of_resamples": 1.0, "deal_low_ci_low": 227.3464707307169, "deal_low_ci_high": 269.7855819809936, "deal_high_ci_low": 724.1810348821308, "deal_high_ci_high": 746.2467868004155, "resamples": 1000}, "later_deals": null}

@@ -1,0 +1,51 @@
+bots,n_players,square,name,deal_ranges,evidence,price,buyer_change,buyer_se,seller_change,seller_se,rollouts,unit,verdict
+simple,3,28,Water Works,158-199,between sampled prices only,159.0,0.0164,0.003113203591452074,0.00255,0.0029711304676524708,20000.0,pp,not established
+simple,3,28,Water Works,158-199,between sampled prices only,179.0,0.0046,0.003151894465545459,0.01345,0.0030205812471366376,20000.0,pp,not established
+simple,3,28,Water Works,158-199,between sampled prices only,198.0,-0.0035,0.0031811780042422548,0.0228,0.0030756269237423284,20000.0,pp,not established
+simple,4,12,Electric Company,93-97,between sampled prices only,94.0,0.0082,0.0026845853217801613,-0.0022,0.001363763539822658,20000.0,pp,not established
+simple,4,12,Electric Company,93-97,between sampled prices only,95.0,0.00655,0.0026880692254493818,-0.002,0.0013674404903595378,20000.0,pp,not established
+simple,4,12,Electric Company,93-97,between sampled prices only,96.0,0.0052,0.0026914698958951824,-0.00185,0.001364705827678553,20000.0,pp,not established
+simple,5,28,Water Works,100-126,between sampled prices only,101.0,0.01655,0.002408130982679615,0.0028,0.0012225721795201731,20000.0,pp,both gain (95%)
+simple,5,28,Water Works,100-126,between sampled prices only,114.0,0.01245,0.0024413209287993806,0.0049,0.0012425283472962262,20000.0,pp,both gain (95%)
+simple,5,28,Water Works,100-126,between sampled prices only,126.0,0.005,0.002484765321501237,0.0063,0.0012779268973058446,20000.0,pp,both gain (95%)
+meta,2,6,The Angel Islington,248-248,between sampled prices only,248.0,-0.0037,0.004597866083154873,0.0039,0.0045929613828893925,20000.0,pp,not established
+meta,2,8,Euston Road,248-249,no whole-pound price,,,,,,,,no whole-pound price: not payable
+meta,2,12,Electric Company,98-99,between sampled prices only,99.0,-0.00425,0.0029388822239818186,0.00385,0.002935505022051014,20000.0,pp,not established
+meta,2,15,Marylebone Station,272-272,no whole-pound price,,,,,,,,no whole-pound price: not payable
+meta,2,16,Bow Street,287-289,between sampled prices only,287.0,0.00295,0.004534103304914764,-0.0029,0.004526654838862966,20000.0,pp,not established
+meta,2,16,Bow Street,287-289,between sampled prices only,288.0,0.003,0.004534928696122349,-0.003,0.004527756069925966,20000.0,pp,not established
+meta,2,16,Bow Street,287-289,between sampled prices only,289.0,-0.00025,0.00453525360936575,0.0003,0.004528357406504046,20000.0,pp,not established
+meta,2,18,Marlborough Street,288-291,between sampled prices only,289.0,-0.00125,0.004537449867223315,0.00145,0.004530278252607924,20000.0,pp,not established
+meta,2,18,Marlborough Street,288-291,between sampled prices only,290.0,-0.0009,0.004537178506455302,0.0011,0.00453000723490343,20000.0,pp,not established
+meta,2,19,Vine Street,304-306,between sampled prices only,305.0,-0.00425,0.004554957108109014,0.0045,0.0045480789077463855,20000.0,pp,not established
+meta,2,19,Vine Street,304-306,between sampled prices only,306.0,-0.00505,0.004553818369026909,0.0052,0.004546392139276396,20000.0,pp,not established
+meta,2,21,Strand,33-36,between sampled prices only,33.0,0.00305,0.00448921402108725,-0.0007,0.004482854034988754,20000.0,pp,not established
+meta,2,21,Strand,33-36,between sampled prices only,35.0,0.00135,0.004490369366305214,0.0007,0.004483411708624075,20000.0,pp,not established
+meta,2,21,Strand,33-36,between sampled prices only,36.0,-0.0005,0.004487871939987535,0.00255,0.004480868083746629,20000.0,pp,not established
+meta,2,23,Fleet Street,28-31,between sampled prices only,29.0,0.0064,0.004458581158541063,-0.0044,0.004452529983185128,20000.0,pp,not established
+meta,2,23,Fleet Street,28-31,between sampled prices only,30.0,0.00435,0.0044645885031573875,-0.00235,0.0044596208679566355,20000.0,pp,not established
+meta,2,24,Trafalgar Square,40-43,between sampled prices only,40.0,0.00945,0.0045259318463664365,-0.00735,0.004518386843330626,20000.0,pp,not established
+meta,2,24,Trafalgar Square,40-43,between sampled prices only,41.0,0.00705,0.004530015554834923,-0.0051,0.0045232424748319995,20000.0,pp,not established
+meta,2,24,Trafalgar Square,40-43,between sampled prices only,42.0,0.00555,0.004532326882998259,-0.00385,0.004526343255229679,20000.0,pp,not established
+meta,2,25,Fenchurch St Station,258-260,between sampled prices only,259.0,0.00615,0.003293349538472818,-0.0059,0.003292992816585621,20000.0,pp,not established
+meta,2,25,Fenchurch St Station,258-260,between sampled prices only,260.0,0.0035,0.0033052887539044657,-0.00315,0.0033026579072714486,20000.0,pp,not established
+meta,2,26,Leicester Square,102-105,between sampled prices only,102.0,0.00325,0.004496441123170491,-0.00035,0.004487036945471644,20000.0,pp,not established
+meta,2,26,Leicester Square,102-105,between sampled prices only,104.0,0.00175,0.004495926772410461,0.00125,0.00448870017894544,20000.0,pp,not established
+meta,2,26,Leicester Square,102-105,between sampled prices only,105.0,0.0024,0.004493408676726033,0.00055,0.004485921427037312,20000.0,pp,not established
+meta,2,27,Coventry Street,104-108,between sampled prices only,104.0,0.00435,0.004510273938858944,-0.0008,0.0044984419301564785,20000.0,pp,not established
+meta,2,27,Coventry Street,104-108,between sampled prices only,106.0,0.0032,0.004512261741665843,0.00025,0.004500945434071605,20000.0,pp,not established
+meta,2,27,Coventry Street,104-108,between sampled prices only,107.0,0.00185,0.004512022472499402,0.00175,0.004500928770041762,20000.0,pp,not established
+meta,2,29,Piccadilly,108-111,between sampled prices only,109.0,0.004,0.004540399845997935,-0.0009,0.004533319650030478,20000.0,pp,not established
+meta,2,29,Piccadilly,108-111,between sampled prices only,110.0,0.0036,0.0045426186026551315,-0.0005,0.004534976934978836,20000.0,pp,not established
+meta,2,29,Piccadilly,108-111,between sampled prices only,111.0,0.0022,0.004539359898643692,0.00105,0.004532490711364164,20000.0,pp,not established
+meta,2,35,Liverpool Street Station,263-266,between sampled prices only,264.0,0.0037,0.003296946919947248,-0.0041,0.0032885711540138144,20000.0,pp,not established
+meta,2,35,Liverpool Street Station,263-266,between sampled prices only,265.0,0.0026,0.003312885564057114,-0.003,0.0033030433701020695,20000.0,pp,not established
+meta,3,39,Mayfair,406-465,between sampled prices only,407.0,0.04405,0.004767768498555985,-0.00255,0.004232383551679411,20000.0,pp,not established
+meta,3,39,Mayfair,406-465,between sampled prices only,436.0,0.02205,0.004785847374473467,0.0131,0.004271104261965614,20000.0,pp,both gain (95%)
+meta,3,39,Mayfair,406-465,between sampled prices only,464.0,0.0004,0.004790212866560874,0.0305,0.004318497420515444,20000.0,pp,not established
+meta,6,12,Electric Company,108-127,between sampled prices only,108.0,0.0124,0.0019551222788245894,0.0011,0.0005744179643777604,20000.0,pp,not established
+meta,6,12,Electric Company,108-127,between sampled prices only,118.0,0.0105,0.0020284706639884477,0.0013,0.0005873097535690447,20000.0,pp,both gain (95%)
+meta,6,12,Electric Company,108-127,between sampled prices only,127.0,0.00735,0.0020518307375289938,0.00175,0.0005936029760914793,20000.0,pp,both gain (95%)
+meta,6,28,Water Works,112-126,between sampled prices only,112.0,0.01105,0.002046119303757789,0.0008,0.0005787786703373422,20000.0,pp,not established
+meta,6,28,Water Works,112-126,between sampled prices only,119.0,0.0099,0.0020458027190905464,0.00095,0.0005766034153340827,20000.0,pp,not established
+meta,6,28,Water Works,112-126,between sampled prices only,125.0,0.00795,0.0020687082570272288,0.00135,0.0005851717664923822,20000.0,pp,both gain (95%)

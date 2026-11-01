@@ -1,0 +1,77 @@
+{
+ "2p_buyer0": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 1.0,
+  "median_wait": 0.0,
+  "median_price": 400.0,
+  "price_mode": 400,
+  "price_mode_share": 0.9993,
+  "swap_share": 0.0007
+ },
+ "3p_buyer0": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 1.0,
+  "median_wait": 1.0,
+  "median_price": 400.0,
+  "price_mode": 400,
+  "price_mode_share": 0.99995,
+  "swap_share": 5e-05
+ },
+ "3p_buyer2": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 0.0
+ },
+ "4p_buyer0": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 0.99995,
+  "median_wait": 2.0,
+  "median_price": 400.0,
+  "price_mode": 400,
+  "price_mode_share": 0.999949997499875,
+  "swap_share": 5.000250012500625e-05
+ },
+ "4p_buyer2": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 5e-05,
+  "median_wait": 84.0,
+  "median_price": 400.0,
+  "price_mode": 400,
+  "price_mode_share": 1.0,
+  "swap_share": 0.0
+ },
+ "5p_buyer0": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 1.0,
+  "median_wait": 3.0,
+  "median_price": 400.0,
+  "price_mode": 400,
+  "price_mode_share": 1.0,
+  "swap_share": 0.0
+ },
+ "5p_buyer2": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 0.0
+ },
+ "6p_buyer0": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 1.0,
+  "median_wait": 4.0,
+  "median_price": 400.0,
+  "price_mode": 400,
+  "price_mode_share": 1.0,
+  "swap_share": 0.0
+ },
+ "6p_buyer2": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 0.0
+ }
+}

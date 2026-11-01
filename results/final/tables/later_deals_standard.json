@@ -1,0 +1,52 @@
+{
+ "2p": {
+  "games": 20000,
+  "traded_later": 0.69255,
+  "to_buyer": 0.69255,
+  "median_wait": 15.0,
+  "median_price": 80.0,
+  "price_mode": 140,
+  "price_mode_share": 0.4211970254855245,
+  "swap_share": 1.0
+ },
+ "3p": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 1.0,
+  "median_wait": 1.0,
+  "median_price": 200.0,
+  "price_mode": 200,
+  "price_mode_share": 1.0,
+  "swap_share": 0.0
+ },
+ "4p": {
+  "games": 20000,
+  "traded_later": 0.9999,
+  "to_buyer": 0.99975,
+  "median_wait": 2.0,
+  "median_price": 512.0,
+  "price_mode": 512,
+  "price_mode_share": 0.9998999749937484,
+  "swap_share": 0.00010002500625156288
+ },
+ "5p": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 0.9999,
+  "median_wait": 3.0,
+  "median_price": 800.0,
+  "price_mode": 800,
+  "price_mode_share": 1.0,
+  "swap_share": 0.0
+ },
+ "6p": {
+  "games": 20000,
+  "traded_later": 1.0,
+  "to_buyer": 1.0,
+  "median_wait": 4.0,
+  "median_price": 494.0,
+  "price_mode": 494,
+  "price_mode_share": 1.0,
+  "swap_share": 0.0
+ }
+}

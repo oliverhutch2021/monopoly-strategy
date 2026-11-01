@@ -11,7 +11,9 @@
   "no_trades_heads_up": false,
   "build_any_time": false,
   "house_auctions": false,
-  "mortgaged_count_for_rent": false
+  "mortgaged_count_for_rent": false,
+  "mortgage_transfer_choice": false,
+  "points_schedule": "extrapolated"
  },
  "build any time": {
   "auctions": true,
@@ -25,7 +27,9 @@
   "no_trades_heads_up": false,
   "build_any_time": true,
   "house_auctions": false,
-  "mortgaged_count_for_rent": false
+  "mortgaged_count_for_rent": false,
+  "mortgage_transfer_choice": false,
+  "points_schedule": "extrapolated"
  },
  "house auctions": {
   "auctions": true,
@@ -39,7 +43,9 @@
   "no_trades_heads_up": false,
   "build_any_time": false,
   "house_auctions": true,
-  "mortgaged_count_for_rent": false
+  "mortgaged_count_for_rent": false,
+  "mortgage_transfer_choice": false,
+  "points_schedule": "extrapolated"
  },
  "any time + auctions": {
   "auctions": true,
@@ -53,7 +59,9 @@
   "no_trades_heads_up": false,
   "build_any_time": true,
   "house_auctions": true,
-  "mortgaged_count_for_rent": false
+  "mortgaged_count_for_rent": false,
+  "mortgage_transfer_choice": false,
+  "points_schedule": "extrapolated"
  },
  "mortgaged stations count": {
   "auctions": true,
@@ -67,6 +75,24 @@
   "no_trades_heads_up": false,
   "build_any_time": false,
   "house_auctions": false,
-  "mortgaged_count_for_rent": true
+  "mortgaged_count_for_rent": true,
+  "mortgage_transfer_choice": false,
+  "points_schedule": "extrapolated"
+ },
+ "mortgage choice on transfer": {
+  "auctions": true,
+  "free_parking_jackpot": false,
+  "card_draw": "deck",
+  "max_turns": 4000,
+  "min_bid": 1,
+  "stalemate": "networth",
+  "speed_die": false,
+  "no_bid_to_richest": false,
+  "no_trades_heads_up": false,
+  "build_any_time": false,
+  "house_auctions": false,
+  "mortgaged_count_for_rent": false,
+  "mortgage_transfer_choice": true,
+  "points_schedule": "extrapolated"
  }
 }
