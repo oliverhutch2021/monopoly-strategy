@@ -112,11 +112,29 @@ The extra room comes from the bystanders. Every deal in the zone takes win proba
 away from the players who aren't trading. Selling Vine Street to a player who *doesn't*
 need it barely matters at any table size (break-even £41–£57).
 
-These are prices for a one-shot sale with no resale (the property is frozen afterwards, in both
-arms), to these bots, in one hand-built position per table size. Each extra player adds a
-bystander with four properties, so the properties the bank still holds fall from 20 at 2
-players to 4 at 6. The widening zone holds for this family of positions; positions drawn
-from real games are the next test (ROADMAP.md).
+These prices compare selling now with keeping Vine Street for good (it can't be traded again in
+either arm), so they measure what the deed itself is worth to each side: to these bots, in one
+hand-built position per table size. Each extra player adds a bystander with four properties, so
+the properties the bank still holds fall from 20 at 2 players to 4 at 6.
+
+**Whether to accept an offer is a different question**, as the third review pointed out. If the
+seller declines, play goes on, and the simple bots trade Vine Street to the player who needs it
+anyway: in all but one of the 100,000 games played on (20,000 per table size), after a median
+of 0–4 player-turns, and for £400 (their usual offer, twice face value) in more than 99.9% of
+them. Against carrying on as normal, the deal zone shrinks to a few pounds just above that price
+(£405–£413 at 4–6 players, none at 2 or 3). A buyer who pays £594–£1,144 now, when £400 would
+do a moment later, loses. Keeping it for good prices the deed; carrying on as normal prices the
+decision. Against carrying on, selling to a player who *doesn't* need Vine Street becomes a real
+deal at 3 and 4 players (£368–£600+ and £396–£438): stopping a rival's set is worth paying for.
+
+The same holds in **100 positions from real games** (`scripts/17_game_positions.py`): the first
+moment at which one player held two oranges and another the third, in each game that reached one,
+out of 1,263 screened games between simple bots. Against keeping it for good, the buyer gains on average at 2, 3 and 4
+times face value (+30.6, +17.5 and +5.3 points of win chance), and both sides gain in 39, 73 and
+71 of the 100 positions. Carrying on as normal, the buyer got it later in 99% of games, for a
+median of twice face value, so a sale at that price changes nothing on average (+0.0 points),
+and at 3 or 4 times face value the buyer loses in every one of the 100 positions (−13.0 and
+−25.2 points).
 
 ![Deal zone by players](results/final/figures/deal_zone_by_players.png)
 ![Trade curve, 4 players](results/final/figures/trade_curve_vine_street.png)
@@ -219,7 +237,8 @@ turn in v0.4's strongest finds, on 6,000 paired games each:
 | Playing the clock | 13 | 0 | 0.000× |
 
 The housing lock means stopping at four houses while the bank is short and a rival still needs houses for a set.
-It is the classic housing-shortage play. It is one of the eight hand-coded moves, and the search started from each
+It is the classic housing-shortage play. As coded, it also changed how the bot raises cash: it mortgages everything
+else before selling a building. Finding 18 takes the two behaviours apart, and the gain comes from the second. It is one of the eight hand-coded moves, and the search started from each
 move switched on, so what the search found is when and how hard to use it. The other moves mostly ride along.
 At 4 players, the strongest finds keep most of their edge with every new move off (1.45–1.56×). The v0.3
 agents were beatable mainly through ordinary settings: what to buy and how fast to build.
@@ -279,7 +298,9 @@ beaten. At 4 players under official rules the strongest is one of v0.4's finds (
 checks), not the fresh searches' best (1.10×).
 
 Under championship rules at 5 and 6 players, 75% and 81% of the games between meta agents run to the time limit
-and are scored by finishing position. Those two agents accept no trades at all (finding 14).
+and are scored by finishing position. On 20,000 fresh games, 69% and 79% end there with five or six players still in,
+where the points are the engine's extension of the rules sheet ([RULES.md](RULES.md)); finding 14 re-scores them
+two other ways. Those two agents accept no trades at all (finding 14).
 
 **14. What the final agents agree on.** Each agent with one setting changed, played on the same 40,000 games
 against copies of the unchanged agent:
@@ -301,8 +322,11 @@ against copies of the unchanged agent:
   changes nothing (shown as "—" in the charts).
 - **With 5–6 players under championship rules, the agents refuse every trade.** Switching to accepting trades,
   with everything else unchanged, would cost them 19% and 29% of their credit (0.81× and 0.71×), so the embargo is
-  stable against that change. That is the only deviation tested: the strongest known challengers still beat these
-  agents by 1.42× and 1.25× (finding 13).
+  stable against that change. It doesn't rest on the engine's points for five and six survivors: re-scored under
+  two other schedules on 20,000 fresh games, accepting trades costs more, not less (0.65–0.72× at 5 players and
+  0.52–0.58× at 6, against 0.80× and 0.70× under the engine's points; `scripts/18_scoring_sensitivity.py`). That is
+  the only deviation tested: the strongest known challengers still beat these agents by 1.42× and 1.25× (finding
+  13).
 
 ![Meta validation, official rules](results/final/figures/meta_validation_standard.png)
 ![Deviating from the meta, official rules](results/final/figures/meta_ablations_standard.png)
@@ -318,12 +342,12 @@ official 4- and 6-player agents to 1.16× and 1.36×. A strategy's strength only
 it's played against, which is why this project reports both.
 
 **16. Against meta agents the deal zone moves, and it vanishes where they refuse all trades.** Finding 4's Vine
-Street sale again (the same one-shot sale with no resale), with the final meta agents playing on (20,000 paired
-rollouts per price):
+Street sale again (against keeping it for good), with the final meta agents playing on (20,000 paired rollouts per
+price):
 
 | Players | Simple bots | Meta agents, official rules | Meta agents, championship rules |
 |---|---|---|---|
-| 2 | none (£661 for both) | £304–£306: a sliver, from fewer stalled games | not allowed: no trades once two players are left |
+| 2 | none (£661 for both) | £304–£306: a sliver between the prices played, not confirmed at a whole pound | not allowed: no trades once two players are left |
 | 3 | £662–£890 | £568–£811 | £229–£676 |
 | 4 | £594–£1,144 | £746–£1,200+ | £249–£735 |
 | 5 | £485–£1,200+ | £743–£1,200+ | none: the seller loses at every price |
@@ -335,11 +359,21 @@ Bootstrap 95% intervals for the meta agents' break-evens are ±£10–£21 at 3�
   buyer's win chance from 63% to 81% against the 2-player agent, and from 64% to 97% with simple bots. Under
   official rules a game that hits the time limit is a loss for both players, and the sale makes that slightly
   rarer (0.32% of games to about 0.2%), so both sides gain in a £2-wide band. The band shows up in 99.8% of
-  bootstrap resamples, though where it sits is less sure (£293–£318).
+  bootstrap resamples, though where it sits is less sure (£293–£318). But it is read between the prices played:
+  replayed at £305 and £306 on 20,000 fresh games each, neither price clearly benefits both sides, so it isn't
+  established as a deal.
 - **At 4–6 players, sellers should ask more against meta agents** (break-even £557–£746, against £485–£594).
-- **Under championship rules the seller breaks even far lower** at 3–4 players (£229–£249). At 5–6 players, where
-  the agents refuse all trades, the sale ends the stalemate in the buyer's favour and no price compensates the
-  seller.
+- **Carrying on as normal, the meta agents trade it later too**, at their own offer: £200 at 3 players, £512 at 4,
+  £800 at 5 and £494 at 6, within a median of 1–4 player-turns in practically every game. At 2 players it changes
+  hands later in 69% of games, always in a swap, after a median of 15 player-turns. Against carrying on, the deal
+  zone shrinks to a sliver at the agents' own price, as with simple bots (£513–£516 at 4 players, £500–£503 at 6),
+  and at 3 and 5 players to no whole pound at all.
+- **Under championship rules the seller breaks even far lower** at 3–4 players (£229–£249), judged by expected
+  finishing points. Carrying on as normal, the 4-player agents trade it later for £293 and the zone shrinks to
+  £290–£296; the 3-player agent never offers, so both comparisons agree. At 5–6 players, where the agents refuse all
+  trades, the sale ends the stalemate in the buyer's favour and no price compensates the seller. That holds under
+  the engine's points and two other schedules for five and six survivors: the seller loses 2.1–5.0 points per game,
+  even at £1,200.
 
 **17. Every property, under meta play.** The same sale for every property that completes a set (one rival owns the
 rest of its group), with 10,000 paired rollouts per price (5,000 under championship rules; Vine Street's come from
@@ -360,7 +394,15 @@ finding 16). At 4 players, the seller's break-even and the buyer's maximum:
 Against the official meta agents, sellers of any colour-group piece except a brown should ask £70–£171 more than
 against simple bots, and buyers will pay £93–£156 more (the oranges' maximum is past the £1,200 tested). Under
 championship rules both fall for every colour group. Every property at every table size is in
-`results/final/tables/property_trade_summary_*.csv`.
+`results/final/tables/property_trade_summary_*.csv`. Like finding 4's first table, these compare selling with
+keeping the piece for good: they price the deeds, not the decision to accept an offer.
+
+Some zones lie only between the prices played (every £25 at most), where no price actually tried had both sides
+gaining. There are 21 such deals across all the tables, most of them 2-player sales against the official agent.
+Replayed at whole-pound prices inside them on fresh games, 20,000 rollouts per price (`scripts/16_price_checks.py`),
+4 hold up: Water Works at 5 players with simple bots, and Mayfair at 3 players and both utilities at 6 against the
+official agents. 15 aren't established at any price tried, and 2 (Euston Road and Marylebone Station at 2 players)
+have no whole pound inside them.
 
 \*Not a clean zone: the buyer's win chance doesn't fall steadily as the price rises. Against the official meta
 agents the buyer wins 16% of games when given Old Kent Road free but 34% after paying £300; with simple bots it is
@@ -376,45 +418,73 @@ players, Oxford Street and Bond Street at 3). They also listed six 2-player cham
 forbid. Every summary now reads the whole curve: it lists every price range where both sides gain, flags curves
 that aren't monotone, and says when the rules don't allow the trade.
 
-**18. The housing findings hold under the official building rules.** The engine lets players build only after their
-own move, gives the last houses to whoever builds first, and leaves mortgaged stations out of the station count
-([RULES.md](RULES.md)). Each official rule is now an engine option. The comparisons the housing findings rest on were
-replayed under each one, on 20,000 new paired games per cell (the candidate's credit ÷ the final agent's in the same
-seat):
+**18. The housing findings hold under the official rules the engine simplifies, and the housing lock's gain is in
+how it raises cash.** The engine lets players build only after their own move, gives the last houses (and hotels) to
+whoever builds first, leaves mortgaged stations out of the station count, and has whoever receives a mortgaged
+property pay the 10% interest at once ([RULES.md](RULES.md)). Each official rule but the hotel auction is now an
+engine option. The comparisons the housing findings rest on were replayed under each one, on 20,000 new paired games
+per cell (the candidate's credit ÷ the final agent's in the same seat):
 
-| Setting | Candidate | Engine's rules | Build any time | House auctions | Mortgaged stations count |
-|---|---|---|---|---|---|
-| Official, 4 players | strongest known challenger | 1.26× | 1.24× | 1.26× | 1.26× |
-| Official, 4 players | hard three-house cap | 0.79× | 0.77× | 0.79× | 0.79× |
-| Official, 4 players | housing lock added | 1.06× | 1.03× | 1.06× | 1.06× |
-| Official, 2 players | strongest known challenger | 1.17× | 1.19× | 1.17× | 1.18× |
-| Official, 2 players | housing lock removed | 0.96× | 0.96× | 0.96× | 0.96× |
-| Championship, 4 players | strongest known challenger | 1.33× | 1.26× | 1.32× | 1.32× |
-| Championship, 4 players | housing lock removed | 0.91× | 0.93× | 0.90× | 0.91× |
-| Championship, 4 players | simple bot | 0.46× | 0.63× | 0.46× | 0.47× |
+| Setting | Candidate | Engine's rules | Build any time | House auctions | Mortgaged stations count | Lift a received mortgage at once |
+|---|---|---|---|---|---|---|
+| Official, 4 players | strongest known challenger | 1.26× | 1.24× | 1.26× | 1.26× | 1.25× |
+| Official, 4 players | hard three-house cap | 0.79× | 0.77× | 0.79× | 0.79× | 0.78× |
+| Official, 4 players | housing lock added | 1.06× | 1.03× | 1.06× | 1.06× | 1.05× |
+| Official, 2 players | strongest known challenger | 1.17× | 1.19× | 1.17× | 1.18× | 1.17× |
+| Official, 2 players | housing lock removed | 0.96× | 0.96× | 0.96× | 0.96× | 0.96× |
+| Championship, 4 players | strongest known challenger | 1.33× | 1.26× | 1.32× | 1.32× | 1.31× |
+| Championship, 4 players | housing lock removed | 0.91× | 0.93× | 0.90× | 0.91× | 0.91× |
+| Championship, 4 players | simple bot | 0.46× | 0.63× | 0.46× | 0.47× | 0.46× |
 
 - **No verdict reverses.** No candidate that lost to the final agent under the engine's rules beats it under an
   official rule, or the reverse. The housing lock still pays, and a hard three-house cap still costs.
 - **House auctions change nothing measurable.** In games between the final agents, two or more players want more
   houses than the bank has in 43% of championship 4-player games (2.3 houses auctioned per game) and 5% of official
   4-player games, yet no candidate's edge moves by more than 1%.
+- **Hotels are almost never contested.** Two or more players wanted more hotels than the bank had in at most 0.1% of
+  games (championship rules, 4 players), so the engine not auctioning hotels hardly matters.
 - **Building at any time moves those edges by 5% at most.** It matters more for the simple bot: against the
   championship 4-player agents it rises from 0.46× to 0.63×.
 - **Counting mortgaged stations moves nothing by more than 2%,** and the first player's edge with simple bots moves
   by about 0.02 at most under any of the rules.
-- **A missed improvement:** the official 4-player agent doesn't use the housing lock. Adding it (hold four houses
-  while 14 or fewer are left in the bank) wins it 5% more on 40,000 fresh games (1.049× [1.043, 1.055]; 6% on the
-  comparison's own games), and 3% more when building at any time.
+- **Lifting a received mortgage at once moves the agents' edges by 2% at most,** and lowers the simple bot's by 5%
+  against the official 4-player agents (0.61× to 0.58×): the choice helps the agents more. It comes up
+  often: 14–15 mortgaged properties change hands in a 4-player game between the final agents, about nine in ten from
+  bankrupt players, and given the choice the agents lift 77–81% of them at once.
 
-With 52 such comparisons some differences are chance. After a Bonferroni adjustment 11 still show a change, every
-one of them with building at any time; none with house auctions alone or mortgaged stations. The variant-by-variant
-intervals are in [results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md). These
-test the final agents as they are under each rule; agents trained under the official rules might play differently,
-and the house-auction bids follow one heuristic rather than a searched policy.
+**The housing lock's gain is in how it raises cash.** The official 4-player agent doesn't use the housing lock.
+Adding it (hold four houses while 14 or fewer are left in the bank) wins it 5% more on 40,000 fresh games (1.049×
+[1.043, 1.055]; 6% on the comparison's own games), and 3% more when building at any time. But as coded the lock did
+two things: it held back hotels, and when raising cash it mortgaged everything else before selling a building. The
+third review took the two apart, and so did a re-run here, each arm on the same games, against four kinds of opponent
+in the other three seats (outright wins, each arm ÷ the agent with neither; 95% intervals ±0.002–0.010):
+
+| Other three seats | Games | Hold back hotels only | Protect buildings only | Both (the housing lock) |
+|---|---|---|---|---|
+| Final agents (the games above) | 40,000 | 0.99× | 1.06× | 1.05× |
+| Final agents (fresh games) | 20,000 | 0.99× | 1.07× | 1.06× |
+| Simple bots | 20,000 | 0.99× | 1.06× | 1.05× |
+| An equal mixture per seat | 20,000 | 0.99× | 1.07× | 1.06× |
+| Known challengers | 20,000 | 1.00× | 1.06× | 1.06× |
+
+Protecting buildings gains 6–7% against every population (1.5–3.2 points of win rate), while holding back hotels
+alone helps nowhere (0.99–1.00×); together they win slightly less than protecting alone (by 0.2–0.3 points, and
+against the known challengers they tie). On the games above this reproduces the review's figures exactly. So the
+gain finding 9 credits to the housing lock comes from a rule for raising cash, which the searches could only reach
+bundled with the lock. The two are now separate settings (`lock`, `protect`), for the next searches to tune apart.
+
+With 65 such comparisons some differences are chance. After a Bonferroni adjustment 12 still show a change, 11 of them
+with building at any time and one with lifting a received mortgage at once (the simple bot's 5%); none with house
+auctions alone or mortgaged stations. Read against a tolerance of ±3% set before the run, 35 of the 65 are equivalent
+(no change that large is plausible) and 18 are inconclusive. The variant-by-variant intervals are in
+[results/final/tables/sensitivity/summary.md](results/final/tables/sensitivity/summary.md). These test the final
+agents as they are under each rule; agents trained under the official rules might play differently, and the
+house-auction bids follow one heuristic rather than a searched policy.
 
 An independent check found that a house auction could charge a bot more than its bid, when it placed the house in
 a dearer group than the one it bid for. Each bid now names its house and never pays more than the bid. Re-run on the
-same seeds, the house-auction results moved by 0.006 at most, and the other 39 results reproduced exactly.
+same seeds, the house-auction results moved by 0.006 at most, and the other 39 results reproduced exactly. The
+re-run for the third review, on the same seeds again, reproduced all 65 of the earlier results exactly.
 
 **The final agents' settings** (only settings that measurably matter are worth reading closely; the rest drift
 freely during evolution):
@@ -524,13 +594,17 @@ print(result.winner, result.turns)
   for everyone; under championship rules it is scored by finishing position, so championship
   numbers are finishing points ÷ 28. Win-rate tables count outright wins and time-limit
   wins separately.
-- The engine simplifies three rules ([RULES.md](RULES.md)): players build only after their
-  own move, the last houses go to whoever builds first rather than to an auction, and
-  mortgaged stations and utilities don't count towards their rent. Each official rule is
-  an engine option, and under each one the housing findings hold (finding 18), but the
-  self-play searches themselves ran under the engine's rules.
-- Trade prices are for a one-shot sale with no resale, in hand-built positions, to these
-  bots. Exploit numbers are the gains of challengers found so far: lower bounds.
+- The engine simplifies four rules ([RULES.md](RULES.md)): players build only after their
+  own move, the last houses (and hotels) go to whoever builds first rather than to an
+  auction, mortgaged stations and utilities don't count towards their rent, and whoever
+  receives a mortgaged property pays the 10% at once. Each official rule but the hotel
+  auction is an engine option, and under each one the housing findings hold (finding 18);
+  hotels are contested in at most 0.1% of games. The self-play searches themselves ran
+  under the engine's rules.
+- Trade prices compare selling with keeping the deed for good, to these bots, mostly in
+  hand-built positions: they price the deed, not the decision to accept an offer, which
+  depends on what happens otherwise (finding 4, which also checks 100 positions from real
+  games). Exploit numbers are the gains of challengers found so far: lower bounds.
 - The deep run extends v0.3's samples rather than replacing them (the first tenth of each
   is v0.3's games), so it is more precise, not an independent replication.
 - The rollout valuer is unbiased for its bots but slow (about 1 minute per price curve).

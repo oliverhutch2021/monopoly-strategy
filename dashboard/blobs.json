@@ -1,8 +1,8 @@
 {
  "squares": "/_blob/af1fc0bedb0dc1cfc2056758bf4bab22",
  "set_economics": "/_blob/ab599dafaee767bd6890ddcc26ecea7b",
- "trade_curves": "/_blob/20fa50cf59815104fd7237eec661f0ff",
- "deal_zones": "/_blob/b8cd392fc0a9463f489ec1e7341453cb",
+ "trade_curves": "/_blob/9cf82903b941c52306fdb3c4cf7027d1",
+ "deal_zones": "/_blob/49bbd1ed1db180e445c2cef9a7e6208a",
  "strategies": "/_blob/bbd10a61f20b730a26b48c65af465e09",
  "seats": "/_blob/c9515ba992aadabb7fd3b1fd4b8f7b47",
  "game_length": "/_blob/d7a6429789fea9b3749765f5babbe3cf",
@@ -10,8 +10,8 @@
  "meta_checks": "/_blob/b5a2743bdf2dfe3df205b74ab15759cc",
  "meta_ablations": "/_blob/4f1ff75f8463ae2b2ba1f1c936f25395",
  "hardening": "/_blob/0ed6b221d343bc202e7701c9d8be0440",
- "property_trades": "/_blob/ce989f07419ff61008bf7532fe8feb5f",
- "property_zones": "/_blob/a6e6625737fecabe80d9668668adf5c1",
+ "property_trades": "/_blob/c18836a3647f638682425b33a6070e60",
+ "property_zones": "/_blob/e18caa1ce49b62d00f33f910fdf6b3c9",
  "meta_vs_simple": "/_blob/1708a5c3aff2870af18e82bdad06d5c4",
  "moves": "/_blob/64e0a214a0d9fd9f8345497244d8bd3c",
  "deeds": "/_blob/a1ff51659caa1fbca7dbb00c2c4d36f2"

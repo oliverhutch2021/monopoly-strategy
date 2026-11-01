@@ -119,7 +119,23 @@ points, each checked against the code before changing anything:
   game's outcome so they can be paired; and search checkpoints refuse to resume on other inputs or code
   (`provenance.fingerprint`).
 
-`make review3` runs the parts that need new games (about 3 hours).
+`make review3` ran the parts that needed new games on the PC (2 hours 11 minutes). Everything re-run on the same
+seeds reproduced exactly: the Vine Street curves against keeping the deed for good, and all 65 earlier rule
+comparisons. What the new work found:
+
+- **The decision differs from the deed.** Carrying on as normal, the bots sell Vine Street to the player who needs
+  it within a few player-turns at their own offer (£400 for simple bots, £200–£800 for the meta agents), so the deal
+  zone for accepting an offer today shrinks to a few pounds at that price. In 100 positions from real games, paying
+  three or four times face value instead of the going twice loses for the buyer in every position.
+- **Narrow zones mostly don't survive.** Of 21 zones read between the prices played, 4 hold at whole-pound prices
+  on fresh games; the 2-player £304–£306 band against the official agent doesn't.
+- **The housing lock's gain is a cash-raising rule.** Protecting buildings alone gains 6–7% against every opponent
+  population tested; holding back hotels alone helps nowhere. This reproduces the review's figures exactly on its
+  games.
+- **The remaining rule simplifications hardly matter.** Lifting a received mortgage at once moves the agents' edges
+  by 2% at most (the simple bot's by 5%); hotels are contested in at most 0.1% of games.
+- **Championship conclusions don't rest on the assumed points.** Under two other schedules for five and six
+  survivors, accepting trades costs the agents more, and no price compensates a seller of Vine Street.
 
 The review's three highest-return next steps are now part of the plan below: make the decision being priced explicit
 in every valuation (Phase 4), separate bundled decisions before attributing a strategy's gain and then search over

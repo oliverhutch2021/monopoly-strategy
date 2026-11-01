@@ -25,7 +25,8 @@ does this in three steps:
    4 players. On every set but the browns, the third house earns the most rent for its price.
 3. **The last piece of a set is worth far more than its price.** In a test game at 4 players, a player who owns two
    of the oranges wins 6% of the time without the third, and 90% if given it. Compared with never getting it, it's
-   worth up to £1,144 to them: almost six times the £200 printed on the card.
+   worth up to £1,144 to them: almost six times the £200 printed on the card. But the computer players usually sell
+   it to them within a couple of turns for £400, so paying much more than that going rate is a loss.
 4. **Trading is most of the game.** With 3 or more players, a strong player that refuses every trade wins far less
    often: a fifth as often at 4 players. With 2 players, trading barely matters.
 5. **Going first helps, and more so at a big table.** At 6 players the first player wins 20% more often than an
