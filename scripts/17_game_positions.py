@@ -134,7 +134,7 @@ def main():
         rows += value(pos, j)
         if j % 10 == 9:
             print(f"  {j + 1} positions valued ({time.time() - t:.0f}s)", flush=True)
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows).assign(screened=screened)  # read by scripts/claims.py
     df.to_csv(TAB / "game_positions.csv", index=False)
     (TAB / "game_positions.md").write_text(summary(df, screened))
     print((TAB / "game_positions.md").read_text())

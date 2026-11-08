@@ -125,7 +125,8 @@ them. Against carrying on as normal, the deal zone shrinks to a few pounds just 
 (£405–£413 at 4–6 players, none at 2 or 3). A buyer who pays £594–£1,144 now, when £400 would
 do a moment later, loses. Keeping it for good prices the deed; carrying on as normal prices the
 decision. Against carrying on, selling to a player who *doesn't* need Vine Street becomes a real
-deal at 3 and 4 players (£368–£600+ and £396–£438): stopping a rival's set is worth paying for.
+deal at 3, 4, 5 and 6 players (£368–£600+, £396–£438, £388–£412 and £397–£408): stopping a rival's set
+is worth paying for.
 
 The same holds in **100 positions from real games** (`scripts/17_game_positions.py`): the first
 moment at which one player held two oranges and another the third, in each game that reached one,

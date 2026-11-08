@@ -14,6 +14,7 @@ and 18 (rule sensitivity), the ones the deep run measured and the reviews checke
 v0.5's summaries, which link to their own tables.
 """
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -66,6 +67,36 @@ def zone(r) -> str:
     return f"{money(r.seller_min_price_win)}{DASH}{money(r.buyer_max_price_win, bool(r.buyer_max_censored))}"
 
 
+def listing(items, last: str = "and") -> str:
+    """'a', 'a and b', 'a, b and c'."""
+    items = [str(x) for x in items]
+    return items[0] if len(items) == 1 else f"{', '.join(items[:-1])} {last} {items[-1]}" if items else "none"
+
+
+def sizes(ns) -> str:
+    """Table sizes: '4–6' when three or more are consecutive, else '3 and 5'."""
+    ns = sorted(int(n) for n in ns)
+    if len(ns) > 2 and ns == list(range(ns[0], ns[-1] + 1)):
+        return f"{ns[0]}{DASH}{ns[-1]}"
+    return listing(ns)
+
+
+def more_than(share: float) -> str:
+    """'more than 99.9%' for a share above 99.9% but below all of them; 'all' for exactly 1."""
+    if not np.isfinite(share):
+        return "more than ?%"
+    if share >= 1:
+        return "all"
+    tenths = int(np.ceil(round(share * 1000, 6))) - 1  # the largest tenth of a percent strictly below the share
+    return f"more than {tenths / 10:.1f}%"
+
+
+# What rollout.later_deals() leaves out when the buyer never got the square. NaN prints as 'nan', so a claim that
+# needs one of these fails on its own instead of stopping every claim with a KeyError.
+NO_LATER_DEALS = {"games": 0, "traded_later": 0.0, "to_buyer": 0.0, "median_wait": np.nan, "median_price": np.nan,
+                  "price_mode": np.nan, "price_mode_share": np.nan, "swap_share": np.nan}
+
+
 def row(*cells: str | None) -> tuple[str, str]:
     """A table row whose cells start with these texts (None = any cell): (readable text, regex)."""
     parts = [r"[^|\n]*" if c is None else re.escape(c) + r"[^|\n]*" for c in cells]
@@ -84,9 +115,24 @@ class Claims:
     def __init__(self, tables: Path = TABLES):
         self.tab = tables
         self.items: list[Claim] = []
+        self._cache: dict[str, object] = {}
 
     def read(self, name: str) -> pd.DataFrame:
-        return pd.read_csv(self.tab / name)
+        if name not in self._cache:
+            self._cache[name] = pd.read_csv(self.tab / name)
+        return self._cache[name].copy()
+
+    def json(self, name: str) -> dict:
+        if name not in self._cache:
+            self._cache[name] = json.loads((self.tab / name).read_text())
+        return self._cache[name]
+
+    def later(self, name: str) -> dict[str, dict]:
+        """later_deals_<name>.json with every key in every entry (NaN where the buyer never got the square). A table
+        size the file leaves out counts as no deals."""
+        raw = self.json(f"later_deals_{name}.json")
+        keys = set(raw) | {f"{n}p" for n in range(2, 7)} | {f"{n}p_buyer0" for n in range(2, 7)}
+        return {k: {**NO_LATER_DEALS, **raw.get(k, {})} for k in keys}
 
     def text(self, finding: str, what: str, text: str) -> None:
         self.items.append((finding, what, text, None))
@@ -123,14 +169,14 @@ class Claims:
         self.text("L3", "the last piece of a set", f"wins {pct(r.p_win_base_buyer)} of the time without the third, "
                   f"and {pct(r.p_win_buyer_if_free)} if given it. Compared with never getting it, it's worth up to "
                   f"{money(r.buyer_max_price_win, bool(r.buyer_max_censored))} to them: {size} times the £200")
-        import json
-        later = json.loads((self.tab / "later_deals_simple.json").read_text())["4p_buyer0"]
+        later = self.later("simple")["4p_buyer0"]
         live = self.read("trade_curve_summary_live.csv")
         live = live[(live.buyer == 0) & (live.n_players == 4)].iloc[0]
         soon = "within a couple of turns" if later["median_wait"] <= 2 else f"within {later['median_wait']:.0f} turns"
         going = (f"usually sell it to them {soon} for {money(later['median_price'])}, so paying much more than that "
                  "going rate is a loss")
-        if later["to_buyer"] < 0.5 or live.buyer_max_price_win > later["median_price"] * 1.1:
+        if (later["to_buyer"] < 0.5 or not np.isfinite(later["median_price"])
+                or live.buyer_max_price_win > later["median_price"] * 1.1):
             going = "the going rate doesn't hold"  # the text would no longer be true, so the claim fails
         self.text("L3", "the going rate", going)
         a = self.read("meta_ablations_standard.csv").set_index(["name", "n_players"]).relative
@@ -204,28 +250,40 @@ class Claims:
 
     def vine_live(self) -> None:
         """Finding 4's sale against carrying on as normal (later trades allowed), and what the keep arm did."""
-        import json
-        later = json.loads((self.tab / "later_deals_simple.json").read_text())
+        later = self.later("simple")
         need = {n: later[f"{n}p_buyer0"] for n in range(2, 7)}
         games = sum(d["games"] for d in need.values())
+        per = {d["games"] for d in need.values()}
+        per = f"{next(iter(per)):,} per table size" if len(per) == 1 else "different numbers per table size"
         missed = int(round(sum(d["games"] * (1 - d["to_buyer"]) for d in need.values())))
-        waits = [d["median_wait"] for d in need.values()]
+        waits = np.array([d["median_wait"] for d in need.values()], float)
         prices = {d["median_price"] for d in need.values()} | {d["price_mode"] for d in need.values()}
-        share = min(d["price_mode_share"] for d in need.values())
-        price = money(next(iter(prices))) if len(prices) == 1 else "several prices"
+        share = np.min([d["price_mode_share"] for d in need.values()])
+        price = next(iter(prices)) if len(prices) == 1 else np.nan  # several prices: '£?', and the claim fails
+        from monopoly_meta import load_edition
+        from monopoly_meta.policies import make_bot
+        face = load_edition().price[19]  # Vine Street
+        usual = "their usual offer" if price == face * make_bot("balanced").offer_mult else "not their usual offer"
+        multiple = "twice face value" if price == 2 * face else f"{price / face:g}× face value"
         lost = "all but one" if missed == 1 else "every one" if missed == 0 else f"all but {missed}"
-        self.text("4", "later trades", f"in {lost} of the {games:,} games played on ({need[2]['games']:,} per table "
-                  f"size), after a median of {min(waits):.0f}{DASH}{max(waits):.0f} player-turns, and for {price} "
-                  f"(their usual offer, twice face value) in more than {np.floor(share * 1000) / 10:.1f}% of them")
+        self.text("4", "later trades", f"in {lost} of the {games:,} games played on ({per}), after a median of "
+                  f"{waits.min():.0f}{DASH}{waits.max():.0f} player-turns, and for {money(price)} ({usual}, "
+                  f"{multiple}) in {more_than(share)} of them")
         live = self.read("trade_curve_summary_live.csv")
         z = live[live.buyer == 0].set_index("n_players")
         deal = z[z.deal_zone_exists.astype(bool)]
         none = [n for n in z.index if not z.deal_zone_exists[n]]
-        lo, hi = deal.seller_min_price_win.min(), deal.buyer_max_price_win.max()
-        self.text("4", "live deal zone", f"(£{lo:.0f}{DASH}£{hi:.0f} at {deal.index.min()}{DASH}{deal.index.max()} "
-                  "players, none at " + " or ".join(map(str, none)) + ")")
+        if len(deal):
+            top = deal.loc[deal.buyer_max_price_win.idxmax()]
+            where = (f"{money(deal.seller_min_price_win.min())}{DASH}"
+                     f"{money(top.buyer_max_price_win, bool(top.buyer_max_censored))} at {sizes(deal.index)} players")
+        else:
+            where = "no deal at any table size"
+        self.text("4", "live deal zone", f"({where}" + (f", none at {listing(none, 'or')})" if none else ")"))
         by = live[live.buyer == 2].set_index("n_players")
-        self.text("4", "live bystander", f"deal at 3 and 4 players ({zone(by.loc[3])} and {zone(by.loc[4])})")
+        by = by[by.legal.astype(bool) & by.deal_zone_exists.astype(bool)]
+        self.text("4", "live bystander", f"deal at {listing(by.index)} players "
+                  f"({listing(zone(r) for _, r in by.iterrows())})" if len(by) else "deal at no table size")
 
     def positions(self) -> None:
         """The set-completing sale in 100 positions from real games (scripts/17_game_positions.py)."""
@@ -235,21 +293,37 @@ class Claims:
         both = g.assign(both=(g.buyer_change > 0) & (g.seller_change > 0)).groupby(["baseline", "multiple"]).both.sum()
         loses = g.assign(l=g.buyer_change < 0).groupby(["baseline", "multiple"]).l.sum()
         n = g.position.nunique()
-        screened = int(g.game_seed.max() - 17_000_000 + 1)
+        if "screened" in g:  # saved by scripts/17_game_positions.py since the third review
+            screened = int(g.screened.iloc[0])
+        else:  # older tables: rebuilt from the script's first seed
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("game_positions", ROOT / "scripts" / "17_game_positions.py")
+            script = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(script)
+            screened = int(g.game_seed.max() - script.SCREEN_SEED + 1)
         self.text("4", "positions screened", f"out of {screened:,} screened games between simple bots")
-        self.text("4", "positions, kept for good", f"(+{kept.buyer_change[2]:.1f}, +{kept.buyer_change[3]:.1f} and "
-                  f"+{kept.buyer_change[4]:.1f} points of win chance), and both sides gain in "
-                  f"{both['kept for good', 2]}, {both['kept for good', 3]} and {both['kept for good', 4]} of the {n} "
-                  "positions")
+        gains = "gains" if (kept.buyer_change[[2, 3, 4]] > 0).all() else "doesn't always gain"
+        self.text("4", "positions, kept for good", f"the buyer {gains} on average at 2, 3 and 4 times face value "
+                  f"({kept.buyer_change[2]:+.1f}, {kept.buyer_change[3]:+.1f} and {kept.buyer_change[4]:+.1f} points "
+                  f"of win chance), and both sides gain in {both['kept for good', 2]}, {both['kept for good', 3]} and "
+                  f"{both['kept for good', 4]} of the {n} positions")
         first = g[(g.baseline == "later trades allowed") & (g.multiple == 2)]
-        all_lose = loses["later trades allowed", 3] == loses["later trades allowed", 4] == n
         twice = "twice" if first.keep_later_multiple.median() == 2 else "other than twice"
+        # "changes nothing": the 95% interval of the mean across positions straddles zero
+        half = 1.96 * 100 * first.buyer_change.std() / np.sqrt(len(first))
+        nothing = ("changes nothing on average" if abs(live.buyer_change[2]) <= half else
+                   "changes the buyer's chances on average")
+        k3, k4 = loses["later trades allowed", 3], loses["later trades allowed", 4]
+        lose = ("loses in every one of the" if k3 == k4 == n else
+                f"loses in {k3} and {k4} of the" if k3 != k4 else f"loses in {k3} of the")
+        if not (live.buyer_change[3] < 0 and live.buyer_change[4] < 0):
+            lose = "doesn't lose on average, though " + lose
         worse = f"({live.buyer_change[3]:.1f} and {live.buyer_change[4]:.1f} points)".replace("-", "−")
         later = pct(first.keep_later_to_buyer.mean())
         self.text("4", "positions, carrying on", f"the buyer got it later in {later} of "
-                  f"games, for a median of {twice} face value, so a sale at that price changes nothing on average "
-                  f"({live.buyer_change[2]:+.1f} points), and at 3 or 4 times face value the buyer loses in "
-                  + ("every one of the" if all_lose else "most of the") + f" {n} positions {worse}")
+                  f"games, for a median of {twice} face value, so a sale at that price {nothing} "
+                  f"({live.buyer_change[2]:+.1f} points), and at 3 or 4 times face value the buyer {lose} {n} "
+                  f"positions {worse}")
 
     # 5. strategy tweaks against simple bots
     def strategies(self) -> None:
@@ -367,7 +441,9 @@ class Claims:
                   f"({times(acc[5])} and {times(acc[6])})")
         sc = self.read("scoring_sensitivity.csv").set_index(["n_players", "schedule"]).ratio
         other = lambda n: sc[n].drop("extrapolated")  # noqa: E731
-        self.text("14", "embargo, other schedules", f"accepting trades costs more, not less ({times(other(5).min())}"
+        holds = all(other(n).max() < sc[n, "extrapolated"] for n in (5, 6))
+        self.text("14", "embargo, other schedules", ("accepting trades costs more, not less" if holds else
+                  "accepting trades doesn't always cost more") + f" ({times(other(5).min())}"
                   f"{DASH}{times(other(5).max())} at 5 players and {times(other(6).min())}{DASH}"
                   f"{times(other(6).max())} at 6, against {times(sc[5, 'extrapolated'])} and "
                   f"{times(sc[6, 'extrapolated'])} under the engine's points".replace(f"×{DASH}", DASH))
@@ -410,23 +486,24 @@ class Claims:
             "some price benefits both sides"
         self.text("16", "2-player band replayed", "replayed at " + " and ".join(money(x) for x in vine.price)
                   + f" on {int(vine.rollouts.iloc[0]):,} fresh games each, {shown}")
-        import json
-        later = json.loads((self.tab / "later_deals_standard.json").read_text())
-        sizes = [3, 4, 5, 6]
-        offers = [money(later[f"{n}p"]["median_price"]) for n in sizes]
-        waits = [later[f"{n}p"]["median_wait"] for n in sizes]
+        later = self.later("standard")
+        big = [3, 4, 5, 6]
+        offers = [money(later[f"{n}p"]["median_price"]) for n in big]
+        waits = np.array([later[f"{n}p"]["median_wait"] for n in big], float)
         self.text("16", "later deals, meta", f"at their own offer: {offers[0]} at 3 players, {offers[1]} at 4, "
-                  f"{offers[2]} at 5 and {offers[3]} at 6, within a median of {min(waits):.0f}{DASH}{max(waits):.0f} "
-                  "player-turns")
+                  f"{offers[2]} at 5 and {offers[3]} at 6, within a median of {waits.min():.0f}{DASH}"
+                  f"{waits.max():.0f} player-turns")
         two = later["2p"]
-        swaps = "always in a swap" if two.get("swap_share") == 1 else "often in a swap"
+        sw = two["swap_share"]
+        swaps = ("always in a swap" if sw == 1 else "never in a swap" if sw == 0 else
+                 f"in a swap {pct(sw)} of the time" if np.isfinite(sw) else "with no deals to the buyer")
         self.text("16", "later deals, 2 players", f"At 2 players it changes hands later in {pct(two['to_buyer'])} of "
                   f"games, {swaps}, after a median of {two['median_wait']:.0f} player-turns")
         live = self.read("meta_trade_summary_standard_live.csv").set_index("n_players")
         none = [n for n in live.index if live.evidence[n] == "no whole-pound price"]
         self.text("16", "live zones, meta", f"({zone(live.loc[4])} at 4 players, {zone(live.loc[6])} at 6), and at "
                   + " and ".join(map(str, none)) + " players to no whole pound at all")
-        lc = json.loads((self.tab / "later_deals_championship.json").read_text())["4p"]
+        lc = self.later("championship")["4p"]
         clive = self.read("meta_trade_summary_championship_live.csv").set_index("n_players")
         self.text("16", "championship, carrying on", f"the 4-player agents trade it later for "
                   f"{money(lc['median_price'])} and the zone shrinks to {zone(clive.loc[4])}")
@@ -549,12 +626,12 @@ class Claims:
         self.text("18", "comparisons", f"With {int(((rest.variant != 'engine rules')).sum())} such comparisons")
         tests = rest[rest.variant != "engine rules"]
         adj = tests[(tests.vs_engine_adj_low > 1) | (tests.vs_engine_adj_high < 1)]
-        any_time = adj.variant.isin(["build any time", "any time + auctions"])
+        under_any_time = adj.variant.isin(["build any time", "any time + auctions"])
         lifts = adj[adj.variant == "mortgage choice on transfer"]
-        others = adj[~any_time & (adj.variant != "mortgage choice on transfer")]
+        others = adj[~under_any_time & (adj.variant != "mortgage choice on transfer")]
         which = (f" (the {lifts.candidate.iloc[0]}'s {pct(1 - lifts.vs_engine_rules.iloc[0])})" if len(lifts) == 1
                  else "")
-        where = (f"{int(any_time.sum())} of them with building at any time and {words(len(lifts))} with lifting a "
+        where = (f"{int(under_any_time.sum())} of them with building at any time and {words(len(lifts))} with lifting a "
                  f"received mortgage at once{which}" if others.empty else "some with other rules")
         self.text("18", "Bonferroni", f"After a Bonferroni adjustment {len(adj)} still show a change, {where}")
         readings = tests.reading.value_counts()
@@ -589,7 +666,6 @@ class Claims:
                   "the earlier results exactly")
         self.lock_factorial()
         before = self.read("sensitivity/candidates_pre_auction_fix.csv")  # the first review's run, kept as it was
-        keys = ["mode", "n_players", "variant", "candidate"]
         both = rest.merge(before[keys + ["ratio"]], on=keys, suffixes=("", "_before"))
         auction = both.variant.isin(["house auctions", "any time + auctions"])
         shift = (both.ratio - both.ratio_before)[auction].abs().max()
@@ -618,16 +694,22 @@ class Claims:
         arm = lambda a: f.xs(a, level="arm")  # noqa: E731
         protect, defer, both = arm("protect buildings only"), arm("defer hotels only"), arm(arms[2])
         gain = span(protect.ratio.min() - 1, protect.ratio.max() - 1)
-        self.text("18", "protecting buildings", f"Protecting buildings gains {gain} against every population "
+        everywhere = "against every population" if (protect.ci_low > 1).all() else "against some populations"
+        nowhere = "helps nowhere" if not (defer.ci_low > 1).any() else "helps somewhere"
+        self.text("18", "protecting buildings", f"Protecting buildings gains {gain} {everywhere} "
                   f"({protect.gain_pp.min():.1f}{DASH}{protect.gain_pp.max():.1f} points of win rate), while holding "
-                  f"back hotels alone helps nowhere ({times(defer.ratio.min())}{DASH}{times(defer.ratio.max())})"
+                  f"back hotels alone {nowhere} ({times(defer.ratio.min())}{DASH}{times(defer.ratio.max())})"
                   .replace(f"×{DASH}", DASH))
         contrast = arm("protect only ÷ both")
         clear = contrast[contrast.gain_low_pp > 0]
         tie = contrast[(contrast.gain_low_pp <= 0) & (contrast.gain_high_pp >= 0)]
+        ahead = contrast[contrast.gain_high_pp < 0]  # both arms together beat protecting alone
         tied = " and against the " + " and ".join(o for o, _ in tie.index) + " they tie" if len(tie) else ""
-        self.text("18", "both vs protecting", f"together they win slightly less than protecting alone (by "
-                  f"{clear.gain_pp.min():.1f}{DASH}{clear.gain_pp.max():.1f} points,{tied})")
+        won = " and against the " + " and ".join(o for o, _ in ahead.index) + " they win more" if len(ahead) else ""
+        by = (f"by {clear.gain_pp.min():.1f}{DASH}{clear.gain_pp.max():.1f} points," if len(clear) else
+              "nowhere clearly,")
+        self.text("18", "both vs protecting", f"together they win slightly less than protecting alone ({by}{tied}"
+                  f"{won})")
         half = pd.concat([(d.ci_high - d.ci_low) / 2 for d in (protect, defer, both)])
         self.text("18", "lock factorial intervals", f"95% intervals ±{np.floor(half.min() * 1000) / 1000:.3f}{DASH}"
                   f"{np.ceil(half.max() * 1000) / 1000:.3f}")
