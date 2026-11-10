@@ -6,7 +6,7 @@ trade, auction bid and building decision is worth, in win-probability and in pou
 ```
 Phase 0  Rules engine + exact Markov chain + ROI + bots         <- done (v0.1)
 Phase 1  Rollout evaluator + trade price curves                 <- done; 2-6 players (v0.2)
-Phase 5a Meta agents by evolutionary self-play, 2-6 players     <- done (v0.2)
+Phase 5a Meta agents by evolutionary self-play, 2-6 players     <- done (v0.3)
 Phase 5c Unconventional strategies: new moves + MAP-Elites      <- done (v0.4, hardened in v0.5, deep run)
 Phase 2  Data pipeline: millions of simulated positions         -> Parquet / DuckDB
 Phase 3  Learned value function  P(win | state)                 -> LightGBM + SHAP, calibrated vs rollouts
@@ -39,8 +39,9 @@ Phase 6  Showcase: web dashboard, consulting deck, notebooks + report
   budgets and seeds, for a like-for-like before and after. Also: which new moves do the work in v0.4's finds
   (one switched off at a time).
 - Result (`results/v05/tables/hardened/summary.md`): hardening made six of the ten agents harder to exploit,
-  most clearly at 2 and 4 players (the official 2-player agent from 1.91x to 1.15x). It went in circles at 3
-  and 6 players under official rules and 5 and 6 under championship rules, so those keep their v0.3 agents.
+  most clearly at 2 and 4 players (the official 2-player agent from 1.91x to 1.15x). It didn't help at 3
+  and 6 players under official rules and 5 and 6 under championship rules (it went in circles at three of them;
+  at 5 players under championship rules only one round ran), so those keep their v0.3 agents.
   Borrowing to build and the housing lock carry the new moves' edge; most of the others are passengers.
 - The deep run (`make deep`, `results/final`) re-measured every study at 10x the samples with the final agents.
   The exploits hold (within about 0.05 of v0.5's numbers), and single changes find the last cheap gains: bidding
@@ -50,10 +51,11 @@ Phase 6  Showcase: web dashboard, consulting deck, notebooks + report
 - Next: a fix for the four cycling settings would train against a weighted mixture of the strongest opponents
   (PSRO proper) rather than a uniform pool.
 
-## Methodology review (October 2026)
+## Methodology reviews (October 2026)
 
-An independent review of commit 59cab72 scored the methodology 72/100. Every finding was checked against the
-code and the stored results, and all of them held. What changed, and the principle behind each change:
+The methodology was reviewed three times, each time at a named commit. The first review was of 59cab72. Every
+point it raised was checked against the code and the stored results, and all of them held. What changed, and the
+principle behind each change:
 
 - **Every number says what it measures**: the outcome (outright win, time-limit win, finishing points), the
   policy, the change and the horizon. Championship credit is labelled as points ÷ 28; win-rate tables count
@@ -77,7 +79,7 @@ sensitivity. No README number moved at its precision. Finding 3 changed: at equa
 worth and win chance doesn't grow with table size. The housing findings hold under every official building rule
 (finding 18), which also found a gain the official 4-player agent misses: the housing lock (+6%).
 
-A second review (82/100, of 970c390) found two defects in that new work, both confirmed before fixing:
+A second review (of 970c390) found two defects in that new work, both confirmed before fixing:
 
 - **Own-turn horizons drifted.** "Net worth after k own turns" was taken after k rounds of the starting table,
   so after a bankruptcy a player had had more turns than k (24 instead of 20 in the review's example), and the
@@ -96,7 +98,7 @@ left its conclusion as it was. With the auction fix, the house-auction results m
 results without house auctions reproduced exactly. On fresh seeds the housing-lock gain is 4.9% [4.3%, 5.5%]. After
 a Bonferroni adjustment, 11 of the 52 rule comparisons still show a change, all of them with building at any time.
 
-A third, deeper review (85/100, of 6e8a9f4) reproduced the corrected results and asked what each one means. Its
+A third, deeper review (of 6e8a9f4) reproduced the corrected results and asked what each one means. Its
 points, each checked against the code before changing anything:
 
 - **Which decision a trade price prices.** A sale was compared with keeping the deed for good, which measures the
@@ -115,13 +117,14 @@ points, each checked against the code before changing anything:
 - **Smaller fixes:** everyone else's change in a trade is measured game by game (a paired standard error); the
   dashboard draws one band per deal range and the uncertainty of the end it shows; the official choice to lift a
   received mortgage at once is a rule variant; hotel shortages are counted; "no detected change" now needs an
-  interval inside a tolerance set in advance (±3%) before it is called equivalent; before/after comparisons keep each
+  interval inside a stated tolerance (±3%, chosen after the first 52 comparisons were in) before it is called
+  equivalent; before/after comparisons keep each
   game's outcome so they can be paired; and search checkpoints refuse to resume on other inputs or code
   (`provenance.fingerprint`).
 
 `make review3` ran the parts that needed new games on the PC (2 hours 11 minutes). Everything re-run on the same
-seeds reproduced exactly: the Vine Street curves against keeping the deed for good, and all 65 earlier rule
-comparisons. What the new work found:
+seeds reproduced exactly: the Vine Street curves against keeping the deed for good, and all 65 results of the
+earlier rule study (52 comparisons and their 13 baselines). What the new work found:
 
 - **The decision differs from the deed.** Carrying on as normal, the bots sell Vine Street to the player who needs
   it within a few player-turns at their own offer (£400 for simple bots, £200–£800 for the meta agents), so the deal
@@ -140,6 +143,41 @@ comparisons. What the new work found:
 The review's three highest-return next steps are now part of the plan below: make the decision being priced explicit
 in every valuation (Phase 4), separate bundled decisions before attributing a strategy's gain and then search over
 them (Phase 5), and build a game-level holdout before training a value model (Phases 2 and 3).
+
+## Audit (November 2026)
+
+A full audit of the model, the method, the results and the pages followed. No table was wrong as computed. What
+it changed so far is wording that said more than the tables show:
+
+- **Cash.** "Don't sit on cash" was half the story: the 2- and 3-player agents keep a cushion, and lose 11% of
+  their wins without it. The advice is now "keep the cushion the table size calls for" (finding 14).
+- **The deal zone and table size.** In the hand-built trade positions each extra player also adds deeds and cash,
+  so "the zone widens with players" isn't separated from what the bystanders own. Finding 4 now shows the traders'
+  chances without the deal and says so.
+- **Deals that aren't established.** The few-pound "carrying on" zones lie between prices played and were never
+  replayed; they are now marked as not established, as the 2-player sliver already was.
+- **Stale numbers.** RULES.md quoted figures for agents that have since been replaced (a 20% stall rate that is now
+  0.2%). RULES.md is now under the claims check, like the front page and the findings.
+- **Smaller corrections**: the jail assumption behind the landing rates, the cash condition on the 100 real-game
+  positions, a tolerance described as set before the run that wasn't, unequal search budgets, and three rounding
+  slips.
+
+What it found that isn't fixed yet, in the order planned:
+
+1. **How the agents accept trades.** Offered a deed for cash, an agent values it at its printed price even when it
+   is mortgaged, and doesn't check what the payment leaves it. A player written to use this beats every "strongest
+   known challenger" (about 1.7 times the agent's score at 4 players in a 400-game test). Fix the acceptance rule,
+   and keep players from outside the bot family in the validation table as a standing benchmark.
+2. **Bankruptcy.** A player who can't pay mortgages everything first, so creditors receive mortgaged deeds. Hand
+   them over as they are, as a rule switch, and put it through the rule study.
+3. **Card counting** values a Chance or Community Chest square from where the player stands, not from the square
+   being considered. Fix it, then re-run the championship numbers that depend on it.
+4. **One PC run** for the studies the audit asked for: trade positions that hold the bystanders' holdings fixed
+   while the table size changes; the "carrying on" zones replayed at whole-pound prices; the real-game positions
+   without the cash condition; "starts proposing trades" among the single changes; and the housing lock taken apart
+   for agents that use it.
+5. **Housekeeping**: tests and lint on every push (GitHub Actions), a job runner that refuses to commit files it
+   didn't write, and one checkpoint-key mechanism everywhere.
 
 ## Phase 2: data pipeline
 - Snapshot the state every *k* turns in self-play games. Label each snapshot with the
@@ -210,7 +248,7 @@ them (Phase 5), and build a game-level holdout before training a value model (Ph
   only sees public information, and measure the value of a good memory.
 
 ## Phase 5: agents
-- **Done in v0.2**: evolutionary self-play over the heuristic bot's ~20 parameters, at
+- **Done in v0.3**: evolutionary self-play over the heuristic bot's ~20 parameters, at
   every table size, with exploitability checks and single-change ablations
   (`src/monopoly_meta/meta.py`, `scripts/05_meta_agents.py`).
 - Next: a bot that buys, bids, builds and trades by maximising the value model. This

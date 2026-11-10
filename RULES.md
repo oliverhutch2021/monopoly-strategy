@@ -2,7 +2,7 @@
 
 The engine plays the **classic UK (London) edition** with the official rules. Board and card
 data live in `src/monopoly_meta/data/uk_classic.json`, with the source of each list recorded in
-the file. Every simplification is listed below, so a reader can judge each result against it.
+the file. The simplifications are listed below, so a reader can judge each result against them.
 
 ## Board, money and cards
 
@@ -52,14 +52,17 @@ only to validate the Markov chain.
   - Buildings sell back to the bank for half their cost.
 - **Mortgages**: a property mortgages for half its price and costs half its price + 10% to
   lift. You can't mortgage while the colour set has buildings.
-- **Trades**: properties and cash can change hands. Every building in a colour set must be
+- **Trades**: properties and cash can change hands (Get Out of Jail Free cards can't be sold
+  or traded, a simplification). Every building in a colour set must be
   sold before any of its streets can be traded. Whoever receives a mortgaged property pays
   the 10% interest straight away, and keeps it mortgaged (lifting it later costs its value
   + 10% again). The official rules also let them lift it at once for its value + 10%
   instead: `Rules(mortgage_transfer_choice=True)` (see Simplifications).
-- **Bankruptcy**: buildings are sold to the bank first.
+- **Bankruptcy**: a player who can't pay first raises what cash they can (selling buildings
+  to the bank and mortgaging properties), and goes bankrupt only if that isn't enough.
   - Owing a player: your cash, properties and Get Out of Jail Free cards go to that player,
-    and they pay 10% on any mortgages they inherit.
+    and they pay 10% on any mortgages they inherit. By then the engine has mortgaged
+    everything, which the real game doesn't require (see Simplifications).
   - Owing the bank: your properties are unmortgaged and auctioned to the remaining players.
   - The last player left wins.
 - **Free Parking**: nothing happens (official rule). A `free_parking_jackpot` switch adds the
@@ -76,8 +79,9 @@ mortgaged property costs. Each has an engine switch that plays the official rule
 seen, and counted how often each simplification binds. No verdict reverses under any of
 them, and house auctions change no edge by more than 1% ([FINDINGS.md](FINDINGS.md), finding
 18; details in `results/final/tables/sensitivity/summary.md`). A fifth, the shortage of
-hotels, has no switch yet: the same study counts how often it arises. The meta agents were
-still trained under the engine's rules.
+hotels, has no switch yet: the same study counts how often it arises. A sixth, how a bankrupt
+player's deeds reach their creditor, has no switch yet either and hasn't been through that
+study. The meta agents were still trained under the engine's rules.
 
 | Simplification | Effect, and the switch that removes it |
 |---|---|
@@ -86,20 +90,21 @@ still trained under the engine's rules.
 | A mortgaged station or utility doesn't count towards the rent of the others (see Rent above). | `Rules(mortgaged_count_for_rent=True)`. Moves no tested result by more than 2%. |
 | Whoever receives a mortgaged property (in a trade, or from a bankrupt player) pays the 10% interest then, and again when lifting it. | `Rules(mortgage_transfer_choice=True)`: they may lift it at once for its value + 10% instead; the bots do whenever their cash stays above their building reserve (`Policy.lift_on_transfer`). `Game.mortgaged_received` and `Game.lifted_on_receipt` count how often the choice arises and is taken: 14–15 times in a 4-player game between the final meta agents, about nine in ten from bankrupt players, and they lift 77–81% at once. Moves the tested agents' edges by 2% at most; lowers the simple bot's by 5% against the official 4-player agents. |
 | When hotels run short, they go to whoever builds first. The official rules auction them too, like houses. | No switch yet. With `Game.track_housing`, `Game.contested_hotels` counts the moments two or more players want more hotels than the bank has (`Policy.hotels_wanted`): between the final meta agents, in at most 0.1% of games (championship rules, 4 players), so an auction would rarely come into play. |
+| A player who can't pay a debt mortgages every property before going bankrupt, so the creditor receives the mortgage money and mortgaged deeds, and pays 10% on each. In the real game the deeds are handed over as they are. | No switch yet; one is planned ([ROADMAP.md](ROADMAP.md)). In a quick check during the audit (4,000 paired games, not in the stored tables), 37–68% of the mortgaged deeds that reach a creditor between the final agents were mortgaged only by this, and handing deeds over as they are lowered the simple bot's score against the official 4-player agents by about 4%: about the size of the mortgage-choice effect above. |
 | Players buy only with cash on hand. They don't mortgage to fund a purchase. | Slightly fewer purchases by cash-poor players. |
 | If a hotel must be broken up and the bank lacks 4 houses, it is sold further down. The other streets in the set aren't forced down with it. | Very rare; counted in `Game.uneven_events` (which counts only this, not housing shortages in general). |
 | Rent is always collected (in the real game the owner must ask for it before the next roll). | Treats every player as attentive. |
 | If the card-drawer goes bankrupt while collecting birthday money, collection stops; money owed to a bankrupt player goes to the bank. | Edge case; keeps the books consistent. |
-| A game stops after `max_turns` (default 4,000 player-turns). The richest player is then recorded as the winner, and the `capped` flag is set. | Under the official rules almost no game reaches it (1 in 10,000 at 4 players, none at other sizes). Bots that rarely trade hit it more often: up to 3.5% for the hard-bargainer at 6 players. |
+| A game stops after `max_turns` (default 4,000 player-turns). The richest player is then recorded as the winner, and the `capped` flag is set. | Between simple bots under the official rules almost no game reaches it (5 in 100,000 at most, at any table size). Bots that rarely trade hit it more often: up to 3.8% for the hard-bargainer at 6 players. |
 
 ## Time limit in meta-agent games
 
 The self-play games that train and test the meta agents stop after **150 rounds**
 (`meta.tournament_rules`), counted in total player-turns: 150 × the number of players at the
 start. After someone goes bankrupt the others take more turns each, so a player can take more
-than 150 turns of their own before the limit (up to about 230 in 6-player games). That is
-well above the 90th-percentile game length at every table size (93 rounds at 2 players, 66 at
-4, 55 at 6), so it only stops stalled games.
+than 150 turns of their own before the limit (over 250 in some 6-player games). The limit is
+well above the 90th-percentile length of a simple-bot game at every table size (93 rounds at 2
+players, 66 at 4, 55 at 6), so it only stops stalled games.
 
 How a stopped game is scored decides what self-play learns, so three rules were tried:
 
@@ -107,10 +112,12 @@ How a stopped game is scored decides what self-play learns, so three rules were 
 |---|---|
 | a win for the richest player | refuse every trade and coast to the limit on net worth (77% of 5-player games stalled; `archive_networth_cap/stall_check.csv`) |
 | a draw shared by the players still in it | a trade embargo: nobody accepts any trade, about 80% of games stall (`archive_draw_scoring/`) |
-| **a loss for everyone (used)** | stalling earns nothing, so agents trade to win; under 0.5% of games stall at 3–6 players |
+| **a loss for everyone (used)** | stalling earns nothing, so agents trade to win; 0.1–0.6% of games between the final agents stall, at any table size |
 
-At 2 players about 20% of games between meta agents still reach the limit: two cautious
-players can lock each other out of every set.
+The first 2-player agent (v0.3) still ran 21% of its games to the limit: two cautious players
+can lock each other out of every set. The hardened agent that replaced it (v0.5) stalls in
+0.2%. These are the official-rules agents; under championship rules a stopped game is scored,
+not lost, and 75% and 81% of games between the 5- and 6-player agents end at the limit.
 
 ## Championship mode (`engine.championship_rules`)
 
@@ -130,11 +137,14 @@ use it.
   - Only the number dice count for doubles; a third double still sends you to Jail.
     Utility rent uses the number dice (plus a 1–3 Speed Die face).
 - **Auctions** start at £1. If nobody bids, the richest player gets the property for £1
-  (championship FAQ).
+  (championship FAQ). The engine reads "richest" as the most cash in hand, and that can be
+  the player who just declined to buy.
 - **No trades heads-up**: once only two players are left, no more trades (championship FAQ, for
   preliminary games).
 - **Time limit and scoring.** Games stop after 150 rounds (in total player-turns, as above).
-  Players are then ranked by net worth and score finishing points: 28 for an outright win;
+  Players are then ranked by net worth (cash, plus each property at its price, or at half
+  if mortgaged, plus buildings at cost; a tie goes to the earlier seat) and score finishing
+  points: 28 for an outright win;
   with 2 players left 25 and 14; with 3 left 22, 12 and 6; with 4 left 19, 10, 5 and 3. The
   rules sheet stops at 4 survivors, so 5 and 6 survivors use an extrapolated 16/8/4/2/1 and
   13/6/3/2/1/0. That assumption decides most 5- and 6-player games between the championship

@@ -144,7 +144,7 @@ checks). This re-measures that exploit on 40,000 games, then refreshes the dashb
 make sync && make review
 ```
 
-An independent review found places where results were summarised or labelled wrongly, and rules the engine
+The first methodology review found places where results were summarised or labelled wrongly, and rules the engine
 simplifies that the housing findings might depend on. This job:
 
 1. re-reads every stored trade curve as a whole: each price range where both sides gain, curves that aren't

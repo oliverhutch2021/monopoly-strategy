@@ -5,7 +5,8 @@ from monopoly_meta import load_edition
 from monopoly_meta.engine import GameState
 
 # Player 0 and Player 1 are the same at every player count; each extra player ("bystander")
-# adds four scattered properties, chosen so that nobody else is close to a set.
+# adds four scattered properties. No bystander holds a set, but the first holds two of the three reds, with
+# Trafalgar Square unowned; and each one also adds deeds and cash, so table size and holdings change together.
 CORE = {
     0: (["Bow Street", "Marlborough Street", "Kings Cross Station", "Whitechapel Road"], 1200, 5),
     1: (["Vine Street", "Pall Mall", "Electric Company", "Euston Road"], 800, 24),
@@ -21,7 +22,7 @@ BYSTANDERS = [
 def orange_squeeze(n_players: int = 4) -> GameState:
     """Ten rounds in. Player 0 holds two oranges; Player 1 holds the third (Vine Street).
 
-    Works for 2-6 players: players 2+ are bystanders with four unrelated properties each.
+    Works for 2-6 players: players 2+ are bystanders with four properties each.
     """
     if not 2 <= n_players <= 6:
         raise ValueError("orange_squeeze supports 2-6 players")

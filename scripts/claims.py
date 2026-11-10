@@ -1,17 +1,17 @@
-"""Check the numbers on the front page (README.md) and in the full findings (FINDINGS.md) against the result tables
-they come from.
+"""Check the numbers on the front page (README.md), in the full findings (FINDINGS.md) and on the rules page
+(RULES.md) against the result tables they come from.
 
     python scripts/claims.py              # every claim, with OK or MISSING; exits 1 if any is missing
     python scripts/claims.py --quiet      # only the missing ones
 
-Each claim recomputes a number, or a row of a table, from results/final/tables and writes it the way the page does.
+Each claim recomputes a number, or a row of a table, from the result tables and writes it the way the page does.
 It passes when that text is on its page (line breaks and repeated spaces ignored): the front page's plain-English
-summary (claims "L1"-"L7") or the full findings (the rest). So when a re-run moves a number, the claim fails until the
-prose is updated, and an edit that mistypes a number fails too.
+summary (claims "L1"-"L8"), the rules page (claims "R") or the full findings (the rest). So when a re-run moves a
+number, the claim fails until the prose is updated, and an edit that mistypes a number fails too.
 
-Covered: the front page; findings 1-7 (simple bots), 13-14 (the final meta agents), 16-17 (trades under meta play)
-and 18 (rule sensitivity), the ones the deep run measured and the reviews checked. Findings 8-12 quote v0.4 and
-v0.5's summaries, which link to their own tables.
+Covered: the front page; the rules page's measured effects; findings 1-7 (simple bots), 8-12 (v0.4's searches and
+v0.5's hardening, from results/v04 and results/v05), 13-14 (the final meta agents), 16-17 (trades under meta play)
+and 18 (rule sensitivity). Everything else comes from results/final/tables, the deep run and its re-runs.
 """
 import argparse
 import json
@@ -25,7 +25,11 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"      # the front page: the plain-English summary
 FINDINGS = ROOT / "FINDINGS.md"  # the full findings
+RULES_PAGE = ROOT / "RULES.md"   # the rules, and what each simplification was measured to change
 TABLES = ROOT / "results" / "final" / "tables"
+V03 = ROOT / "results" / "tables"                             # the first meta agents
+V04 = ROOT / "results" / "v04" / "tables" / "unconventional"  # the searches against them
+V05 = ROOT / "results" / "v05" / "tables" / "hardened"        # the hardening
 DASH = "–"  # the pages' range dash
 
 
@@ -42,6 +46,12 @@ def times(x: float, d: int = 2) -> str:
 
 def pct(x: float, d: int = 0) -> str:
     return f"{100 * x:.{d}f}%"
+
+
+def chance(x: float) -> str:
+    """A win chance as finding 4's table writes it: a whole percent from 10%, one decimal below, two below 1%."""
+    p = 100 * x
+    return f"{p:.0f}%" if p >= 9.95 else f"{p:.1f}%" if p >= 0.995 else f"{p:.2f}%"
 
 
 def span(lo: float, hi: float, unit: str = "%") -> str:
@@ -127,6 +137,17 @@ class Claims:
             self._cache[name] = json.loads((self.tab / name).read_text())
         return self._cache[name]
 
+    def frame(self, path: Path) -> pd.DataFrame:
+        """A table from an earlier version's results (results/tables, results/v04, results/v05)."""
+        if str(path) not in self._cache:
+            self._cache[str(path)] = pd.read_csv(path)
+        return self._cache[str(path)].copy()
+
+    def reserves(self, mode: str) -> dict[int, tuple[float, float]]:
+        """Each final agent's cash held back when buying and when building."""
+        agents = self.json(f"meta_agents_{mode}.json")
+        return {int(n): (g["reserve"], g["build_reserve"]) for n, g in agents.items()}
+
     def later(self, name: str) -> dict[str, dict]:
         """later_deals_<name>.json with every key in every entry (NaN where the buyer never got the square). A table
         size the file leaves out counts as no deals."""
@@ -140,7 +161,7 @@ class Claims:
     def regex(self, finding: str, what: str, row_: tuple[str, str]) -> None:
         self.items.append((finding, what, *row_))
 
-    # the front page: its seven findings in plain words
+    # the front page: its seven findings in plain words, and how it says they were checked
     def landing(self) -> None:
         lp = self.read("landing_probabilities.csv").set_index("name")
         props = lp[lp.type.isin(["street", "station", "utility"])].landings_per_turn_long * 100
@@ -188,14 +209,27 @@ class Claims:
         sa = self.read("seat_advantage.csv")
         six = sa[sa.n_players == 6].set_index("seat")
         first, last = six.win_rate[0] / six.fair_share[0], six.win_rate[5] / six.fair_share[5]
-        self.text("L5", "seat order", f"At 6 players the first player wins {pct(first - 1)} more often than an equal "
-                  f"share, and the last player {pct(1 - last)} less")
+        self.text("L5", "seat order", f"the first player wins {pct(first - 1)} more often than an equal share, and the "
+                  f"last player {pct(1 - last)} less")
         cash = 1 - a["keep £200 more cash"]
         self.text("L6", "cash", f"keeping £200 more in hand costs {span(cash.min(), cash.max())} of their wins")
+        keep = {n: buying for n, (buying, _) in self.reserves("standard").items()}
+        big, small = [keep[n] for n in (4, 5, 6)], [keep[n] for n in (2, 3)]
+        bare = 1 - a["keep no cash buffer"]
+        self.text("L6", "the cushion", f"With 4 to 6 players they keep almost nothing ({span(min(big), max(big), '£')} "
+                  f"after buying); with 2 or 3 they keep {span(min(small), max(small), '£')}, and giving that cushion "
+                  f"up costs them {span(bare[[2, 3]].min(), bare[[2, 3]].max())}")
         v = pd.concat([self.read(f"meta_validation_{m}.csv") for m in ("standard", "championship")])
         best_c = v[v.name == "best challenger vs meta agents"].relative
-        self.text("L7", "no strategy unbeatable", f"which scores {pct(best_c.min() - 1)} to {pct(best_c.max() - 1)} "
-                  "more against them")
+        self.text("L7", "no strategy unbeatable", f"score {pct(best_c.min() - 1)} to {pct(best_c.max() - 1)} more "
+                  "against them")
+        mv = self.read("markov_validation.csv")
+        off = (mv.simulated / mv.markov - 1).abs().groupby(mv.card_draw).max()
+        within = "0.5%" if off["random"] < 0.005 else pct(off["random"], 1)
+        self.text("L8", "the exact odds against simulation", f"to within {within} when cards are drawn at random")
+        self.text("L8", "the real decks", f"by up to {pct(off['deck'], 1)}")
+        self.text("0", "the exact odds against simulation", f"matches to within **{within}**")  # "How it works"
+        self.text("0", "the real decks", f"by up to {pct(off['deck'], 1)} while someone is holding")
 
     # 1. landing rates (per 100 turns, rolling for doubles in jail; "short" = leaving jail at once)
     def landings(self) -> None:
@@ -211,7 +245,9 @@ class Claims:
         self.text("1", "Vine Street", f"then Vine Street ({per100['Vine Street']:.2f})")
         gain = lp.landings_per_turn_short / lp.landings_per_turn_long - 1
         both = (gain["Marylebone Station"] + gain["Vine Street"]) / 2
-        self.text("1", "leaving jail quickly", f"about **{pct(both)} more** traffic")
+        self.text("1", "paying to leave jail", f"{top} rises to {100 * lp.landings_per_turn_short[top]:.2f}, the "
+                  f"typical property gets about **{pct(gain[props.index].median())} more** traffic")
+        self.text("1", "leaving jail quickly", f"a roll away from Jail, about **{pct(both)} more**")
 
     # 2. payback with hotels, orange and green
     def payback(self) -> None:
@@ -226,10 +262,13 @@ class Claims:
         s = self.read("trade_curve_summary.csv")
         need = s[s.buyer == 0].set_index("n_players")
         for n, r in need.iterrows():
-            cells = [str(n), money(r.seller_min_price_win), money(r.buyer_max_price_win, bool(r.buyer_max_censored))]
-            if n in (3, 4):
-                cells.append(zone(r))
+            cells = [str(n), money(r.seller_min_price_win), money(r.buyer_max_price_win, bool(r.buyer_max_censored)),
+                     zone(r), f"{chance(r.p_win_base_seller)} / {chance(r.p_win_base_buyer)}",
+                     pct(r.p_win_buyer_if_free)]
             self.regex("4", f"deal zone, {n} players", row(*cells))
+        poor = need.p_win_base_buyer[need.buyer_max_censored.astype(bool)]  # where the buyer gains at every price
+        self.text("4", "what paying everything beats", f"the buyer wins about {span(poor.min(), poor.max())} of games "
+                  "without the deed")
         other = s[s.buyer != 0]
         lo, hi = other.seller_min_price_win.min(), other.seller_min_price_win.max()
         self.text("4", "selling to a bystander", f"(break-even {span(lo, hi, '£')})")
@@ -273,17 +312,31 @@ class Claims:
         z = live[live.buyer == 0].set_index("n_players")
         deal = z[z.deal_zone_exists.astype(bool)]
         none = [n for n in z.index if not z.deal_zone_exists[n]]
-        if len(deal):
+        if len(deal) and none:
             top = deal.loc[deal.buyer_max_price_win.idxmax()]
-            where = (f"{money(deal.seller_min_price_win.min())}{DASH}"
-                     f"{money(top.buyer_max_price_win, bool(top.buyer_max_censored))} at {sizes(deal.index)} players")
+            sliver = (f"{money(deal.seller_min_price_win.min())}{DASH}"
+                      f"{money(top.buyer_max_price_win, bool(top.buyer_max_censored))}")
+            where = (f"none at {listing(none, 'or')} players, and at {sizes(deal.index)} players only a sliver just "
+                     f"above that price ({sliver})")
         else:
-            where = "no deal at any table size"
-        self.text("4", "live deal zone", f"({where}" + (f", none at {listing(none, 'or')})" if none else ")"))
+            where = "a deal at every table size" if len(deal) else "no deal at any table size"
+        self.text("4", "live deal zone", where)
+        share = deal.deal_share_of_resamples
+        unsure = (deal.evidence == "between sampled prices only").all()
+        self.text("4", "live deal zone, evidence", ("The sliver lies between two prices played" if unsure else
+                  "The sliver holds at a price played") + (f", shows up in {span(share.min(), share.max())} of "
+                                                           "bootstrap resamples" if len(deal) else ""))
         by = live[live.buyer == 2].set_index("n_players")
         by = by[by.legal.astype(bool) & by.deal_zone_exists.astype(bool)]
-        self.text("4", "live bystander", f"deal at {listing(by.index)} players "
-                  f"({listing(zone(r) for _, r in by.iterrows())})" if len(by) else "deal at no table size")
+        clear = by[by.evidence == "confident at a sampled price"]
+        rest = by[by.evidence == "at a sampled price"]
+        if len(clear) + len(rest) != len(by):  # a zone that is only between prices: the text would be wrong
+            self.text("4", "live bystander", "a bystander deal that lies between the prices played")
+        self.text("4", "live bystander, clear", f"is a clear deal at {sizes(clear.index)} players "
+                  f"({listing(zone(r) for _, r in clear.iterrows())})" if len(clear) else "a clear deal nowhere")
+        self.text("4", "live bystander, within the noise", f"At {listing(rest.index)} players both sides gain at a "
+                  f"price played ({listing(zone(r) for _, r in rest.iterrows())}), but not by more than their margins "
+                  "of error" if len(rest) else "clear at every table size")
 
     def positions(self) -> None:
         """The set-completing sale in 100 positions from real games (scripts/17_game_positions.py)."""
@@ -302,6 +355,8 @@ class Claims:
             spec.loader.exec_module(script)
             screened = int(g.game_seed.max() - script.SCREEN_SEED + 1)
         self.text("4", "positions screened", f"out of {screened:,} screened games between simple bots")
+        cash = g.drop_duplicates("position").buyer_cash
+        self.text("4", "positions, buyers' cash", f"the median buyer in these positions holds {money(cash.median())}")
         gains = "gains" if (kept.buyer_change[[2, 3, 4]] > 0).all() else "doesn't always gain"
         self.text("4", "positions, kept for good", f"the buyer {gains} on average at 2, 3 and 4 times face value "
                   f"({kept.buyer_change[2]:+.1f}, {kept.buyer_change[3]:+.1f} and {kept.buyer_change[4]:+.1f} points "
@@ -384,6 +439,80 @@ class Claims:
         self.text("7", "championship length", f"the median is {rounds(ca[2])} rounds at 2 players and "
                   f"{rounds(ca[6])} at 6")
 
+    # 8-12. the searches against the first agents (v0.4) and the hardening (v0.5), from their own results folders
+    def searches(self) -> None:
+        s = self.frame(V04 / "summary.csv").set_index(["mode", "n_players"])
+        best = s.best_find
+        self.text("8", "the best finds", f"the best finds score {best.min():.1f} to {best.max():.1f} times what the "
+                  "agent scores")
+        for n in range(2, 7):
+            self.regex("8", f"best find, {n} players", row(str(n), times(best["standard", n]),
+                                                           times(best["championship", n])))
+        arms = {}
+        for (mode, n) in s.index:
+            if f"v04/{mode}_{n}p" not in self._cache:
+                self._cache[f"v04/{mode}_{n}p"] = json.loads((V04 / f"{mode}_{n}p.json").read_text())
+            arms[mode, n] = self._cache[f"v04/{mode}_{n}p"]["tactics_arm"]
+        bigger = [k for k, a in arms.items() if a["tvc_ci_low"] > 1]
+        smaller = [k for k, a in arms.items() if a["tvc_ci_high"] < 1]
+        ratio = s.tactics_vs_control
+        self.text("8", "with and without the new moves", f"a bigger exploit in {words(len(bigger))} of the "
+                  f"{words(len(arms))} settings (most at {ratio.idxmax()[1]} players under "
+                  f"{'championship' if ratio.idxmax()[0] == 'championship' else 'official'} rules: "
+                  f"{ratio.max():.2f} times the search without them), about the same in "
+                  f"{words(len(arms) - len(bigger) - len(smaller))}, and a smaller one at "
+                  f"{listing(n for _, n in smaller)} players under "
+                  f"{'official' if {m for m, _ in smaller} == {'standard'} else 'some'} rules "
+                  f"({listing(sorted({f'{ratio[k]:.2f}' for k in smaller}))} times)")
+        tried = s.strategies_tried
+        few = tried["championship"][[5, 6]]
+        rest = tried.drop([("championship", 5), ("championship", 6)])
+        self.text("8", "search budgets", f"MAP-Elites tried {rest.min():,} to {rest.max():,} strategies per setting, "
+                  f"but only {few[5]:,} and {few[6]:,} at 5 and 6 players under championship rules")
+        old = self.frame(V03 / "meta_validation_standard.csv")
+        old = old[(old.name == "meta agent at a table of meta agents") & (old.n_players == 2)].iloc[0]
+        self.text("8", "the first 2-player agent", f"ran {pct(old.capped_share)} of its own games to the time limit, a "
+                  f"loss for both players, so it scored {old.relative:.2f} of a fair share")
+
+        ab = pd.concat([self.frame(V05 / f"ablations_{m}.csv") for m in ("standard", "championship")])
+        bare = ab[(ab.n_players == 4) & (ab.tactics == "no new moves") & ab.name.str.startswith("v0.4 find")].ratio
+        self.text("9", "finds without the new moves", f"with every new move off ({bare.min():.2f}{DASH}"
+                  f"{times(bare.max())})")
+
+        def joins(mode):  # one meta agent at a table of each of the three best finds
+            league = pd.read_csv(V04 / f"league_{mode}_5p.csv", index_col=0)
+            cells = league.loc["meta agent", [c for c in league.columns if c.startswith("find")]]
+            return f"{cells.min():.1f}{DASH}{cells.max():.1f} times"
+        self.text("10", "a meta agent among finds", f"scores {joins('standard')} what the find scores in that seat "
+                  f"under official rules, and {joins('championship')} under championship rules")
+
+        h = self.frame(V05 / "summary.csv").set_index(["mode", "n_players"])
+
+        def cell(mode, n):
+            r = h.loc[(mode, n)]
+            after = f"**{times(r.worst_v05)}**" if r.kept == "v0.5" else times(r.worst_v05)
+            return [f"{times(r.worst_v03)} → {after}", r.kept]
+        for n in range(2, 7):
+            self.regex("11", f"hardening, {n} players", row(str(n), *cell("standard", n), *cell("championship", n)))
+        kept = h[h.kept == "v0.5"]
+        self.text("11", "agents improved", f"improved {words(len(kept))} of the {words(len(h))} agents")
+        two = h.xs(2, level="n_players")
+        self.text("11", "new against old, 2 players", f"scores {times(two.new_in_old['standard'])} (official) and "
+                  f"{times(two.new_in_old['championship'])} (championship); one v0.3 agent at a table of v0.5 agents "
+                  f"scores only {times(two.old_in_new['standard'])} and {times(two.old_in_new['championship'])}")
+        self.text("11", "still beatable", f"the {words(len(kept))} new agents' worst measured exploits are still "
+                  f"{kept.worst_v05.min():.2f}{DASH}{times(kept.worst_v05.max())}")
+        worse = h[h.kept == "v0.3"]
+        six, one = worse.loc[("standard", 6)], worse[worse.rounds == 1]
+        self.text("12", "6 players, official", f"the rounds made things much worse ({times(six.worst_v05)})")
+        where = [f"{n} players under {'official' if m == 'standard' else 'championship'} rules" for m, n in one.index]
+        self.text("12", "one round only", f"At {listing(where)} only one round ran, and the full searches then beat "
+                  f"its agent by more than the old one ({times(one.worst_v05.iloc[0])} against "
+                  f"{times(one.worst_v03.iloc[0])})" if len(one) == 1 else "every setting ran several rounds")
+        four = h.loc[("standard", 4)]
+        self.text("13", "official 4 players, which challenger", f"({times(four.known_worst_after)} on 10,000 games in "
+                  f"v0.5's checks), not the fresh searches' best ({times(max(four.arm_after, four.find_after))})")
+
     # 13. the final agents re-measured
     def validation(self) -> None:
         v = {m: self.read(f"meta_validation_{m}.csv").set_index(["name", "n_players"]) for m in
@@ -412,9 +541,29 @@ class Claims:
         self.text("14", "no trading", f"an agent that never trades keeps {times(nt[3])} its share at 3 players, "
                   f"{times(nt[4])} at 4, {times(nt[5])} at 5 and {times(nt[6])} at 6. At 2 players it hardly matters "
                   f"({times(nt[2])})")
+        nt_c = c["no trading at all"]
+        trade = [n for n in range(2, 7) if abs(nt_c[n] - 1) > 1e-9]  # where the championship agents trade at all
+        self.text("14", "no trading, championship", f"only the {listing(trade)}-player agents trade with each other "
+                  f"({listing(times(nt_c[n]) for n in trade)} without it)" if trade else "no championship agent trades")
         cash = cost(s["keep £200 more cash"])
         self.text("14", "cash", f"Keeping £200 more costs {span(cash[[2, 3, 4]].min(), cash[[2, 3, 4]].max())} of "
                   f"wins at 2{DASH}4 players, {pct(cash[5])} at 5 and {pct(cash[6])} at 6")
+        keep = {m: self.reserves(m) for m in a}
+        bare, big = cost(s["keep no cash buffer"]), [keep["standard"][n][0] for n in (4, 5, 6)]
+        each = (f"each loses {pct(bare[2])} of its wins" if pct(bare[2]) == pct(bare[3]) else
+                f"they lose {pct(bare[2])} and {pct(bare[3])} of their wins")
+        little = "under 1%" if bare[[4, 5, 6]].max() < 0.01 else f"up to {pct(bare[[4, 5, 6]].max())}"
+        self.text("14", "the cushion", f"the 2- and 3-player agents hold back {money(keep['standard'][2][0])} and "
+                  f"{money(keep['standard'][3][0])} when buying, and without that cushion {each}, while the 4{DASH}6 "
+                  f"player agents hold back {span(min(big), max(big), '£')} and lose {little} without it")
+        bare_c = cost(c["keep no cash buffer"])
+        self.text("14", "the cushion, championship", f"the {bare_c.idxmax()}-player agent's cushion matters most "
+                  f"({pct(bare_c.max())} of its credit)")
+        for mode, agent in (("standard", "v0.5 | v0.3 | v0.5 | v0.5 | v0.3"),
+                            ("championship", "v0.5 | v0.5 | v0.5 | v0.3 | v0.3")):
+            cells = [f"{money(keep[mode][n][0])} / {money(keep[mode][n][1])}" for n in range(2, 7)]
+            self.text("14", f"cash held back, {mode}", f"| Agent | {agent} | | Cash held back when buying† / when "
+                      f"building | {' | '.join(cells)} |")
         hot = cost(s["never build hotels"])
         self.text("14", "hotels", f"Stopping at four houses costs {pct(hot[2])} at 2 players and "
                   f"{span(hot[[4, 5, 6]].min(), hot[[4, 5, 6]].max())} at 4{DASH}6")
@@ -503,10 +652,21 @@ class Claims:
         none = [n for n in live.index if live.evidence[n] == "no whole-pound price"]
         self.text("16", "live zones, meta", f"({zone(live.loc[4])} at 4 players, {zone(live.loc[6])} at 6), and at "
                   + " and ".join(map(str, none)) + " players to no whole pound at all")
+        slivers = live.loc[[4, 6]]
+        share = slivers.deal_share_of_resamples
+        self.text("16", "live zones, evidence", ("each lies between two prices played" if
+                  (slivers.evidence == "between sampled prices only").all() else "one holds at a price played")
+                  + f", shows up in {span(share.min(), share.max())} of bootstrap resamples")
+        agents = self.json("meta_agents_standard.json")
+        own = all(abs(later[f"{n}p"]["median_price"] - 200 * agents[str(n)]["offer_mult"]) < 1 for n in big)
+        self.text("16", "the going rate is a setting", "Each price is that agent's offer setting times the £200 face "
+                  "value" if own else "The prices are not the agents' offer settings")
         lc = self.later("championship")["4p"]
         clive = self.read("meta_trade_summary_championship_live.csv").set_index("n_players")
+        how = "between prices played" if clive.evidence[4] == "between sampled prices only" else "at a price played"
         self.text("16", "championship, carrying on", f"the 4-player agents trade it later for "
-                  f"{money(lc['median_price'])} and the zone shrinks to {zone(clive.loc[4])}")
+                  f"{money(lc['median_price'])} and the zone shrinks to {zone(clive.loc[4])} ({how}, in "
+                  f"{pct(clive.deal_share_of_resamples[4])} of resamples")
         tr = self.read("scoring_trades.csv")
         loss = -tr.seller_points
         self.text("16", "championship scoring", f"the seller loses {loss.min():.1f}{DASH}{loss.max():.1f} points per "
@@ -537,6 +697,22 @@ class Claims:
         good = sum((g.verdict == "both gain (95%)").any() for _, g in deals)
         unpaid = [g for _, g in deals if g.price.isna().all()]
         names = " and ".join(sorted({g.name.iloc[0] for g in unpaid}))
+        up, down, without = [], [], []  # how far inside each quoted zone its confident range starts and ends
+        for b, kind in (("simple", "simple-bot"), ("meta", "official"), ("championship", "championship")):
+            for sq, label in self.LABELS.items():
+                r = p4[b].loc[sq]
+                if not (r.legal and r.deal_zone_exists):
+                    continue
+                if not isinstance(r.confident_deal_ranges, str):
+                    without.append(f"{label.split(' (')[0]}'s {kind} zone")
+                    continue
+                ends = [float(x) for piece in r.confident_deal_ranges.split(";") for x in piece.split("-")]
+                up.append(ends[0] - r.seller_min_price_win)
+                if not r.buyer_max_censored:
+                    down.append(r.buyer_max_price_win - ends[-1])
+        self.text("17", "confident ranges", f"starts {span(min(up), max(up), '£')} higher and ends "
+                  f"{span(min(down), max(down), '£')} lower than the zones in this table, and {listing(without)} has "
+                  "no such range")
         self.text("17", "narrow zones", f"There are {deals.ngroups} such deals across all the tables")
         self.text("17", "narrow zones replayed", f"{good} hold up")
         self.text("17", "narrow zones not established", f"{deals.ngroups - good - len(unpaid)} aren't established at "
@@ -606,6 +782,13 @@ class Claims:
                   f"championship 4-player games ({ch.houses_auctioned_per_game:.1f} houses auctioned per game) and "
                   f"{pct(st.games_with_contested_houses)} of official 4-player games, yet no candidate's edge moves by "
                   f"more than {pct(np.ceil(auctions * 100) / 100)}")
+        two = h.loc[("standard", 2, "engine rules")]
+        self.text("R", "house auctions", f"houses are contested in {pct(st.games_with_contested_houses)} of official "
+                  f"4-player games, {pct(two.games_with_contested_houses)} of 2-player games and "
+                  f"{pct(ch.games_with_contested_houses)} of championship 4-player games "
+                  f"({ch.houses_auctioned_per_game:.1f} houses auctioned per game)")
+        self.text("R", "house auctions, edges", "house auctions change no edge by more than "
+                  f"{pct(np.ceil(auctions * 100) / 100)}")
         any_time = change[(rest.variant == "build any time") & (rest.candidate != "simple bot")].max()
         self.text("18", "building at any time", f"Building at any time moves those edges by "
                   f"{pct(np.ceil(any_time * 100) / 100)} at most")
@@ -613,8 +796,16 @@ class Claims:
         simple = simple.set_index("variant").ratio
         self.text("18", "simple bot, building at any time", f"it rises from {times(simple['engine rules'])} to "
                   f"{times(simple['build any time'])}")
+        self.text("R", "building at any time", f"Moves the tested agents' edges by "
+                  f"{pct(np.ceil(any_time * 100) / 100)} at most; helps the simple bot more "
+                  f"({times(simple['engine rules'])} to {times(simple['build any time'])} against the championship "
+                  "4-player agents)")
         stations = change[rest.variant == "mortgaged stations count"].max()
         self.text("18", "mortgaged stations", f"Counting mortgaged stations moves nothing by more than "
+                  f"{pct(np.ceil(stations * 100) / 100)}")
+        self.text("R", "mortgaged stations", f"Moves no tested result by more than "
+                  f"{pct(np.ceil(stations * 100) / 100)}.")
+        self.text("R", "mortgaged stations, in the rules list", "The choice moves no tested result by more than "
                   f"{pct(np.ceil(stations * 100) / 100)}")
         lock = c[(c["mode"] == "standard") & (c.n_players == 4) & (c.candidate == "housing lock on (14)")]
         lock = lock.set_index("variant").ratio
@@ -631,13 +822,26 @@ class Claims:
         others = adj[~under_any_time & (adj.variant != "mortgage choice on transfer")]
         which = (f" (the {lifts.candidate.iloc[0]}'s {pct(1 - lifts.vs_engine_rules.iloc[0])})" if len(lifts) == 1
                  else "")
-        where = (f"{int(under_any_time.sum())} of them with building at any time and {words(len(lifts))} with lifting a "
-                 f"received mortgage at once{which}" if others.empty else "some with other rules")
+        where = (f"{int(under_any_time.sum())} of them with building at any time and {words(len(lifts))} with lifting "
+                 f"a received mortgage at once{which}" if others.empty else "some with other rules")
         self.text("18", "Bonferroni", f"After a Bonferroni adjustment {len(adj)} still show a change, {where}")
+        # "build any time" and "any time + auctions" are nearly the same test, so one result can be counted twice
+        twice = adj[under_any_time].groupby(["mode", "n_players", "candidate"]).size()
+        self.text("18", "Bonferroni, repeats", f"The {int(under_any_time.sum())} are really {len(twice)} results: "
+                  f"{int((twice > 1).sum())} of them appear twice")
         readings = tests.reading.value_counts()
-        self.text("18", "equivalence", f"Read against a tolerance of ±3% set before the run, "
+        self.text("18", "equivalence", f"Read against a tolerance of ±3%, "
                   f"{readings.get('equivalent', 0)} of the {len(tests)} are equivalent (no change that large is "
                   f"plausible) and {readings.get('inconclusive', 0)} are inconclusive")
+        changed = (tests.vs_engine_adj_low > 1) | (tests.vs_engine_adj_high < 1)
+
+        def equivalent(tol):  # as scripts/15_rule_sensitivity.py reads a comparison, at another tolerance
+            return int((~changed & (tests.vs_engine_adj_low >= 1 - tol) & (tests.vs_engine_adj_high <= 1 + tol)).sum())
+        first = int((tests.variant != "mortgage choice on transfer").sum())  # the comparisons of the first two runs
+        self.text("18", "the tolerance", f"chosen after the first {first} comparisons had been seen, so it isn't a "
+                  f"threshold fixed in advance; at ±2% and ±4% the equivalent count is {equivalent(0.02)} and "
+                  f"{equivalent(0.04)}" if equivalent(0.03) == readings.get("equivalent", 0) else
+                  "the tolerance is not ±3%")
         lift = rest[rest.variant == "mortgage choice on transfer"]
         agents = (lift[lift.candidate != "simple bot"].vs_engine_rules - 1).abs().max()
         sb = c[(c["mode"] == "standard") & (c.n_players == 4) & (c.candidate == "simple bot")].set_index("variant")
@@ -653,9 +857,16 @@ class Claims:
                   f"change hands in a 4-player game between the final agents")
         self.text("18", "mortgage choice, lifted", f"the agents lift {pct(lifted.min())}{DASH}{pct(lifted.max())} of "
                   "them at once".replace(f"%{DASH}", DASH))
+        self.text("R", "mortgage choice", f"{four.min():.0f}{DASH}{four.max():.0f} times in a 4-player game between "
+                  "the final meta agents, about nine in ten from bankrupt players, and they lift "
+                  f"{pct(lifted.min())}{DASH}{pct(lifted.max())} at once. Moves the tested agents' edges by "
+                  f"{pct(np.ceil(agents * 100) / 100)} at most; lowers the simple bot's by "
+                  f"{pct(1 - sb.vs_engine_rules['mortgage choice on transfer'])}".replace(f"%{DASH}", DASH))
         hot = h.games_with_contested_hotels
         worst = hot.idxmax()
         self.text("18", "hotels", f"wanted more hotels than the bank had in at most {pct(hot.max(), 1)} of games "
+                  f"({worst[0].replace('standard', 'official')} rules, {worst[1]} players)")
+        self.text("R", "hotels", f"in at most {pct(hot.max(), 1)} of games "
                   f"({worst[0].replace('standard', 'official')} rules, {worst[1]} players)")
         prev = self.read("sensitivity/candidates_previous.csv")
         keys = ["mode", "n_players", "variant", "candidate"]
@@ -714,9 +925,37 @@ class Claims:
         self.text("18", "lock factorial intervals", f"95% intervals ±{np.floor(half.min() * 1000) / 1000:.3f}{DASH}"
                   f"{np.ceil(half.max() * 1000) / 1000:.3f}")
 
+    # the rules page: how often games reach a turn limit
+    def limits(self) -> None:
+        sa = self.read("seat_advantage.csv").groupby("n_players")
+        capped = (sa.limit_wins.sum() / sa.games.first() * 100_000).round().astype(int)
+        self.text("R", "the 4,000-turn cap, simple bots", f"({capped.max()} in 100,000 at most, at any table size)")
+        sv = self.read("strategy_variants.csv")
+        worst = sv.loc[sv.capped_share.idxmax()]
+        name = {"hard_bargain": "hard-bargainer"}.get(worst.variant, worst.variant)
+        self.text("R", "the 4,000-turn cap, rare traders", f"up to {pct(worst.capped_share, 1)} for the {name} at "
+                  f"{worst.n_players} players")
+        p90 = self.read("house_rules.csv").query("rules == 'official'").set_index("n_players").p90_rounds
+        whole = lambda x: int(np.floor(x + 0.5))  # noqa: E731
+        self.text("R", "90th-percentile length", f"({whole(p90[2])} rounds at 2 players, {whole(p90[4])} at 4, "
+                  f"{whole(p90[6])} at 6)")
+
+        def stalled(table):  # the share of games between copies of one meta agent that reach the limit
+            return table[table.name == "meta agent at a table of meta agents"].set_index("n_players").capped_share
+        official = stalled(self.read("meta_validation_standard.csv"))
+        self.text("R", "stalls, final agents", f"{100 * official.min():.1f}{DASH}{100 * official.max():.1f}% of games "
+                  "between the final agents stall, at any table size")
+        old = stalled(self.frame(V03 / "meta_validation_standard.csv"))
+        self.text("R", "stalls, 2 players", f"(v0.3) still ran {pct(old[2])} of its games to the limit")
+        self.text("R", "stalls, 2 players, hardened", f"(v0.5) stalls in {pct(official[2], 1)}")
+        champ = stalled(self.read("meta_validation_championship.csv"))
+        self.text("R", "championship games at the limit", f"{pct(champ[5])} and {pct(champ[6])} of games between the "
+                  "5- and 6-player agents end at the limit")
+
     def all(self) -> list[Claim]:
         for step in (self.landing, self.landings, self.payback, self.vine_simple, self.strategies, self.seats,
-                     self.lengths, self.validation, self.ablations, self.vine_meta, self.properties, self.sensitivity):
+                     self.lengths, self.searches, self.validation, self.ablations, self.vine_meta, self.properties,
+                     self.sensitivity, self.limits):
             step()
         return self.items
 
@@ -757,12 +996,29 @@ def on_front_page(item: Claim) -> bool:
     return item[0].startswith("L")
 
 
-def check_pages(items: list[Claim], front: str | None = None, findings: str | None = None) -> list[Claim]:
-    """The claims missing from their page: the front page's ("L…") from README.md, the rest from FINDINGS.md."""
+def on_rules_page(item: Claim) -> bool:
+    return item[0] == "R"
+
+
+def where(item: Claim) -> str:
+    """The page a claim is checked on, as the report names it."""
+    if on_front_page(item):
+        return "front page"
+    if on_rules_page(item):
+        return "rules page"
+    return "how it works" if item[0] == "0" else f"finding {item[0]:>2}"
+
+
+def check_pages(items: list[Claim], front: str | None = None, findings: str | None = None,
+                rules: str | None = None) -> list[Claim]:
+    """The claims missing from their page: the front page's ("L…") from README.md, the rules page's ("R") from
+    RULES.md, the rest from FINDINGS.md."""
     front = README.read_text() if front is None else front
     findings = FINDINGS.read_text() if findings is None else findings
+    rules = RULES_PAGE.read_text() if rules is None else rules
     return (check(front, [c for c in items if on_front_page(c)])
-            + check(findings, [c for c in items if not on_front_page(c)]))
+            + check(rules, [c for c in items if on_rules_page(c)])
+            + check(findings, [c for c in items if not on_front_page(c) and not on_rules_page(c)]))
 
 
 def main(argv=None) -> int:
@@ -786,10 +1042,10 @@ def main(argv=None) -> int:
     for item in items:
         bad = any(item is m for m in missing)
         if bad or not args.quiet:
-            where = "front page" if on_front_page(item) else f"finding {item[0]:>2}"
-            lines.append(f"{'MISSING' if bad else 'ok':7} {where}, {item[1]}: {item[2]}")
+            lines.append(f"{'MISSING' if bad else 'ok':7} {where(item)}, {item[1]}: {item[2]}")
     lines.append(f"{len(items) - len(missing)} of {len(items)} claims match the tables "
-                 f"({sum(map(on_front_page, items))} on the front page, the rest in the full findings)")
+                 f"({sum(map(on_front_page, items))} on the front page, {sum(map(on_rules_page, items))} on the rules "
+                 "page, the rest in the full findings)")
     print("\n".join(lines))
     if args.report:
         path = args.report if args.report.is_absolute() else ROOT / args.report

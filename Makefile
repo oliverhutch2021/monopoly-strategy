@@ -4,7 +4,8 @@
 
 SHELL := /bin/bash
 VENV ?= $(HOME)/.venvs/monopoly-strategy
-PY := $(VENV)/bin/python
+# the project's own environment if `make setup` has made one, else whatever python3 is active (e.g. after pip install)
+PY := $(if $(wildcard $(VENV)/bin/python),$(VENV)/bin/python,python3)
 FORCE ?=
 FORCE_FLAG := $(if $(FORCE),--force,)
 WATCH ?= 1
@@ -20,8 +21,8 @@ help:  ## List the commands
 
 setup:  ## Create or update the Python environment (Python 3.12, on the WSL disk)
 	@command -v uv >/dev/null || { echo "uv is missing: run bash bootstrap.sh"; exit 1; }
-	@test -x $(PY) || uv venv --quiet --python 3.12 $(VENV)
-	uv pip install --quiet --python $(PY) -e ".[dev]"
+	@test -x $(VENV)/bin/python || uv venv --quiet --python 3.12 $(VENV)
+	uv pip install --quiet --python $(VENV)/bin/python -e ".[dev]"
 	@echo "Python environment ready at $(VENV)"
 
 test:  ## Run the test suite

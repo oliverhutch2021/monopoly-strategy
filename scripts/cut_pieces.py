@@ -1,4 +1,4 @@
-"""Cut the playing pieces out of Oliver's artwork sheet for the live viewer.
+"""Cut the playing pieces out of Oliver's artwork sheet (AI-generated to his design) for the live viewer.
 
     python scripts/cut_pieces.py
 

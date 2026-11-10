@@ -274,7 +274,7 @@ footer { color: #9fb1a5; font-size: 11.5px; padding: 0 18px 14px; line-height: 1
   </div>
 </div>
 <footer>Monopoly Meta is a student project, not affiliated with or endorsed by Hasbro; the board artwork here is the project's own and the
-pieces are Oliver Hutchinson's.
+pieces were designed by Oliver Hutchinson and generated with an AI image tool.
 Each game is replayed from your PC's run with the same code, seed and players. Win chances come from quick playouts of the position
 and are rough (±8 points or so).</footer>
 <script>
@@ -283,7 +283,8 @@ const NS = 'http://www.w3.org/2000/svg';
 const C = 134, N = 40, W = (1000 - 2 * C) / 9, BAND = 27;
 const PCOL = ['#e5302d', '#2448d8', '#1d9e3c', '#d9a300', '#7b3fe0', '#f2651c', '#0fa9cf', '#df2a85'];
 const ODDS_PLAYOUTS = 64;
-// The players' pieces: Oliver's artwork (watch/pieces, cut from his sheet by scripts/cut_pieces.py), metal pieces
+// The players' pieces: designed by Oliver, generated with an AI image tool (watch/pieces, cut from his sheet by
+// scripts/cut_pieces.py), metal pieces
 // each glowing in its player's colour. Loaded with the board; the first six go to players 1-6.
 let PIECES = [], PNAME = PCOL.map((c, k) => `Player ${k + 1}`);
 const INK = '#1f1b15';

@@ -23,8 +23,9 @@ mortgage_transfer_choice), on the same seeds in every variant, from a seed offse
 2. Whether a variant changes a candidate's edge: its ratio under the variant ÷ its ratio under the engine's rules,
    with a bootstrap that resamples the same games (seeds) in both, so the pairing across variants is kept.
    Intervals are 95%, and also Bonferroni-adjusted for the number of such comparisons (a normal approximation on
-   the log scale, from the same bootstrap). Each comparison is then read against a tolerance of ±3%, set before the
-   run (a change that small can't reverse a verdict in these tables whose interval is more than 3% from 1):
+   the log scale, from the same bootstrap). Each comparison is then read against a tolerance of ±3%
+   (chosen after the first 52 comparisons were in, so not a pre-registered threshold; a change that small can't
+   reverse a verdict in these tables whose interval is more than 3% from 1):
    changed (the adjusted interval excludes 1 and reaches past the tolerance), a small change (it excludes 1 but stays
    within the tolerance), equivalent (it includes 1 and stays within the tolerance) or inconclusive. Each game's
    credits are kept (games/<setting>.npz), and where the previous run's are too (games/<setting>.previous.npz), the
@@ -412,8 +413,8 @@ def summary(cand: pd.DataFrame, hous: pd.DataFrame, seat: pd.DataFrame, dropped:
              f"{count.get('changed', 0) + count.get('small change', 0)} of the {tests} still exclude 1: those edges "
              f"change ({count.get('small change', 0)} of them by less than {TOLERANCE:.0%} either way). Of the rest, "
              f"{count.get('equivalent', 0)} are equivalent within ±{TOLERANCE:.0%} (the adjusted interval lies inside "
-             f"[{1 - TOLERANCE:.2f}, {1 + TOLERANCE:.2f}], a tolerance set before the run: no change big enough to "
-             "reverse a verdict here is plausible), "
+             f"[{1 - TOLERANCE:.2f}, {1 + TOLERANCE:.2f}], a tolerance chosen after the first comparisons were in: no "
+             "change big enough to reverse a verdict here is plausible), "
              f"{count.get('the same games', 0)} are untouched (the variant's rule never came into play) and "
              f"{count.get('inconclusive', 0)} are inconclusive (a change of a few percent is still possible).", ""]
     for (mode, n), d in cand.groupby(["mode", "n_players"], sort=False):
